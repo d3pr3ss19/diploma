@@ -1,5 +1,6 @@
 import { Alert, Button, Form, Input, Modal, Select, Space, Table, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { extractApiErrorMessage } from '../api/error';
 import { createSubscriber, getSubscribers } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
@@ -18,16 +19,21 @@ const uuidRule = {
   message: 'Введите корректный UUID',
 };
 
+const PAGE_SIZE = 10;
+
 export function SubscribersPage() {
   const [items, setItems] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<'newest' | 'oldest' | 'nameAsc' | 'nameDesc'>('newest');
   const [form] = Form.useForm<CreateSubscriberForm>();
   const [messageApi, contextHolder] = message.useMessage();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const search = searchParams.get('q') ?? '';
+  const sort = (searchParams.get('sort') as 'newest' | 'oldest' | 'nameAsc' | 'nameDesc' | null) ?? 'newest';
+  const currentPage = Number(searchParams.get('page') ?? '1') || 1;
 
   async function loadSubscribers() {
     try {
@@ -73,6 +79,21 @@ export function SubscribersPage() {
 
     return sorted;
   }, [items, search, sort]);
+
+  function updateParam(key: string, value: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value) {
+      next.set(key, value);
+    } else {
+      next.delete(key);
+    }
+
+    if (key !== 'page') {
+      next.set('page', '1');
+    }
+
+    setSearchParams(next);
+  }
 
   function openCreateModal() {
     const auth = readAuth();
@@ -120,12 +141,12 @@ export function SubscribersPage() {
           allowClear
           placeholder="Поиск по ФИО, адресу или телефону"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => updateParam('q', event.target.value)}
           style={{ width: 320 }}
         />
         <Select
           value={sort}
-          onChange={setSort}
+          onChange={(value) => updateParam('sort', value)}
           style={{ width: 240 }}
           options={[
             { value: 'newest', label: 'Сначала новые' },
@@ -142,6 +163,13 @@ export function SubscribersPage() {
         rowKey="id"
         loading={loading}
         dataSource={filteredItems}
+        pagination={{
+          current: currentPage,
+          pageSize: PAGE_SIZE,
+          total: filteredItems.length,
+          showSizeChanger: false,
+          onChange: (page) => updateParam('page', String(page)),
+        }}
         columns={[
           { title: 'ФИО', dataIndex: 'fullName', key: 'fullName' },
           { title: 'Телефон', dataIndex: 'phone', key: 'phone', render: (value: string | null) => value ?? '—' },

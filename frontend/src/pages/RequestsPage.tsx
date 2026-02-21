@@ -1,5 +1,6 @@
-import { Alert, Button, Form, Input, List, Modal, Select, Space, Tag, Typography, message } from 'antd';
+import { Alert, Button, Form, Input, List, Modal, Pagination, Select, Space, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { extractApiErrorMessage } from '../api/error';
 import { createRequest, getRequests } from '../api/requests';
 import { readAuth } from '../app/auth-storage';
@@ -19,17 +20,23 @@ const uuidRule = {
   message: 'Введите корректный UUID',
 };
 
+const PAGE_SIZE = 10;
+
 export function RequestsPage() {
   const [items, setItems] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED'>('ALL');
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
   const [form] = Form.useForm<CreateRequestForm>();
   const [messageApi, contextHolder] = message.useMessage();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const statusFilter =
+    (searchParams.get('status') as 'ALL' | 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED' | null) ?? 'ALL';
+  const search = searchParams.get('q') ?? '';
+  const sort = (searchParams.get('sort') as 'newest' | 'oldest' | null) ?? 'newest';
+  const currentPage = Number(searchParams.get('page') ?? '1') || 1;
 
   async function loadRequests() {
     try {
@@ -66,6 +73,26 @@ export function RequestsPage() {
 
     return sorted;
   }, [items, search, sort, statusFilter]);
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredItems.slice(start, start + PAGE_SIZE);
+  }, [currentPage, filteredItems]);
+
+  function updateParam(key: string, value: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value) {
+      next.set(key, value);
+    } else {
+      next.delete(key);
+    }
+
+    if (key !== 'page') {
+      next.set('page', '1');
+    }
+
+    setSearchParams(next);
+  }
 
   function openCreateModal() {
     const auth = readAuth();
@@ -117,12 +144,12 @@ export function RequestsPage() {
           allowClear
           placeholder="Поиск по заголовку, описанию, категории"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => updateParam('q', event.target.value)}
           style={{ width: 340 }}
         />
         <Select
           value={statusFilter}
-          onChange={setStatusFilter}
+          onChange={(value) => updateParam('status', value)}
           style={{ width: 220 }}
           options={[
             { value: 'ALL', label: 'Все статусы' },
@@ -134,7 +161,7 @@ export function RequestsPage() {
         />
         <Select
           value={sort}
-          onChange={setSort}
+          onChange={(value) => updateParam('sort', value)}
           style={{ width: 200 }}
           options={[
             { value: 'newest', label: 'Сначала новые' },
@@ -148,7 +175,7 @@ export function RequestsPage() {
       <List
         bordered
         loading={loading}
-        dataSource={filteredItems}
+        dataSource={paginatedItems}
         renderItem={(item) => (
           <List.Item>
             <Space direction="vertical" size={0}>
@@ -158,6 +185,15 @@ export function RequestsPage() {
             <Tag style={{ marginLeft: 'auto' }}>{item.status}</Tag>
           </List.Item>
         )}
+      />
+
+      <Pagination
+        current={currentPage}
+        pageSize={PAGE_SIZE}
+        total={filteredItems.length}
+        showSizeChanger={false}
+        onChange={(page) => updateParam('page', String(page))}
+        style={{ marginTop: 16, textAlign: 'right' }}
       />
 
       <Modal
