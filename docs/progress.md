@@ -8,7 +8,7 @@
 - [x] Шаг 2.1: создан каркас backend (NestJS + Prisma schema + health + модули).
 - [x] Шаг 2.2: подключен PrismaModule и добавлены сервисы `subscribers` / `requests`.
 - [x] Шаг 2.3: реализована реальная работа с БД для базовых операций `subscribers` и `requests`.
-- [ ] Шаг 2.4: добавить валидацию DTO и обработку ошибок.
+- [x] Шаг 2.4: добавлены валидация DTO и единый формат ошибок (HTTP/Prisma filters).
 - [ ] Шаг 2.5: добавить auth/JWT guards и RBAC.
 - [ ] Шаг 3.1: создать каркас frontend (React + Vite + TS + UI kit).
 - [ ] Шаг 3.2: подключить API-клиент и экран логина.
@@ -22,4 +22,4 @@
 
 ## Следующий шаг (ближайший)
 
-Добавить валидацию DTO и обработку ошибок для CRUD-эндпоинтов (`class-validator`, фильтры/формат ошибок).
+Добавить auth/JWT guard и RBAC на уровне ролей (`ADMIN`, `OPERATOR`, `SUBSCRIBER`).
