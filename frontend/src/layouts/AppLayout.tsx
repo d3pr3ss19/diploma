@@ -1,4 +1,4 @@
-import { HomeOutlined, LogoutOutlined, TeamOutlined, ToolOutlined } from '@ant-design/icons';
+import { CreditCardOutlined, HomeOutlined, LogoutOutlined, TeamOutlined, ToolOutlined } from '@ant-design/icons';
 import { Button, Layout, Menu, Space, Typography } from 'antd';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { clearAuth, readAuth } from '../app/auth-storage';
@@ -9,6 +9,7 @@ const menuItems = [
   { key: '/dashboard', icon: <HomeOutlined />, label: 'Панель' },
   { key: '/subscribers', icon: <TeamOutlined />, label: 'Абоненты' },
   { key: '/requests', icon: <ToolOutlined />, label: 'Заявки' },
+  { key: '/account', icon: <CreditCardOutlined />, label: 'Лицевой счёт' },
 ];
 
 export function AppLayout() {
