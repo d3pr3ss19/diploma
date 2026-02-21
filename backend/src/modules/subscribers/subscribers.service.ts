@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
@@ -8,20 +8,33 @@ export class SubscribersService {
   constructor(private readonly prisma: PrismaService) {}
 
   list() {
-    // TODO(step 2.3): replace with prisma.subscriber.findMany when DB is configured.
-    return [];
+    return this.prisma.subscriber.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
-  findOne(id: string) {
-    // TODO(step 2.3): replace with prisma.subscriber.findUnique.
-    return { id };
+  async findOne(id: string) {
+    const subscriber = await this.prisma.subscriber.findUnique({
+      where: { id },
+      include: { accounts: true }
+    });
+
+    if (!subscriber) {
+      throw new NotFoundException(`Subscriber with id '${id}' not found`);
+    }
+
+    return subscriber;
   }
 
   create(payload: CreateSubscriberDto) {
-    // TODO(step 2.3): replace with prisma.subscriber.create.
-    return {
-      id: 'stub-subscriber-id',
-      ...payload
-    };
+    return this.prisma.subscriber.create({
+      data: {
+        fullName: payload.fullName,
+        phone: payload.phone,
+        address: payload.address,
+        apartment: payload.apartment,
+        userId: payload.userId
+      }
+    });
   }
 }

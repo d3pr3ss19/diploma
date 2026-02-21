@@ -7,7 +7,7 @@
 - [x] Шаг 1: зафиксированы ER-модель и MVP API.
 - [x] Шаг 2.1: создан каркас backend (NestJS + Prisma schema + health + модули).
 - [x] Шаг 2.2: подключен PrismaModule и добавлены сервисы `subscribers` / `requests`.
-- [ ] Шаг 2.3: реализовать реальную работу с БД (Prisma CRUD вместо заглушек).
+- [x] Шаг 2.3: реализована реальная работа с БД для базовых операций `subscribers` и `requests`.
 - [ ] Шаг 2.4: добавить валидацию DTO и обработку ошибок.
 - [ ] Шаг 2.5: добавить auth/JWT guards и RBAC.
 - [ ] Шаг 3.1: создать каркас frontend (React + Vite + TS + UI kit).
@@ -22,11 +22,4 @@
 
 ## Следующий шаг (ближайший)
 
-Реализовать первый рабочий CRUD через Prisma:
-
-- `GET /subscribers`
-- `POST /subscribers`
-- `GET /requests`
-- `POST /requests`
-
-с реальными запросами в PostgreSQL.
+Добавить валидацию DTO и обработку ошибок для CRUD-эндпоинтов (`class-validator`, фильтры/формат ошибок).

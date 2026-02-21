@@ -1,25 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { RequestStatus } from '@prisma/client';
 
+import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 
 @Injectable()
 export class RequestsService {
+  constructor(private readonly prisma: PrismaService) {}
+
   list() {
-    // TODO(step 2.3): replace with prisma.request.findMany.
-    return [];
+    return this.prisma.request.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
-  findOne(id: string) {
-    // TODO(step 2.3): replace with prisma.request.findUnique.
-    return { id };
+  async findOne(id: string) {
+    const request = await this.prisma.request.findUnique({
+      where: { id },
+      include: { history: true }
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Request with id '${id}' not found`);
+    }
+
+    return request;
   }
 
-  create(payload: CreateRequestDto) {
-    // TODO(step 2.3): replace with prisma.request.create.
-    return {
-      id: 'stub-request-id',
-      status: 'NEW',
-      ...payload
-    };
+  async create(payload: CreateRequestDto) {
+    const created = await this.prisma.request.create({
+      data: {
+        accountId: payload.accountId,
+        title: payload.title,
+        description: payload.description,
+        category: payload.category,
+        createdByUserId: payload.createdByUserId,
+        assignedToUserId: payload.assignedToUserId,
+        status: RequestStatus.NEW
+      }
+    });
+
+    await this.prisma.requestStatusHistory.create({
+      data: {
+        requestId: created.id,
+        oldStatus: RequestStatus.NEW,
+        newStatus: RequestStatus.NEW,
+        changedByUserId: payload.createdByUserId,
+        comment: 'Заявка создана'
+      }
+    });
+
+    return created;
   }
 }
