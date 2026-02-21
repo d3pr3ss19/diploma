@@ -5,6 +5,7 @@ import { extractApiErrorMessage } from '../api/error';
 import { createRequest, getRequests } from '../api/requests';
 import { readAuth } from '../app/auth-storage';
 import type { ServiceRequest } from '../types/requests';
+import { filterRequests, paginate, sortRequests, type RequestSort, type RequestStatusFilter } from '../utils/list-filters';
 
 type CreateRequestForm = {
   accountId: string;
@@ -33,10 +34,9 @@ export function RequestsPage() {
   const [messageApi, contextHolder] = message.useMessage();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const statusFilter =
-    (searchParams.get('status') as 'ALL' | 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED' | null) ?? 'ALL';
+  const statusFilter = (searchParams.get('status') as RequestStatusFilter | null) ?? 'ALL';
   const search = searchParams.get('q') ?? '';
-  const sort = (searchParams.get('sort') as 'newest' | 'oldest' | null) ?? 'newest';
+  const sort = (searchParams.get('sort') as RequestSort | null) ?? 'newest';
   const currentPage = Number(searchParams.get('page') ?? '1') || 1;
 
   async function loadRequests() {
@@ -81,29 +81,12 @@ export function RequestsPage() {
     setSearchParams(next);
   }, [searchParams, setSearchParams]);
 
-  const filteredItems = useMemo(() => {
-    const normalized = search.trim().toLowerCase();
+  const filteredItems = useMemo(
+    () => sortRequests(filterRequests(items, search, statusFilter), sort),
+    [items, search, sort, statusFilter],
+  );
 
-    const filtered = items.filter((item) => {
-      const matchStatus = statusFilter === 'ALL' ? true : item.status === statusFilter;
-      const matchText = normalized
-        ? [item.title, item.description, item.category, item.status].join(' ').toLowerCase().includes(normalized)
-        : true;
-      return matchStatus && matchText;
-    });
-
-    const sorted = [...filtered];
-    sorted.sort((a, b) =>
-      sort === 'oldest' ? Date.parse(a.createdAt) - Date.parse(b.createdAt) : Date.parse(b.createdAt) - Date.parse(a.createdAt),
-    );
-
-    return sorted;
-  }, [items, search, sort, statusFilter]);
-
-  const paginatedItems = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredItems.slice(start, start + PAGE_SIZE);
-  }, [currentPage, filteredItems]);
+  const paginatedItems = useMemo(() => paginate(filteredItems, currentPage, PAGE_SIZE), [currentPage, filteredItems]);
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams);

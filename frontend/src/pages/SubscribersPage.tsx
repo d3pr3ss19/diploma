@@ -5,6 +5,7 @@ import { extractApiErrorMessage } from '../api/error';
 import { createSubscriber, getSubscribers } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
 import type { Subscriber } from '../types/subscribers';
+import { filterSubscribers, paginate, sortSubscribers, type SubscriberSort } from '../utils/list-filters';
 
 type CreateSubscriberForm = {
   fullName: string;
@@ -33,7 +34,7 @@ export function SubscribersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const search = searchParams.get('q') ?? '';
-  const sort = (searchParams.get('sort') as 'newest' | 'oldest' | 'nameAsc' | 'nameDesc' | null) ?? 'newest';
+  const sort = (searchParams.get('sort') as SubscriberSort | null) ?? 'newest';
   const currentPage = Number(searchParams.get('page') ?? '1') || 1;
 
   async function loadSubscribers() {
@@ -67,33 +68,9 @@ export function SubscribersPage() {
     }
   }, [searchParams, setSearchParams]);
 
-  const filteredItems = useMemo(() => {
-    const normalized = search.trim().toLowerCase();
-    const filtered = items.filter((item) => {
-      if (!normalized) {
-        return true;
-      }
+  const filteredItems = useMemo(() => sortSubscribers(filterSubscribers(items, search), sort), [items, search, sort]);
 
-      return [item.fullName, item.address, item.phone ?? ''].join(' ').toLowerCase().includes(normalized);
-    });
-
-    const sorted = [...filtered];
-    sorted.sort((a, b) => {
-      switch (sort) {
-        case 'oldest':
-          return Date.parse(a.createdAt) - Date.parse(b.createdAt);
-        case 'nameAsc':
-          return a.fullName.localeCompare(b.fullName, 'ru');
-        case 'nameDesc':
-          return b.fullName.localeCompare(a.fullName, 'ru');
-        case 'newest':
-        default:
-          return Date.parse(b.createdAt) - Date.parse(a.createdAt);
-      }
-    });
-
-    return sorted;
-  }, [items, search, sort]);
+  const paginatedItems = useMemo(() => paginate(filteredItems, currentPage, PAGE_SIZE), [filteredItems, currentPage]);
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams);
@@ -196,7 +173,7 @@ export function SubscribersPage() {
       <Table
         rowKey="id"
         loading={loading}
-        dataSource={filteredItems}
+        dataSource={paginatedItems}
         pagination={{
           current: currentPage,
           pageSize: PAGE_SIZE,
