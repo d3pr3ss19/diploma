@@ -1,5 +1,5 @@
-import { Alert, Button, Form, Input, Modal, Space, Table, Tag, Typography, message } from 'antd';
-import { useEffect, useState } from 'react';
+import { Alert, Button, Form, Input, Modal, Select, Space, Table, Tag, Typography, message } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 import { extractApiErrorMessage } from '../api/error';
 import { createSubscriber, getSubscribers } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
@@ -24,6 +24,8 @@ export function SubscribersPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<'newest' | 'oldest' | 'nameAsc' | 'nameDesc'>('newest');
   const [form] = Form.useForm<CreateSubscriberForm>();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -43,6 +45,34 @@ export function SubscribersPage() {
   useEffect(() => {
     void loadSubscribers();
   }, []);
+
+  const filteredItems = useMemo(() => {
+    const normalized = search.trim().toLowerCase();
+    const filtered = items.filter((item) => {
+      if (!normalized) {
+        return true;
+      }
+
+      return [item.fullName, item.address, item.phone ?? ''].join(' ').toLowerCase().includes(normalized);
+    });
+
+    const sorted = [...filtered];
+    sorted.sort((a, b) => {
+      switch (sort) {
+        case 'oldest':
+          return Date.parse(a.createdAt) - Date.parse(b.createdAt);
+        case 'nameAsc':
+          return a.fullName.localeCompare(b.fullName, 'ru');
+        case 'nameDesc':
+          return b.fullName.localeCompare(a.fullName, 'ru');
+        case 'newest':
+        default:
+          return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+      }
+    });
+
+    return sorted;
+  }, [items, search, sort]);
 
   function openCreateModal() {
     const auth = readAuth();
@@ -85,12 +115,33 @@ export function SubscribersPage() {
         </Button>
       </Space>
 
+      <Space style={{ marginBottom: 16 }} wrap>
+        <Input.Search
+          allowClear
+          placeholder="Поиск по ФИО, адресу или телефону"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          style={{ width: 320 }}
+        />
+        <Select
+          value={sort}
+          onChange={setSort}
+          style={{ width: 240 }}
+          options={[
+            { value: 'newest', label: 'Сначала новые' },
+            { value: 'oldest', label: 'Сначала старые' },
+            { value: 'nameAsc', label: 'ФИО: А→Я' },
+            { value: 'nameDesc', label: 'ФИО: Я→А' },
+          ]}
+        />
+      </Space>
+
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
 
       <Table
         rowKey="id"
         loading={loading}
-        dataSource={items}
+        dataSource={filteredItems}
         columns={[
           { title: 'ФИО', dataIndex: 'fullName', key: 'fullName' },
           { title: 'Телефон', dataIndex: 'phone', key: 'phone', render: (value: string | null) => value ?? '—' },

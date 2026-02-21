@@ -1,5 +1,5 @@
 import { Alert, Button, Form, Input, List, Modal, Select, Space, Tag, Typography, message } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { extractApiErrorMessage } from '../api/error';
 import { createRequest, getRequests } from '../api/requests';
 import { readAuth } from '../app/auth-storage';
@@ -25,6 +25,9 @@ export function RequestsPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED'>('ALL');
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
   const [form] = Form.useForm<CreateRequestForm>();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -44,6 +47,25 @@ export function RequestsPage() {
   useEffect(() => {
     void loadRequests();
   }, []);
+
+  const filteredItems = useMemo(() => {
+    const normalized = search.trim().toLowerCase();
+
+    const filtered = items.filter((item) => {
+      const matchStatus = statusFilter === 'ALL' ? true : item.status === statusFilter;
+      const matchText = normalized
+        ? [item.title, item.description, item.category, item.status].join(' ').toLowerCase().includes(normalized)
+        : true;
+      return matchStatus && matchText;
+    });
+
+    const sorted = [...filtered];
+    sorted.sort((a, b) =>
+      sort === 'oldest' ? Date.parse(a.createdAt) - Date.parse(b.createdAt) : Date.parse(b.createdAt) - Date.parse(a.createdAt),
+    );
+
+    return sorted;
+  }, [items, search, sort, statusFilter]);
 
   function openCreateModal() {
     const auth = readAuth();
@@ -90,15 +112,49 @@ export function RequestsPage() {
         </Button>
       </Space>
 
+      <Space style={{ marginBottom: 16 }} wrap>
+        <Input.Search
+          allowClear
+          placeholder="Поиск по заголовку, описанию, категории"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          style={{ width: 340 }}
+        />
+        <Select
+          value={statusFilter}
+          onChange={setStatusFilter}
+          style={{ width: 220 }}
+          options={[
+            { value: 'ALL', label: 'Все статусы' },
+            { value: 'NEW', label: 'NEW' },
+            { value: 'IN_PROGRESS', label: 'IN_PROGRESS' },
+            { value: 'DONE', label: 'DONE' },
+            { value: 'REJECTED', label: 'REJECTED' },
+          ]}
+        />
+        <Select
+          value={sort}
+          onChange={setSort}
+          style={{ width: 200 }}
+          options={[
+            { value: 'newest', label: 'Сначала новые' },
+            { value: 'oldest', label: 'Сначала старые' },
+          ]}
+        />
+      </Space>
+
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
 
       <List
         bordered
         loading={loading}
-        dataSource={items}
+        dataSource={filteredItems}
         renderItem={(item) => (
           <List.Item>
-            {item.title}
+            <Space direction="vertical" size={0}>
+              <Typography.Text strong>{item.title}</Typography.Text>
+              <Typography.Text type="secondary">{new Date(item.createdAt).toLocaleString('ru-RU')}</Typography.Text>
+            </Space>
             <Tag style={{ marginLeft: 'auto' }}>{item.status}</Tag>
           </List.Item>
         )}
