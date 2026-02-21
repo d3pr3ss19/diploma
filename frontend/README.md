@@ -21,3 +21,11 @@ npm run dev
 HTTP-клиент настроен в `src/api/http.ts` с базовым URL:
 
 `http://localhost:3000/api/v1`
+
+
+## Что уже реализовано (Шаг 3.2)
+
+- Форма логина отправляет `POST /auth/login`.
+- Токен и пользователь сохраняются в `localStorage`.
+- Для защищённых роутов подключён `RequireAuth`.
+- Axios автоматически добавляет `Authorization: Bearer <token>`.

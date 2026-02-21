@@ -56,6 +56,7 @@
 - ✅ Шаг 1 завершён: ER-модель и MVP API зафиксированы в `docs/`.
 - ✅ Шаг 2.1-2.5: backend-каркас собран, добавлены Prisma CRUD, валидация DTO, единый формат ошибок и RBAC guard.
 - ✅ Шаг 3.1: создан каркас frontend (React + Vite + TS + Ant Design, routing и базовые страницы).
+- ✅ Шаг 3.2: логин подключен к backend auth endpoint, добавлены auth storage и protected routes.
 
 
 ## Мониторинг прогресса
