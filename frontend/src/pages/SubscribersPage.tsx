@@ -20,6 +20,7 @@ const uuidRule = {
 };
 
 const PAGE_SIZE = 10;
+const SUBSCRIBERS_PRESET_KEY = 'subscribers-last-preset';
 
 export function SubscribersPage() {
   const [items, setItems] = useState<Subscriber[]>([]);
@@ -51,6 +52,20 @@ export function SubscribersPage() {
   useEffect(() => {
     void loadSubscribers();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.toString()) {
+      return;
+    }
+
+    const savedPreset = localStorage.getItem(SUBSCRIBERS_PRESET_KEY) as 'newest' | 'nameAsc' | null;
+    if (savedPreset) {
+      const next = new URLSearchParams();
+      next.set('sort', savedPreset);
+      next.set('page', '1');
+      setSearchParams(next);
+    }
+  }, [searchParams, setSearchParams]);
 
   const filteredItems = useMemo(() => {
     const normalized = search.trim().toLowerCase();
@@ -100,10 +115,12 @@ export function SubscribersPage() {
     next.set('sort', preset);
     next.set('page', '1');
     setSearchParams(next);
+    localStorage.setItem(SUBSCRIBERS_PRESET_KEY, preset);
   }
 
   function resetFilters() {
     setSearchParams(new URLSearchParams());
+    localStorage.removeItem(SUBSCRIBERS_PRESET_KEY);
   }
 
   function openCreateModal() {

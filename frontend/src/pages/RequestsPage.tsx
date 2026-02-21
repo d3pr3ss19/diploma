@@ -21,6 +21,7 @@ const uuidRule = {
 };
 
 const PAGE_SIZE = 10;
+const REQUESTS_PRESET_KEY = 'requests-last-preset';
 
 export function RequestsPage() {
   const [items, setItems] = useState<ServiceRequest[]>([]);
@@ -54,6 +55,31 @@ export function RequestsPage() {
   useEffect(() => {
     void loadRequests();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.toString()) {
+      return;
+    }
+
+    const savedPreset = localStorage.getItem(REQUESTS_PRESET_KEY) as 'open' | 'inProgress' | null;
+    if (!savedPreset) {
+      return;
+    }
+
+    const next = new URLSearchParams();
+    next.set('sort', 'newest');
+    next.set('page', '1');
+
+    if (savedPreset === 'open') {
+      next.set('status', 'NEW');
+    }
+
+    if (savedPreset === 'inProgress') {
+      next.set('status', 'IN_PROGRESS');
+    }
+
+    setSearchParams(next);
+  }, [searchParams, setSearchParams]);
 
   const filteredItems = useMemo(() => {
     const normalized = search.trim().toLowerCase();
@@ -108,10 +134,12 @@ export function RequestsPage() {
     }
 
     setSearchParams(next);
+    localStorage.setItem(REQUESTS_PRESET_KEY, preset);
   }
 
   function resetFilters() {
     setSearchParams(new URLSearchParams());
+    localStorage.removeItem(REQUESTS_PRESET_KEY);
   }
 
   function openCreateModal() {
