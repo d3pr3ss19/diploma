@@ -1,6 +1,8 @@
 import { Alert, Button, Form, Input, List, Modal, Select, Space, Tag, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
+import { extractApiErrorMessage } from '../api/error';
 import { createRequest, getRequests } from '../api/requests';
+import { readAuth } from '../app/auth-storage';
 import type { ServiceRequest } from '../types/requests';
 
 type CreateRequestForm = {
@@ -32,8 +34,8 @@ export function RequestsPage() {
       setError(null);
       const data = await getRequests();
       setItems(data);
-    } catch {
-      setError('Не удалось загрузить заявки. Проверьте backend и токен.');
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось загрузить заявки.'));
     } finally {
       setLoading(false);
     }
@@ -42,6 +44,15 @@ export function RequestsPage() {
   useEffect(() => {
     void loadRequests();
   }, []);
+
+  function openCreateModal() {
+    const auth = readAuth();
+    setModalOpen(true);
+    form.setFieldsValue({
+      createdByUserId: auth?.user.id ?? '',
+      category: 'QUESTION',
+    });
+  }
 
   async function handleCreate(values: CreateRequestForm) {
     try {
@@ -59,8 +70,8 @@ export function RequestsPage() {
       form.resetFields();
       messageApi.success('Заявка успешно создана');
       await loadRequests();
-    } catch {
-      setError('Не удалось создать заявку. Проверьте UUID-поля и права доступа.');
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось создать заявку. Проверьте введённые данные.'));
     } finally {
       setSaving(false);
     }
@@ -74,7 +85,7 @@ export function RequestsPage() {
         <Typography.Title level={3} style={{ margin: 0 }}>
           Заявки
         </Typography.Title>
-        <Button type="primary" onClick={() => setModalOpen(true)}>
+        <Button type="primary" onClick={openCreateModal}>
           Создать заявку
         </Button>
       </Space>
@@ -102,19 +113,22 @@ export function RequestsPage() {
         onOk={() => form.submit()}
         confirmLoading={saving}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleCreate}
-          initialValues={{ category: 'QUESTION' as const }}
-        >
-          <Form.Item label="accountId (UUID)" name="accountId" rules={[{ required: true, message: 'Введите accountId' }, uuidRule]}>
+        <Form form={form} layout="vertical" onFinish={handleCreate}>
+          <Form.Item
+            label="accountId (UUID)"
+            name="accountId"
+            rules={[{ required: true, message: 'Введите accountId' }, uuidRule]}
+          >
             <Input />
           </Form.Item>
           <Form.Item label="Заголовок" name="title" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="Описание" name="description" rules={[{ required: true, min: 10, message: 'Минимум 10 символов' }]}>
+          <Form.Item
+            label="Описание"
+            name="description"
+            rules={[{ required: true, min: 10, message: 'Минимум 10 символов' }]}
+          >
             <Input.TextArea rows={3} />
           </Form.Item>
           <Form.Item label="Категория" name="category" rules={[{ required: true, message: 'Выберите категорию' }]}>
@@ -126,7 +140,11 @@ export function RequestsPage() {
               ]}
             />
           </Form.Item>
-          <Form.Item label="createdByUserId (UUID)" name="createdByUserId" rules={[{ required: true, message: 'Введите createdByUserId' }, uuidRule]}>
+          <Form.Item
+            label="createdByUserId (UUID)"
+            name="createdByUserId"
+            rules={[{ required: true, message: 'Введите createdByUserId' }, uuidRule]}
+          >
             <Input />
           </Form.Item>
           <Form.Item label="assignedToUserId (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>

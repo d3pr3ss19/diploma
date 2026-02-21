@@ -23,18 +23,18 @@ export function AppLayout() {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider>
-        <div style={{ padding: 16, color: '#fff', fontWeight: 600 }}>КП ИС</div>
+    <Layout style={{ minHeight: '100vh', background: '#f5f7fb' }}>
+      <Sider theme="light" style={{ borderRight: '1px solid #f0f0f0' }}>
+        <div style={{ padding: 16, color: '#1677ff', fontWeight: 700 }}>КП ИС</div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
         />
       </Sider>
-      <Layout>
+      <Layout style={{ background: '#f5f7fb' }}>
         <Header
           style={{
             background: '#fff',
@@ -54,7 +54,7 @@ export function AppLayout() {
             </Button>
           </Space>
         </Header>
-        <Content style={{ padding: 24 }}>
+        <Content style={{ padding: 24, background: '#f5f7fb' }}>
           <Outlet />
         </Content>
       </Layout>

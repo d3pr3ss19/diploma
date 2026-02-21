@@ -1,6 +1,8 @@
 import { Alert, Button, Form, Input, Modal, Space, Table, Tag, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
+import { extractApiErrorMessage } from '../api/error';
 import { createSubscriber, getSubscribers } from '../api/subscribers';
+import { readAuth } from '../app/auth-storage';
 import type { Subscriber } from '../types/subscribers';
 
 type CreateSubscriberForm = {
@@ -31,8 +33,8 @@ export function SubscribersPage() {
       setError(null);
       const data = await getSubscribers();
       setItems(data);
-    } catch {
-      setError('Не удалось загрузить абонентов. Проверьте backend и токен.');
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось загрузить абонентов.'));
     } finally {
       setLoading(false);
     }
@@ -41,6 +43,12 @@ export function SubscribersPage() {
   useEffect(() => {
     void loadSubscribers();
   }, []);
+
+  function openCreateModal() {
+    const auth = readAuth();
+    setModalOpen(true);
+    form.setFieldsValue({ userId: auth?.user.id ?? undefined });
+  }
 
   async function handleCreate(values: CreateSubscriberForm) {
     try {
@@ -57,8 +65,8 @@ export function SubscribersPage() {
       form.resetFields();
       messageApi.success('Абонент успешно создан');
       await loadSubscribers();
-    } catch {
-      setError('Не удалось создать абонента. Проверьте валидность данных и права доступа.');
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось создать абонента. Проверьте введённые данные.'));
     } finally {
       setSaving(false);
     }
@@ -72,7 +80,7 @@ export function SubscribersPage() {
         <Typography.Title level={3} style={{ margin: 0 }}>
           Абоненты
         </Typography.Title>
-        <Button type="primary" onClick={() => setModalOpen(true)}>
+        <Button type="primary" onClick={openCreateModal}>
           Добавить абонента
         </Button>
       </Space>
