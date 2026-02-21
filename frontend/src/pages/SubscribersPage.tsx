@@ -1,4 +1,4 @@
-import { Alert, Button, Form, Input, Modal, Space, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Form, Input, Modal, Space, Table, Tag, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { createSubscriber, getSubscribers } from '../api/subscribers';
 import type { Subscriber } from '../types/subscribers';
@@ -11,6 +11,11 @@ type CreateSubscriberForm = {
   userId?: string;
 };
 
+const uuidRule = {
+  pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  message: 'Введите корректный UUID',
+};
+
 export function SubscribersPage() {
   const [items, setItems] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +23,7 @@ export function SubscribersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm<CreateSubscriberForm>();
+  const [messageApi, contextHolder] = message.useMessage();
 
   async function loadSubscribers() {
     try {
@@ -49,6 +55,7 @@ export function SubscribersPage() {
       });
       setModalOpen(false);
       form.resetFields();
+      messageApi.success('Абонент успешно создан');
       await loadSubscribers();
     } catch {
       setError('Не удалось создать абонента. Проверьте валидность данных и права доступа.');
@@ -59,6 +66,8 @@ export function SubscribersPage() {
 
   return (
     <>
+      {contextHolder}
+
       <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 16 }}>
         <Typography.Title level={3} style={{ margin: 0 }}>
           Абоненты
@@ -96,19 +105,26 @@ export function SubscribersPage() {
         confirmLoading={saving}
       >
         <Form form={form} layout="vertical" onFinish={handleCreate}>
-          <Form.Item label="ФИО" name="fullName" rules={[{ required: true, min: 5 }]}>
+          <Form.Item label="ФИО" name="fullName" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="Телефон (+380...)" name="phone" rules={[{ required: true }]}>
+          <Form.Item
+            label="Телефон (+380...)"
+            name="phone"
+            rules={[
+              { required: true, message: 'Введите телефон' },
+              { pattern: /^\+380\d{9}$/, message: 'Формат: +380XXXXXXXXX' },
+            ]}
+          >
             <Input placeholder="+380501112233" />
           </Form.Item>
-          <Form.Item label="Адрес" name="address" rules={[{ required: true, min: 5 }]}>
+          <Form.Item label="Адрес" name="address" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="Квартира" name="apartment">
+          <Form.Item label="Квартира" name="apartment" rules={[{ max: 20, message: 'До 20 символов' }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="userId (UUID, опционально)" name="userId">
+          <Form.Item label="userId (UUID, опционально)" name="userId" rules={[uuidRule]}>
             <Input />
           </Form.Item>
         </Form>

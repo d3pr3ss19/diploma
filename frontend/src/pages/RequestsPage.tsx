@@ -1,4 +1,4 @@
-import { Alert, Button, Form, Input, List, Modal, Select, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Form, Input, List, Modal, Select, Space, Tag, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { createRequest, getRequests } from '../api/requests';
 import type { ServiceRequest } from '../types/requests';
@@ -12,6 +12,11 @@ type CreateRequestForm = {
   assignedToUserId?: string;
 };
 
+const uuidRule = {
+  pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  message: 'Введите корректный UUID',
+};
+
 export function RequestsPage() {
   const [items, setItems] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +24,7 @@ export function RequestsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm<CreateRequestForm>();
+  const [messageApi, contextHolder] = message.useMessage();
 
   async function loadRequests() {
     try {
@@ -51,6 +57,7 @@ export function RequestsPage() {
       });
       setModalOpen(false);
       form.resetFields();
+      messageApi.success('Заявка успешно создана');
       await loadRequests();
     } catch {
       setError('Не удалось создать заявку. Проверьте UUID-поля и права доступа.');
@@ -61,6 +68,8 @@ export function RequestsPage() {
 
   return (
     <>
+      {contextHolder}
+
       <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 16 }}>
         <Typography.Title level={3} style={{ margin: 0 }}>
           Заявки
@@ -99,16 +108,16 @@ export function RequestsPage() {
           onFinish={handleCreate}
           initialValues={{ category: 'QUESTION' as const }}
         >
-          <Form.Item label="accountId (UUID)" name="accountId" rules={[{ required: true }]}>
+          <Form.Item label="accountId (UUID)" name="accountId" rules={[{ required: true, message: 'Введите accountId' }, uuidRule]}>
             <Input />
           </Form.Item>
-          <Form.Item label="Заголовок" name="title" rules={[{ required: true, min: 5 }]}>
+          <Form.Item label="Заголовок" name="title" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="Описание" name="description" rules={[{ required: true, min: 10 }]}>
+          <Form.Item label="Описание" name="description" rules={[{ required: true, min: 10, message: 'Минимум 10 символов' }]}>
             <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item label="Категория" name="category" rules={[{ required: true }]}>
+          <Form.Item label="Категория" name="category" rules={[{ required: true, message: 'Выберите категорию' }]}>
             <Select
               options={[
                 { value: 'ACCIDENT', label: 'Авария' },
@@ -117,10 +126,10 @@ export function RequestsPage() {
               ]}
             />
           </Form.Item>
-          <Form.Item label="createdByUserId (UUID)" name="createdByUserId" rules={[{ required: true }]}>
+          <Form.Item label="createdByUserId (UUID)" name="createdByUserId" rules={[{ required: true, message: 'Введите createdByUserId' }, uuidRule]}>
             <Input />
           </Form.Item>
-          <Form.Item label="assignedToUserId (UUID, опционально)" name="assignedToUserId">
+          <Form.Item label="assignedToUserId (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>
             <Input />
           </Form.Item>
         </Form>
