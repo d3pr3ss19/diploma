@@ -10,7 +10,7 @@
 - [x] Шаг 2.3: реализована реальная работа с БД для базовых операций `subscribers` и `requests`.
 - [x] Шаг 2.4: добавлены валидация DTO и единый формат ошибок (HTTP/Prisma filters).
 - [x] Шаг 2.5: добавлены auth guard и RBAC (roles decorator + roles guard).
-- [ ] Шаг 3.1: создать каркас frontend (React + Vite + TS + UI kit).
+- [x] Шаг 3.1: создан каркас frontend (React + Vite + TS + Ant Design, routing и базовые страницы).
 - [ ] Шаг 3.2: подключить API-клиент и экран логина.
 - [ ] Шаг 3.3: страницы Абоненты / Заявки / Лицевой счёт.
 
@@ -22,4 +22,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 3.1: создать каркас frontend (React + Vite + TypeScript + Ant Design).
+Перейти к Шагу 3.2: подключить API-клиент и экран логина к backend auth endpoint.
