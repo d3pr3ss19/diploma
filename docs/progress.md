@@ -9,7 +9,7 @@
 - [x] Шаг 2.2: подключен PrismaModule и добавлены сервисы `subscribers` / `requests`.
 - [x] Шаг 2.3: реализована реальная работа с БД для базовых операций `subscribers` и `requests`.
 - [x] Шаг 2.4: добавлены валидация DTO и единый формат ошибок (HTTP/Prisma filters).
-- [ ] Шаг 2.5: добавить auth/JWT guards и RBAC.
+- [x] Шаг 2.5: добавлены auth guard и RBAC (roles decorator + roles guard).
 - [ ] Шаг 3.1: создать каркас frontend (React + Vite + TS + UI kit).
 - [ ] Шаг 3.2: подключить API-клиент и экран логина.
 - [ ] Шаг 3.3: страницы Абоненты / Заявки / Лицевой счёт.
@@ -22,4 +22,4 @@
 
 ## Следующий шаг (ближайший)
 
-Добавить auth/JWT guard и RBAC на уровне ролей (`ADMIN`, `OPERATOR`, `SUBSCRIBER`).
+Перейти к Шагу 3.1: создать каркас frontend (React + Vite + TypeScript + Ant Design).

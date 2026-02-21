@@ -17,3 +17,12 @@ API будет доступен по адресу `http://localhost:3000/api/v1`
 ```bash
 curl http://localhost:3000/api/v1/health
 ```
+
+
+## MVP авторизация (текущий этап)
+
+Временный формат access token: `demo-<ROLE>-<USER_ID>`.
+
+Пример: `Authorization: Bearer demo-OPERATOR-12345`.
+
+Поддерживаемые роли: `ADMIN`, `OPERATOR`, `SUBSCRIBER`.
