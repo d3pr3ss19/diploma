@@ -1,6 +1,9 @@
-import { Alert, Button, Card, Empty, Input, Space, Table, Typography } from 'antd';
-import { useState } from 'react';
+import { Alert, Button, Card, Empty, Input, List, Space, Statistic, Table, Tag, Typography } from 'antd';
+import { useMemo, useState } from 'react';
+import { extractApiErrorMessage } from '../api/error';
+import { getRequests } from '../api/requests';
 import { getSubscriberById } from '../api/subscribers';
+import type { ServiceRequest } from '../types/requests';
 import type { SubscriberDetails } from '../types/subscribers';
 
 export function AccountPage() {
@@ -8,6 +11,14 @@ export function AccountPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [details, setDetails] = useState<SubscriberDetails | null>(null);
+  const [recentRequests, setRecentRequests] = useState<ServiceRequest[]>([]);
+
+  const stats = useMemo(() => {
+    const total = recentRequests.length;
+    const open = recentRequests.filter((item) => item.status === 'NEW' || item.status === 'IN_PROGRESS').length;
+    const done = recentRequests.filter((item) => item.status === 'DONE').length;
+    return { total, open, done };
+  }, [recentRequests]);
 
   async function handleSearch() {
     if (!subscriberId.trim()) {
@@ -18,11 +29,22 @@ export function AccountPage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await getSubscriberById(subscriberId.trim());
-      setDetails(data);
-    } catch {
+
+      const subscriber = await getSubscriberById(subscriberId.trim());
+      setDetails(subscriber);
+
+      const requests = await getRequests();
+      const accountIds = new Set(subscriber.accounts.map((account) => account.id));
+      const linkedRequests = requests
+        .filter((item) => accountIds.has(item.accountId))
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+        .slice(0, 5);
+
+      setRecentRequests(linkedRequests);
+    } catch (err) {
       setDetails(null);
-      setError('Не удалось получить лицевой счёт по указанному ID абонента.');
+      setRecentRequests([]);
+      setError(extractApiErrorMessage(err, 'Не удалось получить лицевой счёт по указанному ID абонента.'));
     } finally {
       setLoading(false);
     }
@@ -50,24 +72,47 @@ export function AccountPage() {
       {error ? <Alert type="error" showIcon message={error} /> : null}
 
       {details ? (
-        <Card title={`Абонент: ${details.fullName}`}>
-          <Typography.Paragraph style={{ marginBottom: 8 }}>
-            Адрес: {details.address}
-          </Typography.Paragraph>
-          <Typography.Paragraph>Телефон: {details.phone ?? '—'}</Typography.Paragraph>
+        <>
+          <Card title={`Абонент: ${details.fullName}`}>
+            <Typography.Paragraph style={{ marginBottom: 8 }}>Адрес: {details.address}</Typography.Paragraph>
+            <Typography.Paragraph>Телефон: {details.phone ?? '—'}</Typography.Paragraph>
 
-          <Table
-            rowKey="id"
-            dataSource={details.accounts}
-            pagination={false}
-            locale={{ emptyText: 'У абонента пока нет лицевых счетов' }}
-            columns={[
-              { title: 'Номер счёта', dataIndex: 'accountNumber', key: 'accountNumber' },
-              { title: 'Услуга', dataIndex: 'serviceType', key: 'serviceType' },
-              { title: 'Баланс', dataIndex: 'balance', key: 'balance' },
-            ]}
-          />
-        </Card>
+            <Space size="large" style={{ marginBottom: 16 }}>
+              <Statistic title="Лицевых счетов" value={details.accounts.length} />
+              <Statistic title="Последних заявок" value={stats.total} />
+              <Statistic title="Открытых заявок" value={stats.open} />
+              <Statistic title="Выполнено" value={stats.done} />
+            </Space>
+
+            <Table
+              rowKey="id"
+              dataSource={details.accounts}
+              pagination={false}
+              locale={{ emptyText: 'У абонента пока нет лицевых счетов' }}
+              columns={[
+                { title: 'Номер счёта', dataIndex: 'accountNumber', key: 'accountNumber' },
+                { title: 'Услуга', dataIndex: 'serviceType', key: 'serviceType' },
+                { title: 'Баланс', dataIndex: 'balance', key: 'balance' },
+              ]}
+            />
+          </Card>
+
+          <Card title="Последние заявки по лицевым счетам">
+            <List
+              dataSource={recentRequests}
+              locale={{ emptyText: 'Заявки по лицевым счетам не найдены' }}
+              renderItem={(item) => (
+                <List.Item>
+                  <Space direction="vertical" size={0}>
+                    <Typography.Text strong>{item.title}</Typography.Text>
+                    <Typography.Text type="secondary">{new Date(item.createdAt).toLocaleString('ru-RU')}</Typography.Text>
+                  </Space>
+                  <Tag>{item.status}</Tag>
+                </List.Item>
+              )}
+            />
+          </Card>
+        </>
       ) : (
         <Empty description="Выберите абонента для просмотра лицевого счёта" />
       )}
