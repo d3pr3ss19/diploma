@@ -94,6 +94,26 @@ export function RequestsPage() {
     setSearchParams(next);
   }
 
+  function applyPreset(preset: 'open' | 'inProgress') {
+    const next = new URLSearchParams();
+    next.set('sort', 'newest');
+    next.set('page', '1');
+
+    if (preset === 'open') {
+      next.set('status', 'NEW');
+    }
+
+    if (preset === 'inProgress') {
+      next.set('status', 'IN_PROGRESS');
+    }
+
+    setSearchParams(next);
+  }
+
+  function resetFilters() {
+    setSearchParams(new URLSearchParams());
+  }
+
   function openCreateModal() {
     const auth = readAuth();
     setModalOpen(true);
@@ -139,7 +159,7 @@ export function RequestsPage() {
         </Button>
       </Space>
 
-      <Space style={{ marginBottom: 16 }} wrap>
+      <Space style={{ marginBottom: 12 }} wrap>
         <Input.Search
           allowClear
           placeholder="Поиск по заголовку, описанию, категории"
@@ -168,6 +188,12 @@ export function RequestsPage() {
             { value: 'oldest', label: 'Сначала старые' },
           ]}
         />
+      </Space>
+
+      <Space style={{ marginBottom: 16 }} wrap>
+        <Button onClick={() => applyPreset('open')}>Пресет: новые</Button>
+        <Button onClick={() => applyPreset('inProgress')}>Пресет: в работе</Button>
+        <Button onClick={resetFilters}>Сбросить фильтры</Button>
       </Space>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}

@@ -95,6 +95,17 @@ export function SubscribersPage() {
     setSearchParams(next);
   }
 
+  function applyPreset(preset: 'newest' | 'nameAsc') {
+    const next = new URLSearchParams();
+    next.set('sort', preset);
+    next.set('page', '1');
+    setSearchParams(next);
+  }
+
+  function resetFilters() {
+    setSearchParams(new URLSearchParams());
+  }
+
   function openCreateModal() {
     const auth = readAuth();
     setModalOpen(true);
@@ -136,7 +147,7 @@ export function SubscribersPage() {
         </Button>
       </Space>
 
-      <Space style={{ marginBottom: 16 }} wrap>
+      <Space style={{ marginBottom: 12 }} wrap>
         <Input.Search
           allowClear
           placeholder="Поиск по ФИО, адресу или телефону"
@@ -155,6 +166,12 @@ export function SubscribersPage() {
             { value: 'nameDesc', label: 'ФИО: Я→А' },
           ]}
         />
+      </Space>
+
+      <Space style={{ marginBottom: 16 }} wrap>
+        <Button onClick={() => applyPreset('newest')}>Пресет: новые</Button>
+        <Button onClick={() => applyPreset('nameAsc')}>Пресет: по алфавиту</Button>
+        <Button onClick={resetFilters}>Сбросить фильтры</Button>
       </Space>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
