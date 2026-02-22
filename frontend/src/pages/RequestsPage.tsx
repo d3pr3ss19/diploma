@@ -6,6 +6,7 @@ import { createRequest, getRequests } from '../api/requests';
 import { readAuth } from '../app/auth-storage';
 import type { ServiceRequest } from '../types/requests';
 import { filterRequests, paginate, sortRequests, type RequestSort, type RequestStatusFilter } from '../utils/list-filters';
+import { buildRequestsPresetQuery, hasActiveQuery, withUpdatedParam } from '../utils/list-query-state';
 
 type CreateRequestForm = {
   accountId: string;
@@ -57,7 +58,7 @@ export function RequestsPage() {
   }, []);
 
   useEffect(() => {
-    if (searchParams.toString()) {
+    if (hasActiveQuery(searchParams)) {
       return;
     }
 
@@ -66,19 +67,7 @@ export function RequestsPage() {
       return;
     }
 
-    const next = new URLSearchParams();
-    next.set('sort', 'newest');
-    next.set('page', '1');
-
-    if (savedPreset === 'open') {
-      next.set('status', 'NEW');
-    }
-
-    if (savedPreset === 'inProgress') {
-      next.set('status', 'IN_PROGRESS');
-    }
-
-    setSearchParams(next);
+    setSearchParams(buildRequestsPresetQuery(savedPreset));
   }, [searchParams, setSearchParams]);
 
   const filteredItems = useMemo(
@@ -89,34 +78,11 @@ export function RequestsPage() {
   const paginatedItems = useMemo(() => paginate(filteredItems, currentPage, PAGE_SIZE), [currentPage, filteredItems]);
 
   function updateParam(key: string, value: string) {
-    const next = new URLSearchParams(searchParams);
-    if (value) {
-      next.set(key, value);
-    } else {
-      next.delete(key);
-    }
-
-    if (key !== 'page') {
-      next.set('page', '1');
-    }
-
-    setSearchParams(next);
+    setSearchParams(withUpdatedParam(searchParams, key, value));
   }
 
   function applyPreset(preset: 'open' | 'inProgress') {
-    const next = new URLSearchParams();
-    next.set('sort', 'newest');
-    next.set('page', '1');
-
-    if (preset === 'open') {
-      next.set('status', 'NEW');
-    }
-
-    if (preset === 'inProgress') {
-      next.set('status', 'IN_PROGRESS');
-    }
-
-    setSearchParams(next);
+    setSearchParams(buildRequestsPresetQuery(preset));
     localStorage.setItem(REQUESTS_PRESET_KEY, preset);
   }
 

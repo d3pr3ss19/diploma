@@ -6,6 +6,7 @@ import { createSubscriber, getSubscribers } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
 import type { Subscriber } from '../types/subscribers';
 import { filterSubscribers, paginate, sortSubscribers, type SubscriberSort } from '../utils/list-filters';
+import { buildSubscribersPresetQuery, hasActiveQuery, withUpdatedParam } from '../utils/list-query-state';
 
 type CreateSubscriberForm = {
   fullName: string;
@@ -55,16 +56,13 @@ export function SubscribersPage() {
   }, []);
 
   useEffect(() => {
-    if (searchParams.toString()) {
+    if (hasActiveQuery(searchParams)) {
       return;
     }
 
     const savedPreset = localStorage.getItem(SUBSCRIBERS_PRESET_KEY) as 'newest' | 'nameAsc' | null;
     if (savedPreset) {
-      const next = new URLSearchParams();
-      next.set('sort', savedPreset);
-      next.set('page', '1');
-      setSearchParams(next);
+      setSearchParams(buildSubscribersPresetQuery(savedPreset));
     }
   }, [searchParams, setSearchParams]);
 
@@ -73,25 +71,11 @@ export function SubscribersPage() {
   const paginatedItems = useMemo(() => paginate(filteredItems, currentPage, PAGE_SIZE), [filteredItems, currentPage]);
 
   function updateParam(key: string, value: string) {
-    const next = new URLSearchParams(searchParams);
-    if (value) {
-      next.set(key, value);
-    } else {
-      next.delete(key);
-    }
-
-    if (key !== 'page') {
-      next.set('page', '1');
-    }
-
-    setSearchParams(next);
+    setSearchParams(withUpdatedParam(searchParams, key, value));
   }
 
   function applyPreset(preset: 'newest' | 'nameAsc') {
-    const next = new URLSearchParams();
-    next.set('sort', preset);
-    next.set('page', '1');
-    setSearchParams(next);
+    setSearchParams(buildSubscribersPresetQuery(preset));
     localStorage.setItem(SUBSCRIBERS_PRESET_KEY, preset);
   }
 
