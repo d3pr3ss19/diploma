@@ -39,11 +39,25 @@ describe('auth-storage', () => {
     };
 
     writeAuth(auth);
+
     expect(readAuth()).toEqual(auth);
+  });
+
+  it('clears auth payload', () => {
+    writeAuth({
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      user: { id: 'u1', email: 'u@e.com', role: 'ADMIN' as const },
+    });
+
+    clearAuth();
+
+    expect(readAuth()).toBeNull();
   });
 
   it('returns null for invalid JSON and clears storage', () => {
     localStorage.setItem('diploma-auth', '{invalid json');
+
     expect(readAuth()).toBeNull();
     expect(localStorage.getItem('diploma-auth')).toBeNull();
   });
