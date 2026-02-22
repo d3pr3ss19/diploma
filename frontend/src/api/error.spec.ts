@@ -30,8 +30,14 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(error, 'fallback')).toBe('Текстовая ошибка от сервера');
   });
 
-  it('uses first message from array payload', () => {
-    const error = createAxiosError({ message: ['Ошибка валидации', 'Второе сообщение'] });
+  it('normalizes plain string response payload with extra spaces', () => {
+    const error = createAxiosError('   Текстовая ошибка от сервера   ');
+
+    expect(extractApiErrorMessage(error, 'fallback')).toBe('Текстовая ошибка от сервера');
+  });
+
+  it('uses first non-empty message from array payload', () => {
+    const error = createAxiosError({ message: ['   ', 'Ошибка валидации', 'Второе сообщение'] });
 
     expect(extractApiErrorMessage(error, 'fallback')).toBe('Ошибка валидации');
   });
@@ -55,7 +61,7 @@ describe('extractApiErrorMessage', () => {
   });
 
   it('returns fallback when axios payload has no readable fields', () => {
-    const error = createAxiosError({});
+    const error = createAxiosError({ message: ['  '], error: '   ' });
 
     expect(extractApiErrorMessage(error, 'fallback')).toBe('fallback');
   });

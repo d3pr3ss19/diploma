@@ -5,6 +5,15 @@ type BackendErrorPayload = {
   error?: string;
 };
 
+function asNonEmptyString(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
 export function extractApiErrorMessage(error: unknown, fallback: string): string {
   if (!axios.isAxiosError(error)) {
     return fallback;
@@ -12,20 +21,26 @@ export function extractApiErrorMessage(error: unknown, fallback: string): string
 
   const data = error.response?.data as BackendErrorPayload | string | undefined;
 
-  if (typeof data === 'string' && data.trim().length > 0) {
-    return data;
+  const plainMessage = asNonEmptyString(data);
+  if (plainMessage) {
+    return plainMessage;
   }
 
-  if (Array.isArray(data?.message) && data.message.length > 0) {
-    return data.message[0];
+  if (Array.isArray(data?.message)) {
+    const firstReadableMessage = data.message.map(asNonEmptyString).find((message) => message !== null);
+    if (firstReadableMessage) {
+      return firstReadableMessage;
+    }
   }
 
-  if (typeof data?.message === 'string' && data.message.trim().length > 0) {
-    return data.message;
+  const detailedMessage = asNonEmptyString(data?.message);
+  if (detailedMessage) {
+    return detailedMessage;
   }
 
-  if (typeof data?.error === 'string' && data.error.trim().length > 0) {
-    return data.error;
+  const errorFieldMessage = asNonEmptyString(data?.error);
+  if (errorFieldMessage) {
+    return errorFieldMessage;
   }
 
   if (error.code === 'ERR_NETWORK') {
