@@ -7,7 +7,7 @@ type ErrorData = {
   error?: string;
 };
 
-function createAxiosError(data: ErrorData | string, code?: string): AxiosError<ErrorData | string> {
+function createAxiosError(data: ErrorData | string, code?: string, message = 'Request failed'): AxiosError<ErrorData | string> {
   const response: AxiosResponse<ErrorData | string> = {
     data,
     status: 400,
@@ -16,7 +16,7 @@ function createAxiosError(data: ErrorData | string, code?: string): AxiosError<E
     config: {} as AxiosResponse<ErrorData | string>['config'],
   };
 
-  return new AxiosError('Request failed', code, {} as never, undefined, response);
+  return new AxiosError(message, code, {} as never, undefined, response);
 }
 
 describe('extractApiErrorMessage', () => {
@@ -60,10 +60,16 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(error, 'fallback')).toContain('Нет соединения с backend');
   });
 
-  it('returns fallback when axios payload has no readable fields', () => {
+  it('uses non-generic axios message when payload is empty', () => {
+    const error = createAxiosError({ message: ['  '], error: '   ' }, undefined, 'timeout of 5000ms exceeded');
+
+    expect(extractApiErrorMessage(error, 'fallback')).toBe('timeout of 5000ms exceeded');
+  });
+
+  it('returns fallback when axios payload is empty and axios message is generic', () => {
     const error = createAxiosError({ message: ['  '], error: '   ' });
 
-    expect(extractApiErrorMessage(error, 'fallback')).toBe('Request failed');
+    expect(extractApiErrorMessage(error, 'fallback')).toBe('fallback');
   });
 
   it('uses fallback when axios message and payload are blank', () => {

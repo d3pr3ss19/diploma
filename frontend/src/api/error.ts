@@ -14,6 +14,10 @@ function asNonEmptyString(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+function isGenericAxiosMessage(message: string): boolean {
+  return message === 'Request failed' || message.startsWith('Request failed with status code');
+}
+
 export function extractApiErrorMessage(error: unknown, fallback: string): string {
   if (!axios.isAxiosError(error)) {
     return fallback;
@@ -48,7 +52,7 @@ export function extractApiErrorMessage(error: unknown, fallback: string): string
   }
 
   const axiosMessage = asNonEmptyString(error.message);
-  if (axiosMessage) {
+  if (axiosMessage && !isGenericAxiosMessage(axiosMessage)) {
     return axiosMessage;
   }
 
