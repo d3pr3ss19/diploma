@@ -31,6 +31,10 @@ describe('auth-storage', () => {
     clearAuth();
   });
 
+  it('returns null when storage is empty', () => {
+    expect(readAuth()).toBeNull();
+  });
+
   it('writes and reads auth payload', () => {
     const auth = {
       accessToken: 'access',
@@ -41,6 +45,24 @@ describe('auth-storage', () => {
     writeAuth(auth);
 
     expect(readAuth()).toEqual(auth);
+  });
+
+  it('overwrites existing auth payload', () => {
+    writeAuth({
+      accessToken: 'old',
+      refreshToken: 'old-refresh',
+      user: { id: 'u1', email: 'old@e.com', role: 'OPERATOR' as const },
+    });
+
+    const next = {
+      accessToken: 'new',
+      refreshToken: 'new-refresh',
+      user: { id: 'u2', email: 'new@e.com', role: 'ADMIN' as const },
+    };
+
+    writeAuth(next);
+
+    expect(readAuth()).toEqual(next);
   });
 
   it('clears auth payload', () => {
