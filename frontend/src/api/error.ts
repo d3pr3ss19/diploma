@@ -15,7 +15,11 @@ function asNonEmptyString(value: unknown): string | null {
 }
 
 function isGenericAxiosMessage(message: string): boolean {
-  return message === 'Request failed' || message.startsWith('Request failed with status code');
+  return (
+    message === 'Request failed' ||
+    message === 'Network Error' ||
+    message.startsWith('Request failed with status code')
+  );
 }
 
 export function extractApiErrorMessage(error: unknown, fallback: string): string {
@@ -49,6 +53,10 @@ export function extractApiErrorMessage(error: unknown, fallback: string): string
 
   if (error.code === 'ERR_NETWORK') {
     return 'Нет соединения с backend (проверьте, что сервер запущен на localhost:3000).';
+  }
+
+  if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+    return 'Сервер слишком долго отвечает. Попробуйте ещё раз.';
   }
 
   const axiosMessage = asNonEmptyString(error.message);

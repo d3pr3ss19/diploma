@@ -60,6 +60,13 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(error, 'fallback')).toContain('Нет соединения с backend');
   });
 
+
+  it('uses timeout specific message for ECONNABORTED', () => {
+    const error = createAxiosError({}, 'ECONNABORTED', 'timeout of 5000ms exceeded');
+
+    expect(extractApiErrorMessage(error, 'fallback')).toContain('Сервер слишком долго отвечает');
+  });
+
   it('uses non-generic axios message when payload is empty', () => {
     const error = createAxiosError({ message: ['  '], error: '   ' }, undefined, 'timeout of 5000ms exceeded');
 
@@ -68,6 +75,12 @@ describe('extractApiErrorMessage', () => {
 
   it('returns fallback when axios payload is empty and axios message is generic', () => {
     const error = createAxiosError({ message: ['  '], error: '   ' });
+
+    expect(extractApiErrorMessage(error, 'fallback')).toBe('fallback');
+  });
+
+  it('treats Network Error as generic and returns fallback without payload', () => {
+    const error = createAxiosError({}, undefined, 'Network Error');
 
     expect(extractApiErrorMessage(error, 'fallback')).toBe('fallback');
   });
