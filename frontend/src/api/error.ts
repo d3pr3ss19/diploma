@@ -10,7 +10,11 @@ export function extractApiErrorMessage(error: unknown, fallback: string): string
     return fallback;
   }
 
-  const data = error.response?.data as BackendErrorPayload | undefined;
+  const data = error.response?.data as BackendErrorPayload | string | undefined;
+
+  if (typeof data === 'string' && data.trim().length > 0) {
+    return data;
+  }
 
   if (Array.isArray(data?.message) && data.message.length > 0) {
     return data.message[0];

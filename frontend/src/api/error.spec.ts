@@ -7,13 +7,13 @@ type ErrorData = {
   error?: string;
 };
 
-function createAxiosError(data: ErrorData, code?: string): AxiosError<ErrorData> {
-  const response: AxiosResponse<ErrorData> = {
+function createAxiosError(data: ErrorData | string, code?: string): AxiosError<ErrorData | string> {
+  const response: AxiosResponse<ErrorData | string> = {
     data,
     status: 400,
     statusText: 'Bad Request',
     headers: {},
-    config: {} as AxiosResponse<ErrorData>['config'],
+    config: {} as AxiosResponse<ErrorData | string>['config'],
   };
 
   return new AxiosError('Request failed', code, {} as never, undefined, response);
@@ -22,6 +22,12 @@ function createAxiosError(data: ErrorData, code?: string): AxiosError<ErrorData>
 describe('extractApiErrorMessage', () => {
   it('returns fallback for non-axios errors', () => {
     expect(extractApiErrorMessage(new Error('x'), 'fallback')).toBe('fallback');
+  });
+
+  it('uses plain string response payload', () => {
+    const error = createAxiosError('Текстовая ошибка от сервера');
+
+    expect(extractApiErrorMessage(error, 'fallback')).toBe('Текстовая ошибка от сервера');
   });
 
   it('uses first message from array payload', () => {
@@ -36,8 +42,8 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(error, 'fallback')).toBe('Ошибка авторизации');
   });
 
-  it('uses error string from payload when message is absent', () => {
-    const error = createAxiosError({ error: 'Неверные данные' });
+  it('falls back to error field when message is blank', () => {
+    const error = createAxiosError({ message: '   ', error: 'Неверные данные' });
 
     expect(extractApiErrorMessage(error, 'fallback')).toBe('Неверные данные');
   });
