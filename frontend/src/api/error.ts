@@ -47,5 +47,10 @@ export function extractApiErrorMessage(error: unknown, fallback: string): string
     return 'Нет соединения с backend (проверьте, что сервер запущен на localhost:3000).';
   }
 
+  const axiosMessage = asNonEmptyString(error.message);
+  if (axiosMessage) {
+    return axiosMessage;
+  }
+
   return fallback;
 }

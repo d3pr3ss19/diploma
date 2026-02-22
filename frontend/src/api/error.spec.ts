@@ -63,6 +63,18 @@ describe('extractApiErrorMessage', () => {
   it('returns fallback when axios payload has no readable fields', () => {
     const error = createAxiosError({ message: ['  '], error: '   ' });
 
+    expect(extractApiErrorMessage(error, 'fallback')).toBe('Request failed');
+  });
+
+  it('uses fallback when axios message and payload are blank', () => {
+    const error = new AxiosError('   ', undefined, {} as never, undefined, {
+      data: { message: ['  '], error: '   ' },
+      status: 400,
+      statusText: 'Bad Request',
+      headers: {},
+      config: {} as AxiosResponse<ErrorData>['config'],
+    });
+
     expect(extractApiErrorMessage(error, 'fallback')).toBe('fallback');
   });
 });
