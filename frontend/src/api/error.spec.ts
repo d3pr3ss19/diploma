@@ -7,10 +7,15 @@ type ErrorData = {
   error?: string;
 };
 
-function createAxiosError(data: ErrorData | string, code?: string, message = 'Request failed'): AxiosError<ErrorData | string> {
+function createAxiosError(
+  data: ErrorData | string,
+  code?: string,
+  message = 'Request failed',
+  status = 400,
+): AxiosError<ErrorData | string> {
   const response: AxiosResponse<ErrorData | string> = {
     data,
-    status: 400,
+    status,
     statusText: 'Bad Request',
     headers: {},
     config: {} as AxiosResponse<ErrorData | string>['config'],
@@ -71,6 +76,19 @@ describe('extractApiErrorMessage', () => {
     const error = createAxiosError({ message: ['  '], error: '   ' }, undefined, 'timeout of 5000ms exceeded');
 
     expect(extractApiErrorMessage(error, 'fallback')).toBe('timeout of 5000ms exceeded');
+  });
+
+
+  it('uses status-specific message for 401 when payload is empty', () => {
+    const error = createAxiosError({}, undefined, 'Request failed with status code 401', 401);
+
+    expect(extractApiErrorMessage(error, 'fallback')).toContain('Сессия истекла');
+  });
+
+  it('uses status-specific message for 500 when payload is empty', () => {
+    const error = createAxiosError({}, undefined, 'Request failed with status code 500', 500);
+
+    expect(extractApiErrorMessage(error, 'fallback')).toContain('Внутренняя ошибка сервера');
   });
 
   it('returns fallback when axios payload is empty and axios message is generic', () => {

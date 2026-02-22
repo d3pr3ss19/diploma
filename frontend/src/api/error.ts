@@ -22,6 +22,27 @@ function isGenericAxiosMessage(message: string): boolean {
   );
 }
 
+
+function statusFallbackMessage(status: number | undefined): string | null {
+  if (status === 401) {
+    return 'Сессия истекла. Войдите в систему заново.';
+  }
+
+  if (status === 403) {
+    return 'Недостаточно прав для выполнения операции.';
+  }
+
+  if (status === 404) {
+    return 'Запрошенный ресурс не найден.';
+  }
+
+  if (typeof status === 'number' && status >= 500) {
+    return 'Внутренняя ошибка сервера. Попробуйте позже.';
+  }
+
+  return null;
+}
+
 export function extractApiErrorMessage(error: unknown, fallback: string): string {
   if (!axios.isAxiosError(error)) {
     return fallback;
@@ -57,6 +78,11 @@ export function extractApiErrorMessage(error: unknown, fallback: string): string
 
   if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
     return 'Сервер слишком долго отвечает. Попробуйте ещё раз.';
+  }
+
+  const statusMessage = statusFallbackMessage(error.response?.status);
+  if (statusMessage) {
+    return statusMessage;
   }
 
   const axiosMessage = asNonEmptyString(error.message);
