@@ -22,7 +22,6 @@ function isGenericAxiosMessage(message: string): boolean {
   );
 }
 
-
 function statusFallbackMessage(status: number | undefined): string | null {
   if (status === 401) {
     return 'Сессия истекла. Войдите в систему заново.';

@@ -65,7 +65,6 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(error, 'fallback')).toContain('Нет соединения с backend');
   });
 
-
   it('uses timeout specific message for ECONNABORTED', () => {
     const error = createAxiosError({}, 'ECONNABORTED', 'timeout of 5000ms exceeded');
 
@@ -78,7 +77,6 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(error, 'fallback')).toBe('timeout of 5000ms exceeded');
   });
 
-
   it('uses status-specific message for 401 when payload is empty', () => {
     const error = createAxiosError({}, undefined, 'Request failed with status code 401', 401);
 
@@ -89,6 +87,25 @@ describe('extractApiErrorMessage', () => {
     const error = createAxiosError({}, undefined, 'Request failed with status code 500', 500);
 
     expect(extractApiErrorMessage(error, 'fallback')).toContain('Внутренняя ошибка сервера');
+  });
+
+  it('uses status-specific message for 403 when payload is empty', () => {
+    const error = createAxiosError({}, undefined, 'Request failed with status code 403', 403);
+
+    expect(extractApiErrorMessage(error, 'fallback')).toContain('Недостаточно прав');
+  });
+
+  it('uses status-specific message for 404 when payload is empty', () => {
+    const error = createAxiosError({}, undefined, 'Request failed with status code 404', 404);
+
+    expect(extractApiErrorMessage(error, 'fallback')).toContain('ресурс не найден');
+  });
+
+
+  it('prefers payload message over status-based fallback', () => {
+    const error = createAxiosError({ message: 'Специфичная ошибка из backend' }, undefined, 'Request failed with status code 404', 404);
+
+    expect(extractApiErrorMessage(error, 'fallback')).toBe('Специфичная ошибка из backend');
   });
 
   it('returns fallback when axios payload is empty and axios message is generic', () => {
