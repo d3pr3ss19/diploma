@@ -35,6 +35,10 @@ function statusFallbackMessage(status: number | undefined): string | null {
     return 'Запрошенный ресурс не найден.';
   }
 
+  if (status === 429) {
+    return 'Слишком много запросов. Попробуйте немного позже.';
+  }
+
   if (typeof status === 'number' && status >= 500) {
     return 'Внутренняя ошибка сервера. Попробуйте позже.';
   }
