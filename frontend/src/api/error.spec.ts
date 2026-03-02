@@ -101,12 +101,24 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(error, 'fallback')).toContain('ресурс не найден');
   });
 
+  it('uses status-specific message for 422 when payload is empty', () => {
+    const error = createAxiosError({}, undefined, 'Request failed with status code 422', 422);
+
+    expect(extractApiErrorMessage(error, 'fallback')).toContain('Проверьте корректность введённых данных');
+  });
+
   it('uses status-specific message for 429 when payload is empty', () => {
     const error = createAxiosError({}, undefined, 'Request failed with status code 429', 429);
 
     expect(extractApiErrorMessage(error, 'fallback')).toContain('Слишком много запросов');
   });
 
+
+  it('prefers status fallback over non-generic axios message', () => {
+    const error = createAxiosError({}, undefined, 'custom transport message', 429);
+
+    expect(extractApiErrorMessage(error, 'fallback')).toContain('Слишком много запросов');
+  });
 
   it('prefers payload message over status-based fallback', () => {
     const error = createAxiosError({ message: 'Специфичная ошибка из backend' }, undefined, 'Request failed with status code 404', 404);

@@ -35,6 +35,10 @@ function statusFallbackMessage(status: number | undefined): string | null {
     return 'Запрошенный ресурс не найден.';
   }
 
+  if (status === 422) {
+    return 'Проверьте корректность введённых данных.';
+  }
+
   if (status === 429) {
     return 'Слишком много запросов. Попробуйте немного позже.';
   }
