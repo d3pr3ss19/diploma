@@ -84,6 +84,7 @@
 
 - Главный трекер: `docs/progress.md`
 - Smoke-checklist (Шаг 6.4): `docs/smoke-checklist.md`
+- Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`
 - По каждому завершённому шагу делается отдельный коммит.
 
 ## Ветки

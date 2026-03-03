@@ -42,4 +42,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 6.4: выполнить smoke-checklist `docs/smoke-checklist.md`, прогнать `scripts/smoke-backend.sh` и автоматизировать минимум 1 e2e-сценарий.
+Перейти к Шагу 6.4: выполнить smoke-checklist `docs/smoke-checklist.md`, прогнать `scripts/smoke-backend.sh` и `scripts/smoke-frontend.sh`, затем автоматизировать минимум 1 e2e-сценарий.

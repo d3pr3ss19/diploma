@@ -57,6 +57,20 @@ BASE_URL=http://localhost:3000/api/v1 ./scripts/smoke-backend.sh
 - `GET /health` (ожидается `status: ok`);
 - `POST /auth/login` (ожидаются `accessToken` и `refreshToken`).
 
+## Быстрый автоматизированный smoke (frontend)
+
+Можно запустить базовую автоматизированную проверку frontend:
+
+```bash
+FRONTEND_URL=http://localhost:5173 ./scripts/smoke-frontend.sh
+```
+
+Скрипт проверяет:
+
+- доступность index-страницы;
+- доступность маршрута `/login`;
+- наличие ожидаемых маркеров страницы логина.
+
 ## Критерии прохождения smoke
 
 - Все 4 сценария проходят без ручных исправлений в коде.
