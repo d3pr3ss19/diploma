@@ -35,6 +35,10 @@ function statusFallbackMessage(status: number | undefined): string | null {
     return 'Запрошенный ресурс не найден.';
   }
 
+  if (status === 409) {
+    return 'Конфликт данных: запись с такими параметрами уже может существовать.';
+  }
+
   if (status === 422) {
     return 'Проверьте корректность введённых данных.';
   }

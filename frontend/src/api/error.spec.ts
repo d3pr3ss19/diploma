@@ -101,6 +101,12 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(error, 'fallback')).toContain('ресурс не найден');
   });
 
+  it('uses status-specific message for 409 when payload is empty', () => {
+    const error = createAxiosError({}, undefined, 'Request failed with status code 409', 409);
+
+    expect(extractApiErrorMessage(error, 'fallback')).toContain('Конфликт данных');
+  });
+
   it('uses status-specific message for 422 when payload is empty', () => {
     const error = createAxiosError({}, undefined, 'Request failed with status code 422', 422);
 
@@ -118,6 +124,17 @@ describe('extractApiErrorMessage', () => {
     const error = createAxiosError({}, undefined, 'custom transport message', 429);
 
     expect(extractApiErrorMessage(error, 'fallback')).toContain('Слишком много запросов');
+  });
+
+  it('prefers payload error field over 409 status fallback', () => {
+    const error = createAxiosError(
+      { error: 'Абонент с таким email уже существует' },
+      undefined,
+      'Request failed with status code 409',
+      409,
+    );
+
+    expect(extractApiErrorMessage(error, 'fallback')).toBe('Абонент с таким email уже существует');
   });
 
   it('prefers payload message over status-based fallback', () => {
