@@ -15,6 +15,11 @@ require_cmd() {
 
 require_cmd curl
 
+WAIT_TIMEOUT="${WAIT_TIMEOUT:-30}"
+WAIT_INTERVAL="${WAIT_INTERVAL:-1}"
+
+"$(dirname "$0")/wait-for-http.sh" "$FRONTEND_URL" "$WAIT_TIMEOUT" "$WAIT_INTERVAL"
+
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
