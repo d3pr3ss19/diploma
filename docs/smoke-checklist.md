@@ -77,6 +77,12 @@ FRONTEND_URL=http://localhost:5173 ./scripts/smoke-frontend.sh
 ./scripts/smoke-all.sh
 ```
 
+Или через Makefile:
+
+```bash
+make smoke
+```
+
 Скрипт последовательно запускает:
 
 1. `scripts/smoke-backend.sh`
