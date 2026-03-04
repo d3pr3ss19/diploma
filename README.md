@@ -69,24 +69,24 @@
 - ✅ Шаг 6.1: выделены и покрыты тестами frontend-утилиты фильтрации/сортировки.
 - ✅ Шаг 6.2: добавлены тесты и утилиты для URL query-state и пресетов.
 - ✅ Шаг 6.3: покрыты тестами парсер API-ошибок и auth-storage (включая статусные/сетевые fallback-сценарии).
+- ✅ Шаг 6.4: добавлены smoke-checklist и автоматизированные smoke/e2e скрипты.
 
 
 
 ## До финала проекта
 
-Ориентир на текущий момент: осталось **3 укрупнённых этапа**:
+Ориентир на текущий момент: осталось **2 укрупнённых этапа**:
 
-1. Шаг 6.4 — smoke/e2e-проверки ключевых сценариев.
-2. Шаг 7 — стабилизация и интеграционные проверки.
-3. Шаг 8 — предзащита/финальная упаковка проекта.
+1. Шаг 7 — стабилизация и интеграционные проверки.
+2. Шаг 8 — предзащита/финальная упаковка проекта.
 
 ## Мониторинг прогресса
 
 - Главный трекер: `docs/progress.md`
 - Smoke-checklist (Шаг 6.4): `docs/smoke-checklist.md`
-- Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`, `scripts/smoke-all.sh`
+- Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`, `scripts/smoke-all.sh`, `scripts/e2e-api-auth-flow.sh`
 - Smoke scripts поддерживают `WAIT_TIMEOUT` / `WAIT_INTERVAL` для ожидания старта сервисов
-- Make targets: `make smoke`, `make smoke-backend`, `make smoke-frontend`, `make test-frontend`
+- Make targets: `make smoke`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make test-frontend`
 - По каждому завершённому шагу делается отдельный коммит.
 
 ## Ветки

@@ -96,6 +96,19 @@ make smoke
 WAIT_TIMEOUT=60 ./scripts/smoke-all.sh
 ```
 
+## Минимальный e2e-сценарий (API auth flow)
+
+```bash
+BASE_URL=http://localhost:3000/api/v1 ./scripts/e2e-api-auth-flow.sh
+```
+
+Сценарий проверяет:
+
+1. успешный `POST /auth/login`;
+2. `401` для защищённого endpoint без токена;
+3. `401` для защищённого endpoint с невалидным токеном;
+4. прохождение auth-слоя с валидным токеном (статус не `401/403`).
+
 ## Критерии прохождения smoke
 
 - Все 4 сценария проходят без ручных исправлений в коде.

@@ -1,4 +1,4 @@
-.PHONY: smoke smoke-backend smoke-frontend test-frontend
+.PHONY: smoke smoke-backend smoke-frontend test-frontend e2e-api
 
 smoke:
 	./scripts/smoke-all.sh
@@ -11,3 +11,6 @@ smoke-frontend:
 
 test-frontend:
 	cd frontend && npm test
+
+e2e-api:
+	./scripts/e2e-api-auth-flow.sh
