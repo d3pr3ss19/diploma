@@ -20,6 +20,7 @@ scripts=(
   scripts/smoke-all.sh
   scripts/verify-scripts.sh
   scripts/verify-tooling.sh
+  scripts/verify-structure.sh
 )
 
 for script in "${scripts[@]}"; do
@@ -29,9 +30,10 @@ for script in "${scripts[@]}"; do
 done
 
 ./scripts/verify-scripts.sh
+./scripts/verify-structure.sh
 
 # Dry-run Make targets to ensure commands are wired correctly.
-for target in smoke smoke-full smoke-backend smoke-frontend e2e-api e2e-rbac verify-scripts verify-tooling test-frontend; do
+for target in smoke smoke-full smoke-backend smoke-frontend e2e-api e2e-rbac verify-scripts verify-structure verify-tooling test-frontend; do
   make -n "$target" >/dev/null
   echo "[verify-tooling] ✅ make -n $target"
 done

@@ -1,4 +1,4 @@
-.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac verify-scripts verify-tooling
+.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac verify-scripts verify-structure verify-tooling
 
 help:
 	@echo "Доступные команды:"
@@ -38,3 +38,6 @@ verify-scripts:
 
 verify-tooling:
 	./scripts/verify-tooling.sh
+
+verify-structure:
+	./scripts/verify-structure.sh
