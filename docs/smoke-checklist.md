@@ -109,6 +109,17 @@ BASE_URL=http://localhost:3000/api/v1 ./scripts/e2e-api-auth-flow.sh
 3. `401` для защищённого endpoint с невалидным токеном;
 4. прохождение auth-слоя с валидным токеном (статус не `401/403`).
 
+## Дополнительный e2e-сценарий (RBAC)
+
+```bash
+BASE_URL=http://localhost:3000/api/v1 ./scripts/e2e-api-rbac.sh
+```
+
+Сценарий проверяет:
+
+1. роль `SUBSCRIBER` получает `403` на `GET /subscribers`;
+2. роль `OPERATOR` проходит RBAC на `GET /subscribers` (статус не `401/403`).
+
 ## Критерии прохождения smoke
 
 - Все 4 сценария проходят без ручных исправлений в коде.

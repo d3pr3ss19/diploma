@@ -84,9 +84,9 @@
 
 - Главный трекер: `docs/progress.md`
 - Smoke-checklist (Шаг 6.4): `docs/smoke-checklist.md`
-- Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`, `scripts/smoke-all.sh`, `scripts/e2e-api-auth-flow.sh`
+- Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`, `scripts/smoke-all.sh`, `scripts/e2e-api-auth-flow.sh`, `scripts/e2e-api-rbac.sh`
 - Smoke scripts поддерживают `WAIT_TIMEOUT` / `WAIT_INTERVAL` для ожидания старта сервисов
-- Make targets: `make smoke`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make test-frontend`
+- Make targets: `make smoke`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make test-frontend`
 - По каждому завершённому шагу делается отдельный коммит.
 
 ## Ветки
