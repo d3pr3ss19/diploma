@@ -1,4 +1,4 @@
-.PHONY: smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac verify-scripts
+.PHONY: smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac verify-scripts verify-tooling
 
 smoke:
 	./scripts/smoke-all.sh
@@ -23,3 +23,6 @@ e2e-rbac:
 
 verify-scripts:
 	./scripts/verify-scripts.sh
+
+verify-tooling:
+	./scripts/verify-tooling.sh
