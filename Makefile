@@ -1,7 +1,10 @@
-.PHONY: smoke smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac
+.PHONY: smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac
 
 smoke:
 	./scripts/smoke-all.sh
+
+smoke-full:
+	RUN_E2E=1 ./scripts/smoke-all.sh
 
 smoke-backend:
 	./scripts/smoke-backend.sh

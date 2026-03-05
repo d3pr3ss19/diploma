@@ -83,6 +83,14 @@ FRONTEND_URL=http://localhost:5173 ./scripts/smoke-frontend.sh
 make smoke
 ```
 
+Для прогона smoke + e2e вместе:
+
+```bash
+make smoke-full
+# или напрямую
+RUN_E2E=1 ./scripts/smoke-all.sh
+```
+
 Скрипт последовательно запускает:
 
 1. `scripts/smoke-backend.sh`
