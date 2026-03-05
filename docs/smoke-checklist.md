@@ -83,6 +83,12 @@ FRONTEND_URL=http://localhost:5173 ./scripts/smoke-frontend.sh
 make smoke
 ```
 
+Список всех доступных команд:
+
+```bash
+make help
+```
+
 Для прогона smoke + e2e вместе:
 
 ```bash

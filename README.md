@@ -87,6 +87,7 @@
 - Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`, `scripts/smoke-all.sh`, `scripts/e2e-api-auth-flow.sh`, `scripts/e2e-api-rbac.sh`
 - Smoke scripts поддерживают `WAIT_TIMEOUT` / `WAIT_INTERVAL` для ожидания старта сервисов
 - Make targets: `make smoke`, `make smoke-full`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make verify-scripts`, `make verify-tooling`, `make test-frontend`
+- Подсказка по командам: `make help`
 - `make verify-tooling` дополнительно проверяет, что все `scripts/*.sh` существуют и имеют executable-бит
 - По каждому завершённому шагу делается отдельный коммит.
 
