@@ -1,12 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 
 import { Role } from '../../common/auth/role.enum';
-
-type LoginDto = {
-  email: string;
-  password: string;
-  role?: Role;
-};
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {

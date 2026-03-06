@@ -24,6 +24,14 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 LOGIN_FILE="$TMP_DIR/login.json"
+INVALID_LOGIN_FILE="$TMP_DIR/invalid-login.json"
+
+# 0) Invalid payload must be rejected by validation
+INVALID_LOGIN_CODE="$(curl -sS -o "$INVALID_LOGIN_FILE" -w "%{http_code}" \
+  -X POST "$BASE_URL/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"not-an-email","password":"short","role":"INVALID"}')"
+[[ "$INVALID_LOGIN_CODE" == "400" ]] || fail "ожидался 400 для невалидного payload login, получен $INVALID_LOGIN_CODE"
 
 # 1) Login and extract token
 LOGIN_CODE="$(curl -sS -o "$LOGIN_FILE" -w "%{http_code}" \
