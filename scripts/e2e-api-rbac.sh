@@ -57,10 +57,16 @@ if [[ "$OPERATOR_CODE" == "401" || "$OPERATOR_CODE" == "403" ]]; then
   fail "ожидалось прохождение RBAC для OPERATOR на /subscribers, получен $OPERATOR_CODE"
 fi
 
+# Malformed token with unknown role must be rejected by auth layer
+MALFORMED_ROLE_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H 'Authorization: Bearer demo-MANAGER-rbac-user' \
+  "$BASE_URL/subscribers")"
+[[ "$MALFORMED_ROLE_CODE" == "401" ]] || fail "ожидался 401 для malformed токена с неизвестной ролью, получен $MALFORMED_ROLE_CODE"
+
 # Invalid UUID must be rejected by route param validation
 INVALID_UUID_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
   -H "Authorization: Bearer $OPERATOR_TOKEN" \
   "$BASE_URL/requests/not-a-uuid")"
 [[ "$INVALID_UUID_CODE" == "400" ]] || fail "ожидался 400 для невалидного UUID path-param, получен $INVALID_UUID_CODE"
 
-echo "[e2e-rbac] ✅ RBAC e2e пройден (SUBSCRIBER=$SUBSCRIBER_CODE, OPERATOR=$OPERATOR_CODE, INVALID_UUID=$INVALID_UUID_CODE)"
+echo "[e2e-rbac] ✅ RBAC e2e пройден (SUBSCRIBER=$SUBSCRIBER_CODE, OPERATOR=$OPERATOR_CODE, MALFORMED_ROLE=$MALFORMED_ROLE_CODE, INVALID_UUID=$INVALID_UUID_CODE)"
