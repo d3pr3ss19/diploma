@@ -73,6 +73,7 @@
 - ✅ Шаг 7.1: усилена валидация auth login и добавлен e2e-check для невалидного payload.
 - ✅ Шаг 7.2: добавлена UUID-валидация path-параметров в backend и e2e-check невалидного UUID в RBAC-сценарии.
 - ✅ Шаг 7.3: исправлен парсинг demo-токена в backend auth guard для UUID user-id, добавлен e2e-check токена с UUID-like user-id.
+- ✅ Шаг 7.4: e2e auth-flow дополнен негативными кейсами malformed demo-токенов (пустой user-id и неизвестная роль).
 
 
 

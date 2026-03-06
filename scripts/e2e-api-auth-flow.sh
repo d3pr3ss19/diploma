@@ -54,7 +54,18 @@ INVALID_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
   "$BASE_URL/requests")"
 [[ "$INVALID_CODE" == "401" ]] || fail "ожидался 401 с невалидным токеном, получен $INVALID_CODE"
 
-# 4) Valid token should pass auth layer (usually 200, but not 401/403)
+# 4) Malformed demo tokens should be unauthorized
+MALFORMED_EMPTY_USER_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H 'Authorization: Bearer demo-OPERATOR-' \
+  "$BASE_URL/requests")"
+[[ "$MALFORMED_EMPTY_USER_CODE" == "401" ]] || fail "ожидался 401 для токена с пустым user-id, получен $MALFORMED_EMPTY_USER_CODE"
+
+MALFORMED_UNKNOWN_ROLE_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H 'Authorization: Bearer demo-MANAGER-some-user' \
+  "$BASE_URL/requests")"
+[[ "$MALFORMED_UNKNOWN_ROLE_CODE" == "401" ]] || fail "ожидался 401 для токена с неизвестной ролью, получен $MALFORMED_UNKNOWN_ROLE_CODE"
+
+# 5) Valid token should pass auth layer (usually 200, but not 401/403)
 VALID_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
   -H "Authorization: Bearer $TOKEN" \
   "$BASE_URL/requests")"
@@ -62,7 +73,7 @@ if [[ "$VALID_CODE" == "401" || "$VALID_CODE" == "403" ]]; then
   fail "с валидным токеном получен $VALID_CODE (ожидалось прохождение auth)"
 fi
 
-# 5) Token with hyphenated user-id (UUID-like) should pass auth parsing
+# 6) Token with hyphenated user-id (UUID-like) should pass auth parsing
 UUID_LIKE_TOKEN='demo-OPERATOR-123e4567-e89b-12d3-a456-426614174000'
 UUID_TOKEN_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
   -H "Authorization: Bearer $UUID_LIKE_TOKEN" \
@@ -71,4 +82,4 @@ if [[ "$UUID_TOKEN_CODE" == "401" || "$UUID_TOKEN_CODE" == "403" ]]; then
   fail "токен с UUID user-id отклонён auth-guard'ом: HTTP $UUID_TOKEN_CODE"
 fi
 
-echo "[e2e-api] ✅ E2E auth-flow пройден (HTTP with valid token: $VALID_CODE, UUID-token: $UUID_TOKEN_CODE)"
+echo "[e2e-api] ✅ E2E auth-flow пройден (valid=$VALID_CODE, uuid=$UUID_TOKEN_CODE, malformed-empty-user=$MALFORMED_EMPTY_USER_CODE, malformed-unknown-role=$MALFORMED_UNKNOWN_ROLE_CODE)"
