@@ -76,6 +76,7 @@
 - ✅ Шаг 7.4: e2e auth-flow дополнен негативными кейсами malformed demo-токенов (пустой user-id и неизвестная роль).
 - ✅ Шаг 7.5: RBAC e2e дополнен проверкой malformed токена с неизвестной ролью (401 на защищённом endpoint).
 - ✅ Шаг 7.6: e2e auth/rbac скрипты переведены на надёжный JSON-парсинг accessToken через Python.
+- ✅ Шаг 7.7: добавлен общий helper `scripts/extract-access-token.py` для устранения дублирования в e2e auth/rbac скриптах.
 
 
 
