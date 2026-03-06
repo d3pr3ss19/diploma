@@ -21,22 +21,31 @@ export class AuthGuard implements CanActivate {
     }
 
     const token = authHeader.slice('Bearer '.length).trim();
-    // MVP token format: demo-<ROLE>-<USER_ID>
-    const [prefix, roleValue, userId] = token.split('-');
+    const parsedToken = this.parseDemoToken(token);
 
-    if (prefix !== 'demo' || !roleValue || !userId) {
+    if (!parsedToken) {
       throw new UnauthorizedException('Invalid token format');
     }
 
-    if (!Object.values(Role).includes(roleValue as Role)) {
-      throw new UnauthorizedException('Unknown role in token');
-    }
-
-    request.user = {
-      id: userId,
-      role: roleValue as Role
-    };
+    request.user = parsedToken;
 
     return true;
+  }
+
+  private parseDemoToken(token: string): { id: string; role: Role } | null {
+    // MVP token format: demo-<ROLE>-<USER_ID>
+    const match = token.match(/^demo-(ADMIN|OPERATOR|SUBSCRIBER)-(.+)$/);
+    if (!match) {
+      return null;
+    }
+
+    const [, roleValue, userId] = match;
+    const role = roleValue as Role;
+
+    if (!userId.trim()) {
+      return null;
+    }
+
+    return { id: userId, role };
   }
 }

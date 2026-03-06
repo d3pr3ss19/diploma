@@ -62,4 +62,13 @@ if [[ "$VALID_CODE" == "401" || "$VALID_CODE" == "403" ]]; then
   fail "с валидным токеном получен $VALID_CODE (ожидалось прохождение auth)"
 fi
 
-echo "[e2e-api] ✅ E2E auth-flow пройден (HTTP with valid token: $VALID_CODE)"
+# 5) Token with hyphenated user-id (UUID-like) should pass auth parsing
+UUID_LIKE_TOKEN='demo-OPERATOR-123e4567-e89b-12d3-a456-426614174000'
+UUID_TOKEN_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer $UUID_LIKE_TOKEN" \
+  "$BASE_URL/requests")"
+if [[ "$UUID_TOKEN_CODE" == "401" || "$UUID_TOKEN_CODE" == "403" ]]; then
+  fail "токен с UUID user-id отклонён auth-guard'ом: HTTP $UUID_TOKEN_CODE"
+fi
+
+echo "[e2e-api] ✅ E2E auth-flow пройден (HTTP with valid token: $VALID_CODE, UUID-token: $UUID_TOKEN_CODE)"

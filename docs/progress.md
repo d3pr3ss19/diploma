@@ -27,6 +27,7 @@
 - [x] Шаг 6.4: добавлены smoke-checklist и smoke/e2e-скрипты (`smoke-all`, `e2e-api-auth-flow`).
 - [x] Шаг 7.1: усилена валидация auth login (DTO + class-validator) и добавлен e2e-check невалидного payload.
 - [x] Шаг 7.2: добавлена валидация UUID path-параметров в `subscribers`/`requests` и e2e-check невалидного UUID в RBAC-сценарии.
+- [x] Шаг 7.3: исправлен парсинг demo JWT-like токена в auth guard для UUID user-id и добавлен e2e-check токена с дефисами в user-id.
 
 
 ## Оценка до финала
@@ -44,4 +45,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.3: стабилизация backend/frontend (дальше интеграционные проверки, техдолг, полировка UX).
+Перейти к Шагу 7.4: стабилизация backend/frontend (дальше интеграционные проверки, техдолг, полировка UX).
