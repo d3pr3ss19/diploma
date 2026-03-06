@@ -15,7 +15,24 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "Требуется команда '$1'"
 }
 
+extract_access_token() {
+  local json_file="$1"
+
+  python - "$json_file" <<'PY_TOKEN'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+token = payload.get('accessToken')
+if not isinstance(token, str) or not token:
+    raise SystemExit(1)
+print(token)
+PY_TOKEN
+}
+
 require_cmd curl
+require_cmd python
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$SCRIPT_DIR/wait-for-http.sh" "$BASE_URL/health" "${WAIT_TIMEOUT:-30}" "${WAIT_INTERVAL:-1}"
@@ -40,9 +57,7 @@ LOGIN_CODE="$(curl -sS -o "$LOGIN_FILE" -w "%{http_code}" \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"role\":\"$ROLE\"}")"
 [[ "$LOGIN_CODE" == "200" || "$LOGIN_CODE" == "201" ]] || fail "login вернул HTTP $LOGIN_CODE"
 
-grep -q '"accessToken"' "$LOGIN_FILE" || fail "login не вернул accessToken"
-TOKEN="$(sed -n 's/.*"accessToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$LOGIN_FILE" | head -n1)"
-[[ -n "$TOKEN" ]] || fail "не удалось извлечь accessToken"
+TOKEN="$(extract_access_token "$LOGIN_FILE")" || fail "не удалось извлечь accessToken"
 
 # 2) Missing token should be unauthorized on protected endpoint
 MISSING_CODE="$(curl -sS -o /dev/null -w "%{http_code}" "$BASE_URL/requests")"

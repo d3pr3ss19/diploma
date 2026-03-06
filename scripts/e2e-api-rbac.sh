@@ -14,6 +14,22 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "Требуется команда '$1'"
 }
 
+extract_access_token() {
+  local json_file="$1"
+
+  python - "$json_file" <<'PY_TOKEN'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+token = payload.get('accessToken')
+if not isinstance(token, str) or not token:
+    raise SystemExit(1)
+print(token)
+PY_TOKEN
+}
+
 extract_token() {
   local role="$1"
   local out_file="$2"
@@ -26,13 +42,11 @@ extract_token() {
 
   [[ "$code" == "200" || "$code" == "201" ]] || fail "login($role) вернул HTTP $code"
 
-  local token
-  token="$(sed -n 's/.*"accessToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$out_file" | head -n1)"
-  [[ -n "$token" ]] || fail "не удалось извлечь accessToken для роли $role"
-  echo "$token"
+  extract_access_token "$out_file" || fail "не удалось извлечь accessToken для роли $role"
 }
 
 require_cmd curl
+require_cmd python
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$SCRIPT_DIR/wait-for-http.sh" "$BASE_URL/health" "${WAIT_TIMEOUT:-30}" "${WAIT_INTERVAL:-1}"
