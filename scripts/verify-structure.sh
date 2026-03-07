@@ -25,6 +25,7 @@ required_paths=(
   scripts/e2e-api-rbac.sh
   scripts/verify-scripts.sh
   scripts/verify-tooling.sh
+  scripts/extract-access-token.py
 )
 
 for path in "${required_paths[@]}"; do
