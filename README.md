@@ -79,6 +79,7 @@
 - ✅ Шаг 7.7: добавлен общий helper `scripts/extract-access-token.py` для устранения дублирования в e2e auth/rbac скриптах.
 - ✅ Шаг 7.8: tooling-проверки расширены: валидируется наличие/исполняемость и Python-синтаксис `scripts/extract-access-token.py`.
 - ✅ Шаг 7.9: `verify-scripts.sh` теперь проверяет синтаксис как shell-, так и Python-скриптов проекта.
+- ✅ Шаг 7.10: добавлен `verify-token-helper.sh` для поведенческих проверок helper-скрипта извлечения accessToken.
 
 
 
@@ -95,9 +96,9 @@
 - Smoke-checklist (Шаг 6.4): `docs/smoke-checklist.md`
 - Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`, `scripts/smoke-all.sh`, `scripts/e2e-api-auth-flow.sh`, `scripts/e2e-api-rbac.sh`
 - Smoke scripts поддерживают `WAIT_TIMEOUT` / `WAIT_INTERVAL` для ожидания старта сервисов
-- Make targets: `make smoke`, `make smoke-full`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make verify-scripts`, `make verify-structure`, `make verify-configs`, `make verify-tooling`, `make test-frontend`
+- Make targets: `make smoke`, `make smoke-full`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make verify-scripts`, `make verify-structure`, `make verify-configs`, `make verify-token-helper`, `make verify-tooling`, `make test-frontend`
 - Подсказка по командам: `make help`
-- `make verify-tooling` дополнительно проверяет, что все `scripts/*.sh` существуют и имеют executable-бит
+- `make verify-tooling` дополнительно проверяет, что все `scripts/*.sh` существуют и имеют executable-бит, и запускает поведенческие проверки token-helper
 - По каждому завершённому шагу делается отдельный коммит.
 
 ## Ветки

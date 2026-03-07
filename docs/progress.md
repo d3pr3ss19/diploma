@@ -34,6 +34,7 @@
 - [x] Шаг 7.7: вынесен общий helper `scripts/extract-access-token.py` и убрано дублирование логики парсинга accessToken в e2e-скриптах.
 - [x] Шаг 7.8: усилены verify-проверки для Python helper (`extract-access-token.py`): структура, executable-бит и синтаксис.
 - [x] Шаг 7.9: `verify-scripts.sh` расширен на Python-скрипты (py_compile) и теперь валидирует и shell-, и Python-скрипты.
+- [x] Шаг 7.10: добавлен `verify-token-helper.sh` с поведенческими проверками `extract-access-token.py` (валидный JSON и ошибки на битом/неполном payload).
 
 
 ## Оценка до финала
@@ -51,4 +52,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.10: стабилизация backend/frontend (дальше интеграционные проверки, техдолг, полировка UX).
+Перейти к Шагу 7.11: стабилизация backend/frontend (дальше интеграционные проверки, техдолг, полировка UX).

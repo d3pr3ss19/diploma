@@ -21,6 +21,7 @@ shell_scripts=(
   scripts/e2e-api-auth-flow.sh
   scripts/e2e-api-rbac.sh
   scripts/smoke-all.sh
+  scripts/verify-token-helper.sh
 )
 
 for script in "${shell_scripts[@]}"; do
