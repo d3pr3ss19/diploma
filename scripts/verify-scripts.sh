@@ -14,36 +14,29 @@ command -v python3 >/dev/null 2>&1 || {
   exit 1
 }
 
-shell_scripts=(
-  scripts/wait-for-http.sh
-  scripts/smoke-backend.sh
-  scripts/smoke-frontend.sh
-  scripts/e2e-api-auth-flow.sh
-  scripts/e2e-api-rbac.sh
-  scripts/smoke-all.sh
-  scripts/verify-token-helper.sh
-)
+shopt -s nullglob
+
+shell_scripts=(scripts/*.sh)
+python_scripts=(scripts/*.py)
+
+((${#shell_scripts[@]} > 0)) || {
+  echo "[verify-scripts] ❌ Не найдены shell-скрипты в scripts/*.sh" >&2
+  exit 1
+}
 
 for script in "${shell_scripts[@]}"; do
-  if [[ ! -f "$script" ]]; then
-    echo "[verify-scripts] ❌ Не найден: $script" >&2
-    exit 1
-  fi
-
+  [[ -f "$script" ]] || continue
   bash -n "$script"
   echo "[verify-scripts] ✅ shell syntax: $script"
 done
 
-python_scripts=(
-  scripts/extract-access-token.py
-)
+((${#python_scripts[@]} > 0)) || {
+  echo "[verify-scripts] ❌ Не найдены python-скрипты в scripts/*.py" >&2
+  exit 1
+}
 
 for script in "${python_scripts[@]}"; do
-  if [[ ! -f "$script" ]]; then
-    echo "[verify-scripts] ❌ Не найден: $script" >&2
-    exit 1
-  fi
-
+  [[ -f "$script" ]] || continue
   python3 -m py_compile "$script"
   echo "[verify-scripts] ✅ python syntax: $script"
 done

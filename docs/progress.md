@@ -35,6 +35,7 @@
 - [x] Шаг 7.8: усилены verify-проверки для Python helper (`extract-access-token.py`): структура, executable-бит и синтаксис.
 - [x] Шаг 7.9: `verify-scripts.sh` расширен на Python-скрипты (py_compile) и теперь валидирует и shell-, и Python-скрипты.
 - [x] Шаг 7.10: добавлен `verify-token-helper.sh` с поведенческими проверками `extract-access-token.py` (валидный JSON и ошибки на битом/неполном payload).
+- [x] Шаг 7.11: `verify-scripts.sh` переведён на auto-discovery и теперь валидирует синтаксис всех `scripts/*.sh` и `scripts/*.py`.
 
 
 ## Оценка до финала
@@ -52,4 +53,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.11: стабилизация backend/frontend (дальше интеграционные проверки, техдолг, полировка UX).
+Перейти к Шагу 7.12: стабилизация backend/frontend (дальше интеграционные проверки, техдолг, полировка UX).
