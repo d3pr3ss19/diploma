@@ -85,6 +85,7 @@
 - ✅ Шаг 7.13: `verify-scripts.sh` дополнительно валидирует корректный shebang у shell/python скриптов.
 - ✅ Шаг 7.14: добавлен `verify-wait-for-http.sh` для поведенческой проверки скрипта ожидания HTTP endpoint.
 - ✅ Шаг 7.15: `verify-token-helper.sh` дополнен кейсами пустого и нестрокового `accessToken`.
+- ✅ Шаг 7.16: `verify-wait-for-http.sh` теперь проверяет точные exit-коды usage/timeout (`2`/`1`).
 
 
 

@@ -14,9 +14,12 @@ command -v python3 >/dev/null 2>&1 || fail "Требуется python3"
 WAIT_SCRIPT="scripts/wait-for-http.sh"
 [[ -x "$WAIT_SCRIPT" ]] || fail "Не найден или не исполняемый скрипт: $WAIT_SCRIPT"
 
-# Usage should fail when URL is not provided.
+# Usage should fail with exit code 2 when URL is not provided.
 if "$WAIT_SCRIPT" >/dev/null 2>&1; then
   fail "ожидался неуспех без обязательного аргумента URL"
+else
+  code=$?
+  [[ "$code" == "2" ]] || fail "ожидался код 2 для usage-ошибки, получен $code"
 fi
 echo "[verify-wait-for-http] ✅ usage check"
 
@@ -41,6 +44,9 @@ echo "[verify-wait-for-http] ✅ reachable endpoint check"
 
 if "$WAIT_SCRIPT" "http://127.0.0.1:9" 1 1 >/dev/null 2>&1; then
   fail "ожидался таймаут для недоступного endpoint"
+else
+  code=$?
+  [[ "$code" == "1" ]] || fail "ожидался код 1 для таймаута, получен $code"
 fi
 echo "[verify-wait-for-http] ✅ timeout check"
 
