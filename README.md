@@ -81,6 +81,7 @@
 - ✅ Шаг 7.9: `verify-scripts.sh` теперь проверяет синтаксис как shell-, так и Python-скриптов проекта.
 - ✅ Шаг 7.10: добавлен `verify-token-helper.sh` для поведенческих проверок helper-скрипта извлечения accessToken.
 - ✅ Шаг 7.11: `verify-scripts.sh` переведён на auto-discovery всех `scripts/*.sh` и `scripts/*.py` для синтаксической проверки.
+- ✅ Шаг 7.12: `verify-scripts.sh` дополнен проверкой executable-бита для всех найденных скриптов в `scripts/`.
 
 
 

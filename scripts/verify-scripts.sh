@@ -26,6 +26,11 @@ python_scripts=(scripts/*.py)
 
 for script in "${shell_scripts[@]}"; do
   [[ -f "$script" ]] || continue
+  [[ -x "$script" ]] || {
+    echo "[verify-scripts] ❌ shell-скрипт не исполняемый: $script" >&2
+    exit 1
+  }
+
   bash -n "$script"
   echo "[verify-scripts] ✅ shell syntax: $script"
 done
@@ -37,6 +42,11 @@ done
 
 for script in "${python_scripts[@]}"; do
   [[ -f "$script" ]] || continue
+  [[ -x "$script" ]] || {
+    echo "[verify-scripts] ❌ python-скрипт не исполняемый: $script" >&2
+    exit 1
+  }
+
   python3 -m py_compile "$script"
   echo "[verify-scripts] ✅ python syntax: $script"
 done
