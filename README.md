@@ -83,6 +83,7 @@
 - ✅ Шаг 7.11: `verify-scripts.sh` переведён на auto-discovery всех `scripts/*.sh` и `scripts/*.py` для синтаксической проверки.
 - ✅ Шаг 7.12: `verify-scripts.sh` дополнен проверкой executable-бита для всех найденных скриптов в `scripts/`.
 - ✅ Шаг 7.13: `verify-scripts.sh` дополнительно валидирует корректный shebang у shell/python скриптов.
+- ✅ Шаг 7.14: добавлен `verify-wait-for-http.sh` для поведенческой проверки скрипта ожидания HTTP endpoint.
 
 
 
@@ -99,9 +100,9 @@
 - Smoke-checklist (Шаг 6.4): `docs/smoke-checklist.md`
 - Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`, `scripts/smoke-all.sh`, `scripts/e2e-api-auth-flow.sh`, `scripts/e2e-api-rbac.sh`
 - Smoke scripts поддерживают `WAIT_TIMEOUT` / `WAIT_INTERVAL` для ожидания старта сервисов
-- Make targets: `make smoke`, `make smoke-full`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make verify-scripts`, `make verify-structure`, `make verify-configs`, `make verify-token-helper`, `make verify-tooling`, `make test-frontend`
+- Make targets: `make smoke`, `make smoke-full`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make verify-scripts`, `make verify-structure`, `make verify-configs`, `make verify-token-helper`, `make verify-wait-for-http`, `make verify-tooling`, `make test-frontend`
 - Подсказка по командам: `make help`
-- `make verify-tooling` дополнительно проверяет, что все `scripts/*.sh` существуют и имеют executable-бит, и запускает поведенческие проверки token-helper
+- `make verify-tooling` дополнительно проверяет, что все `scripts/*.sh` существуют и имеют executable-бит, и запускает поведенческие проверки token-helper и wait-for-http
 - По каждому завершённому шагу делается отдельный коммит.
 
 ## Ветки

@@ -1,4 +1,4 @@
-.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac verify-scripts verify-structure verify-configs verify-token-helper verify-tooling
+.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-tooling
 
 help:
 	@echo "Доступные команды:"
@@ -12,6 +12,7 @@ help:
 	@echo "  make verify-structure - проверка структуры обязательных файлов"
 	@echo "  make verify-configs   - валидация JSON-конфигов проекта"
 	@echo "  make verify-token-helper - поведение helper извлечения accessToken"
+	@echo "  make verify-wait-for-http - поведенческая проверка wait-for-http.sh"
 	@echo "  make verify-tooling   - проверка tooling + dry-run make-таргетов"
 	@echo "  make test-frontend    - запуск frontend unit-тестов"
 
@@ -44,6 +45,9 @@ verify-tooling:
 
 verify-token-helper:
 	./scripts/verify-token-helper.sh
+
+verify-wait-for-http:
+	./scripts/verify-wait-for-http.sh
 
 verify-structure:
 	./scripts/verify-structure.sh

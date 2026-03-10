@@ -24,6 +24,7 @@ scripts=(
   scripts/verify-structure.sh
   scripts/verify-configs.sh
   scripts/verify-token-helper.sh
+  scripts/verify-wait-for-http.sh
   scripts/extract-access-token.py
 )
 
@@ -37,12 +38,13 @@ done
 ./scripts/verify-structure.sh
 ./scripts/verify-configs.sh
 ./scripts/verify-token-helper.sh
+./scripts/verify-wait-for-http.sh
 
 python3 -m py_compile scripts/extract-access-token.py
 echo "[verify-tooling] ✅ python syntax: scripts/extract-access-token.py"
 
 # Dry-run Make targets to ensure commands are wired correctly.
-for target in smoke smoke-full smoke-backend smoke-frontend e2e-api e2e-rbac verify-scripts verify-structure verify-configs verify-token-helper verify-tooling test-frontend; do
+for target in smoke smoke-full smoke-backend smoke-frontend e2e-api e2e-rbac verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-tooling test-frontend; do
   make -n "$target" >/dev/null
   echo "[verify-tooling] ✅ make -n $target"
 done
