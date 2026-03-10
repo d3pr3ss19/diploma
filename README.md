@@ -84,6 +84,7 @@
 - ✅ Шаг 7.12: `verify-scripts.sh` дополнен проверкой executable-бита для всех найденных скриптов в `scripts/`.
 - ✅ Шаг 7.13: `verify-scripts.sh` дополнительно валидирует корректный shebang у shell/python скриптов.
 - ✅ Шаг 7.14: добавлен `verify-wait-for-http.sh` для поведенческой проверки скрипта ожидания HTTP endpoint.
+- ✅ Шаг 7.15: `verify-token-helper.sh` дополнен кейсами пустого и нестрокового `accessToken`.
 
 
 

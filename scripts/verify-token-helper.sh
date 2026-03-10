@@ -21,6 +21,9 @@ VALID_JSON="$TMP_DIR/valid.json"
 INVALID_JSON="$TMP_DIR/invalid.json"
 MISSING_TOKEN_JSON="$TMP_DIR/missing-token.json"
 
+EMPTY_TOKEN_JSON="$TMP_DIR/empty-token.json"
+NON_STRING_TOKEN_JSON="$TMP_DIR/non-string-token.json"
+
 cat > "$VALID_JSON" <<'JSON'
 {"accessToken":"demo-OPERATOR-stub-user-id"}
 JSON
@@ -44,5 +47,22 @@ if python3 "$HELPER" "$MISSING_TOKEN_JSON" >/dev/null 2>&1; then
   fail "helper должен завершаться с ошибкой без accessToken"
 fi
 echo "[verify-token-helper] ✅ missing token handling"
+
+
+cat > "$EMPTY_TOKEN_JSON" <<'JSON'
+{"accessToken":""}
+JSON
+if python3 "$HELPER" "$EMPTY_TOKEN_JSON" >/dev/null 2>&1; then
+  fail "helper должен завершаться с ошибкой при пустом accessToken"
+fi
+echo "[verify-token-helper] ✅ empty token handling"
+
+cat > "$NON_STRING_TOKEN_JSON" <<'JSON'
+{"accessToken":123}
+JSON
+if python3 "$HELPER" "$NON_STRING_TOKEN_JSON" >/dev/null 2>&1; then
+  fail "helper должен завершаться с ошибкой при нестроковом accessToken"
+fi
+echo "[verify-token-helper] ✅ non-string token handling"
 
 echo "[verify-token-helper] 🎉 Проверки helper-скрипта пройдены"
