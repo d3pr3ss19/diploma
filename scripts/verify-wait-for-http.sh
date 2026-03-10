@@ -50,4 +50,21 @@ else
 fi
 echo "[verify-wait-for-http] ✅ timeout check"
 
+
+if "$WAIT_SCRIPT" "http://127.0.0.1:1" abc 1 >/dev/null 2>&1; then
+  fail "ожидалась ошибка валидации timeout_sec"
+else
+  code=$?
+  [[ "$code" == "2" ]] || fail "ожидался код 2 для невалидного timeout_sec, получен $code"
+fi
+echo "[verify-wait-for-http] ✅ timeout arg validation"
+
+if "$WAIT_SCRIPT" "http://127.0.0.1:1" 1 0 >/dev/null 2>&1; then
+  fail "ожидалась ошибка валидации interval_sec"
+else
+  code=$?
+  [[ "$code" == "2" ]] || fail "ожидался код 2 для невалидного interval_sec, получен $code"
+fi
+echo "[verify-wait-for-http] ✅ interval arg validation"
+
 echo "[verify-wait-for-http] 🎉 Проверки wait-for-http.sh пройдены"

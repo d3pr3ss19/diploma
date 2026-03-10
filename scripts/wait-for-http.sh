@@ -10,6 +10,20 @@ if [[ -z "$URL" ]]; then
   exit 2
 fi
 
+is_positive_int() {
+  [[ "$1" =~ ^[0-9]+$ ]] && (( "$1" > 0 ))
+}
+
+is_positive_int "$TIMEOUT_SEC" || {
+  echo "[wait] ❌ timeout_sec должен быть положительным целым числом" >&2
+  exit 2
+}
+
+is_positive_int "$INTERVAL_SEC" || {
+  echo "[wait] ❌ interval_sec должен быть положительным целым числом" >&2
+  exit 2
+}
+
 command -v curl >/dev/null 2>&1 || {
   echo "[wait] ❌ Требуется curl" >&2
   exit 2
