@@ -31,6 +31,12 @@ for script in "${shell_scripts[@]}"; do
     exit 1
   }
 
+  read -r first_line < "$script" || first_line=""
+  [[ "$first_line" == "#!/usr/bin/env bash" ]] || {
+    echo "[verify-scripts] ❌ неверный shebang в shell-скрипте: $script" >&2
+    exit 1
+  }
+
   bash -n "$script"
   echo "[verify-scripts] ✅ shell syntax: $script"
 done
@@ -44,6 +50,12 @@ for script in "${python_scripts[@]}"; do
   [[ -f "$script" ]] || continue
   [[ -x "$script" ]] || {
     echo "[verify-scripts] ❌ python-скрипт не исполняемый: $script" >&2
+    exit 1
+  }
+
+  read -r first_line < "$script" || first_line=""
+  [[ "$first_line" == "#!/usr/bin/env python3" ]] || {
+    echo "[verify-scripts] ❌ неверный shebang в python-скрипте: $script" >&2
     exit 1
   }
 
