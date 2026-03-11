@@ -87,6 +87,7 @@
 - ✅ Шаг 7.15: `verify-token-helper.sh` дополнен кейсами пустого и нестрокового `accessToken`.
 - ✅ Шаг 7.16: `verify-wait-for-http.sh` теперь проверяет точные exit-коды usage/timeout (`2`/`1`).
 - ✅ Шаг 7.17: `wait-for-http.sh` дополнен валидацией timeout/interval и тестами этих кейсов в `verify-wait-for-http.sh`.
+- ✅ Шаг 7.18: `wait-for-http.sh` теперь принимает сервис как доступный только при HTTP-статусе < 400; добавлен тест на 404.
 
 
 

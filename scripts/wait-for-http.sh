@@ -32,8 +32,9 @@ command -v curl >/dev/null 2>&1 || {
 started_at="$(date +%s)"
 
 while true; do
-  if curl -sS -o /dev/null "$URL"; then
-    echo "[wait] ✅ Доступно: $URL"
+  http_code="$(curl -sS -o /dev/null -w "%{http_code}" "$URL" || true)"
+  if [[ "$http_code" =~ ^[0-9]{3}$ ]] && (( http_code >= 200 && http_code < 400 )); then
+    echo "[wait] ✅ Доступно: $URL (HTTP $http_code)"
     exit 0
   fi
 

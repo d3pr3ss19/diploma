@@ -42,6 +42,15 @@ sleep 0.2
 "$WAIT_SCRIPT" "http://127.0.0.1:${PORT}" 5 1 >/dev/null 2>&1
 echo "[verify-wait-for-http] ✅ reachable endpoint check"
 
+
+if "$WAIT_SCRIPT" "http://127.0.0.1:${PORT}/missing" 2 1 >/dev/null 2>&1; then
+  fail "ожидался таймаут для endpoint c HTTP 404"
+else
+  code=$?
+  [[ "$code" == "1" ]] || fail "ожидался код 1 для HTTP 404 timeout, получен $code"
+fi
+echo "[verify-wait-for-http] ✅ non-2xx/3xx status handling"
+
 if "$WAIT_SCRIPT" "http://127.0.0.1:9" 1 1 >/dev/null 2>&1; then
   fail "ожидался таймаут для недоступного endpoint"
 else
