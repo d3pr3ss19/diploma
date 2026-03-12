@@ -19,6 +19,32 @@ curl http://localhost:3000/api/v1/health
 ```
 
 
+
+## Ошибка PrismaClientInitializationError (DB auth failed)
+
+Если видишь ошибку:
+
+`Authentication failed against database server at localhost`
+
+проверь:
+
+1. В `backend/.env` корректный `DATABASE_URL` (логин/пароль/порт/имя БД).
+2. PostgreSQL действительно запущен и слушает нужный порт.
+3. Этими же credentials можно зайти вручную через `psql`.
+
+Пример типичного `DATABASE_URL` для локальной разработки:
+
+`DATABASE_URL="postgresql://postgres:postgres@localhost:5432/diploma?schema=public"`
+
+Дальше выполни:
+
+```bash
+npm run prisma:generate
+npm run prisma:migrate:deploy
+```
+
+И перезапусти backend.
+
 ## MVP авторизация (текущий этап)
 
 Временный формат access token: `demo-<ROLE>-<USER_ID>`.
