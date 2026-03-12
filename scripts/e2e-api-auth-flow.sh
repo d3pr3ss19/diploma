@@ -2,9 +2,8 @@
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:3000/api/v1}"
-EMAIL="${E2E_EMAIL:-operator@example.com}"
+EMAIL="${E2E_EMAIL:-operator@kp.local}"
 PASSWORD="${E2E_PASSWORD:-password123}"
-ROLE="${E2E_ROLE:-OPERATOR}"
 
 fail() {
   echo "[e2e-api] ❌ $1" >&2
@@ -28,6 +27,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 LOGIN_FILE="$TMP_DIR/login.json"
 INVALID_LOGIN_FILE="$TMP_DIR/invalid-login.json"
+REFRESH_FILE="$TMP_DIR/refresh.json"
 
 # 0) Invalid payload must be rejected by validation
 INVALID_LOGIN_CODE="$(curl -sS -o "$INVALID_LOGIN_FILE" -w "%{http_code}" \
@@ -40,7 +40,7 @@ INVALID_LOGIN_CODE="$(curl -sS -o "$INVALID_LOGIN_FILE" -w "%{http_code}" \
 LOGIN_CODE="$(curl -sS -o "$LOGIN_FILE" -w "%{http_code}" \
   -X POST "$BASE_URL/auth/login" \
   -H 'Content-Type: application/json' \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"role\":\"$ROLE\"}")"
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")"
 [[ "$LOGIN_CODE" == "200" || "$LOGIN_CODE" == "201" ]] || fail "login вернул HTTP $LOGIN_CODE"
 
 TOKEN="$(python3 "$EXTRACT_TOKEN_SCRIPT" "$LOGIN_FILE")" || fail "не удалось извлечь accessToken"
@@ -55,16 +55,12 @@ INVALID_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
   "$BASE_URL/requests")"
 [[ "$INVALID_CODE" == "401" ]] || fail "ожидался 401 с невалидным токеном, получен $INVALID_CODE"
 
-# 4) Malformed demo tokens should be unauthorized
-MALFORMED_EMPTY_USER_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
-  -H 'Authorization: Bearer demo-OPERATOR-' \
+# 4) Tampered token should be unauthorized
+TAMPERED_TOKEN="${TOKEN%?}x"
+TAMPERED_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer $TAMPERED_TOKEN" \
   "$BASE_URL/requests")"
-[[ "$MALFORMED_EMPTY_USER_CODE" == "401" ]] || fail "ожидался 401 для токена с пустым user-id, получен $MALFORMED_EMPTY_USER_CODE"
-
-MALFORMED_UNKNOWN_ROLE_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
-  -H 'Authorization: Bearer demo-MANAGER-some-user' \
-  "$BASE_URL/requests")"
-[[ "$MALFORMED_UNKNOWN_ROLE_CODE" == "401" ]] || fail "ожидался 401 для токена с неизвестной ролью, получен $MALFORMED_UNKNOWN_ROLE_CODE"
+[[ "$TAMPERED_CODE" == "401" ]] || fail "ожидался 401 для подменённого токена, получен $TAMPERED_CODE"
 
 # 5) Valid token should pass auth layer (usually 200, but not 401/403)
 VALID_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
@@ -74,13 +70,24 @@ if [[ "$VALID_CODE" == "401" || "$VALID_CODE" == "403" ]]; then
   fail "с валидным токеном получен $VALID_CODE (ожидалось прохождение auth)"
 fi
 
-# 6) Token with hyphenated user-id (UUID-like) should pass auth parsing
-UUID_LIKE_TOKEN='demo-OPERATOR-123e4567-e89b-12d3-a456-426614174000'
-UUID_TOKEN_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
-  -H "Authorization: Bearer $UUID_LIKE_TOKEN" \
-  "$BASE_URL/requests")"
-if [[ "$UUID_TOKEN_CODE" == "401" || "$UUID_TOKEN_CODE" == "403" ]]; then
-  fail "токен с UUID user-id отклонён auth-guard'ом: HTTP $UUID_TOKEN_CODE"
-fi
+# 6) Refresh token flow
+REFRESH_TOKEN="$(python3 - <<'PY' "$LOGIN_FILE"
+import json
+import sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    data = json.load(f)
+rt = data.get('refreshToken')
+if not isinstance(rt, str) or not rt:
+    raise SystemExit(1)
+print(rt)
+PY
+)" || fail "не удалось извлечь refreshToken"
 
-echo "[e2e-api] ✅ E2E auth-flow пройден (valid=$VALID_CODE, uuid=$UUID_TOKEN_CODE, malformed-empty-user=$MALFORMED_EMPTY_USER_CODE, malformed-unknown-role=$MALFORMED_UNKNOWN_ROLE_CODE)"
+REFRESH_CODE="$(curl -sS -o "$REFRESH_FILE" -w "%{http_code}" \
+  -X POST "$BASE_URL/auth/refresh" \
+  -H 'Content-Type: application/json' \
+  -d "{\"refreshToken\":\"$REFRESH_TOKEN\"}")"
+[[ "$REFRESH_CODE" == "200" || "$REFRESH_CODE" == "201" ]] || fail "refresh вернул HTTP $REFRESH_CODE"
+grep -q '"accessToken"' "$REFRESH_FILE" || fail "refresh не вернул accessToken"
+
+echo "[e2e-api] ✅ E2E auth-flow пройден (valid=$VALID_CODE, invalid=$INVALID_CODE, tampered=$TAMPERED_CODE, refresh=$REFRESH_CODE)"
