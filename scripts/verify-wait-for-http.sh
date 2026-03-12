@@ -52,6 +52,11 @@ sleep 0.2
 echo "[verify-wait-for-http] ✅ reachable endpoint check"
 
 
+mkdir -p "$TMP_DIR/redirect-target"
+"$WAIT_SCRIPT" "http://127.0.0.1:${PORT}/redirect-target" 5 1 >/dev/null 2>&1
+echo "[verify-wait-for-http] ✅ redirect (3xx) handling"
+
+
 if "$WAIT_SCRIPT" "http://127.0.0.1:${PORT}/missing" 2 1 >/dev/null 2>&1; then
   fail "ожидался таймаут для endpoint c HTTP 404"
 else
