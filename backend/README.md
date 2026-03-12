@@ -34,7 +34,7 @@ curl http://localhost:3000/api/v1/health
 
 Пример типичного `DATABASE_URL` для локальной разработки:
 
-`DATABASE_URL="postgresql://postgres:postgres@localhost:5432/diploma?schema=public"`
+`DATABASE_URL="postgresql://diploma_user:12345678@localhost:5432/diploma"`
 
 Дальше выполни:
 
