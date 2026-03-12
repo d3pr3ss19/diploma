@@ -11,6 +11,32 @@
 - Аутентификация: JWT (access + refresh)
 - Генерация квитанций: HTML → PDF (базово), PDFKit (дополнительно)
 
+
+## Как посмотреть сайт локально
+
+1. Подними backend:
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+npm run prisma:generate
+npm run start:dev
+```
+
+2. В отдельном терминале подними frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+3. Открой `http://localhost:5173/login`.
+
+На текущем этапе авторизация демо-режимом, поэтому пользователей в БД создавать не нужно.
+Можно войти тестовыми данными `operator@kp.local / password123` (или выбрать другую роль на форме).
+
 ## План старта
 
 ### Шаг 1 (сейчас): согласовать MVP и доменную модель
