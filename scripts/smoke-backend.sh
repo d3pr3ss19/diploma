@@ -2,9 +2,8 @@
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:3000/api/v1}"
-EMAIL="${SMOKE_EMAIL:-operator@example.com}"
+EMAIL="${SMOKE_EMAIL:-operator@kp.local}"
 PASSWORD="${SMOKE_PASSWORD:-password123}"
-ROLE="${SMOKE_ROLE:-OPERATOR}"
 
 fail() {
   echo "[smoke] ❌ $1" >&2
@@ -37,7 +36,7 @@ echo "[smoke] Проверка login: $BASE_URL/auth/login"
 LOGIN_CODE="$(curl -sS -o "$LOGIN_FILE" -w "%{http_code}" \
   -X POST "$BASE_URL/auth/login" \
   -H 'Content-Type: application/json' \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"role\":\"$ROLE\"}")"
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")"
 [[ "$LOGIN_CODE" == "201" || "$LOGIN_CODE" == "200" ]] || fail "login вернул HTTP $LOGIN_CODE"
 grep -q '"accessToken"' "$LOGIN_FILE" || fail "login не вернул accessToken"
 grep -q '"refreshToken"' "$LOGIN_FILE" || fail "login не вернул refreshToken"

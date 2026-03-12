@@ -1,9 +1,9 @@
-import { Alert, Button, Card, Form, Input, Select, Space, Typography } from 'antd';
+import { Alert, Button, Card, Form, Input, Space, Typography } from 'antd';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { writeAuth } from '../app/auth-storage';
 import { login } from '../api/auth';
-import type { LoginRequest, UserRole } from '../types/auth';
+import type { LoginRequest } from '../types/auth';
 
 export function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -11,7 +11,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  async function handleSubmit(values: { email: string; password: string; role: UserRole }) {
+  async function handleSubmit(values: { email: string; password: string }) {
     setLoading(true);
     setError(null);
 
@@ -19,7 +19,6 @@ export function LoginPage() {
       const payload: LoginRequest = {
         email: values.email,
         password: values.password,
-        role: values.role,
       };
       const auth = await login(payload);
       writeAuth(auth);
@@ -42,7 +41,7 @@ export function LoginPage() {
 
           {error ? <Alert type="error" showIcon message={error} /> : null}
 
-          <Form layout="vertical" onFinish={handleSubmit} initialValues={{ role: 'OPERATOR' as UserRole }}>
+          <Form layout="vertical" onFinish={handleSubmit}>
             <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Введите email' }]}>
               <Input placeholder="name@example.com" />
             </Form.Item>
@@ -52,15 +51,6 @@ export function LoginPage() {
               rules={[{ required: true, message: 'Введите пароль' }]}
             >
               <Input.Password placeholder="••••••••" />
-            </Form.Item>
-            <Form.Item label="Роль" name="role" rules={[{ required: true, message: 'Выберите роль' }]}>
-              <Select
-                options={[
-                  { value: 'ADMIN', label: 'Администратор' },
-                  { value: 'OPERATOR', label: 'Оператор' },
-                  { value: 'SUBSCRIBER', label: 'Абонент' },
-                ]}
-              />
             </Form.Item>
             <Button type="primary" block htmlType="submit" loading={loading}>
               Войти

@@ -7,6 +7,8 @@ cd backend
 npm install
 cp .env.example .env
 npm run prisma:generate
+npm run prisma:migrate:deploy
+npm run seed:auth-users
 npm run start:dev
 ```
 
@@ -45,20 +47,24 @@ npm run prisma:migrate:deploy
 
 И перезапусти backend.
 
-## MVP авторизация (текущий этап)
+## Авторизация (текущий этап)
 
-Временный формат access token: `demo-<ROLE>-<USER_ID>`.
+Реализована базовая auth-модель через пользователей БД:
 
-Пример: `Authorization: Bearer demo-OPERATOR-12345`.
+- `POST /auth/login` — вход по `email/password`;
+- `POST /auth/refresh` — обновление access-токена по refresh-токену;
+- `AuthGuard` проверяет Bearer access-токен и выставляет `request.user`.
 
-Поддерживаемые роли: `ADMIN`, `OPERATOR`, `SUBSCRIBER`.
+### Сид пользователей для локальной разработки
 
-### Логин без пользователей в БД
+После миграций выполни:
 
-На текущем этапе `POST /auth/login` работает в демо-режиме:
+```bash
+npm run seed:auth-users
+```
 
-- endpoint не проверяет существование пользователя в БД;
-- возвращает access/refresh токены на основе переданных `login` и `role`;
-- подходит для smoke/UI-проверок до внедрения полноценной auth-модели.
+Будут созданы пользователи:
 
-Поэтому открыть UI и пройти авторизацию можно даже на пустой базе данных.
+- `admin@kp.local` / `password123`
+- `operator@kp.local` / `password123`
+- `subscriber@kp.local` / `password123`

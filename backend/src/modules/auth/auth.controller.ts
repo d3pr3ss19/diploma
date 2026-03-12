@@ -1,33 +1,25 @@
 import { Body, Controller, Post } from '@nestjs/common';
 
-import { Role } from '../../common/auth/role.enum';
+import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RefreshDto } from './dto/refresh.dto';
 
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
   @Post('login')
   login(@Body() body: LoginDto) {
-    const role = body.role ?? Role.OPERATOR;
-    const userId = 'stub-user-id';
-
-    return {
-      accessToken: `demo-${role}-${userId}`,
-      refreshToken: `demo-refresh-${userId}`,
-      user: {
-        id: userId,
-        email: body.email,
-        role
-      }
-    };
+    return this.authService.login(body);
   }
 
   @Post('refresh')
-  refresh() {
-    return { accessToken: `demo-${Role.OPERATOR}-stub-user-id` };
+  refresh(@Body() body: RefreshDto) {
+    return this.authService.refresh(body.refreshToken);
   }
 
   @Post('logout')
   logout() {
-    return { success: true };
+    return this.authService.logout();
   }
 }

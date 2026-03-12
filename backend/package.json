@@ -6,7 +6,9 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "seed:auth-users": "ts-node --transpile-only scripts/seed-auth-users.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.8",

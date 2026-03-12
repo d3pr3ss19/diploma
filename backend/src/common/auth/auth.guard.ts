@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
 
+import { verifyToken } from './token.util';
 import { Role } from './role.enum';
 
 type AuthenticatedRequest = Request & {
@@ -21,31 +22,17 @@ export class AuthGuard implements CanActivate {
     }
 
     const token = authHeader.slice('Bearer '.length).trim();
-    const parsedToken = this.parseDemoToken(token);
+    const payload = verifyToken(token);
 
-    if (!parsedToken) {
-      throw new UnauthorizedException('Invalid token format');
+    if (!payload || payload.type !== 'access') {
+      throw new UnauthorizedException('Invalid access token');
     }
 
-    request.user = parsedToken;
+    request.user = {
+      id: payload.sub,
+      role: payload.role
+    };
 
     return true;
-  }
-
-  private parseDemoToken(token: string): { id: string; role: Role } | null {
-    // MVP token format: demo-<ROLE>-<USER_ID>
-    const match = token.match(/^demo-(ADMIN|OPERATOR|SUBSCRIBER)-(.+)$/);
-    if (!match) {
-      return null;
-    }
-
-    const [, roleValue, userId] = match;
-    const role = roleValue as Role;
-
-    if (!userId.trim()) {
-      return null;
-    }
-
-    return { id: userId, role };
   }
 }
