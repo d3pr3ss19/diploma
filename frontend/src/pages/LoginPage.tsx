@@ -5,38 +5,7 @@ import { writeAuth } from '../app/auth-storage';
 import { login } from '../api/auth';
 import type { LoginRequest, UserRole } from '../types/auth';
 
-type DemoAccount = {
-  role: UserRole;
-  email: string;
-  password: string;
-  label: string;
-};
-
-const DEMO_ACCOUNTS: DemoAccount[] = [
-  {
-    role: 'ADMIN',
-    email: 'admin@kp.local',
-    password: 'password123',
-    label: 'Администратор',
-  },
-  {
-    role: 'OPERATOR',
-    email: 'operator@kp.local',
-    password: 'password123',
-    label: 'Оператор',
-  },
-  {
-    role: 'SUBSCRIBER',
-    email: 'subscriber@kp.local',
-    password: 'password123',
-    label: 'Абонент',
-  },
-];
-
-const DEFAULT_ACCOUNT = DEMO_ACCOUNTS[1];
-
 export function LoginPage() {
-  const [form] = Form.useForm<{ email: string; password: string; role: UserRole }>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -63,13 +32,9 @@ export function LoginPage() {
     }
   }
 
-  function applyDemoAccount(account: DemoAccount) {
-    form.setFieldsValue({ email: account.email, password: account.password, role: account.role });
-  }
-
   return (
     <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24 }}>
-      <Card style={{ width: 480 }}>
+      <Card style={{ width: 420 }}>
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Typography.Title level={4} style={{ margin: 0 }}>
             Вход в систему
@@ -77,33 +42,9 @@ export function LoginPage() {
 
           {error ? <Alert type="error" showIcon message={error} /> : null}
 
-          <Alert
-            type="info"
-            showIcon
-            message="Демо-вход"
-            description="На текущем MVP backend принимает любую пару email/пароль (пароль от 8 символов). Для удобства используйте тестовые кнопки ниже."
-          />
-
-          <Space wrap>
-            {DEMO_ACCOUNTS.map((account) => (
-              <Button key={account.role} onClick={() => applyDemoAccount(account)}>
-                {account.label}
-              </Button>
-            ))}
-          </Space>
-
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleSubmit}
-            initialValues={{
-              role: DEFAULT_ACCOUNT.role,
-              email: DEFAULT_ACCOUNT.email,
-              password: DEFAULT_ACCOUNT.password,
-            }}
-          >
+          <Form layout="vertical" onFinish={handleSubmit} initialValues={{ role: 'OPERATOR' as UserRole }}>
             <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Введите email' }]}>
-              <Input placeholder="operator@kp.local" />
+              <Input placeholder="name@example.com" />
             </Form.Item>
             <Form.Item
               label="Пароль"
