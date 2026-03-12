@@ -23,6 +23,15 @@ else
 fi
 echo "[verify-wait-for-http] ✅ usage check"
 
+
+if "$WAIT_SCRIPT" "localhost:3000" 1 1 >/dev/null 2>&1; then
+  fail "ожидалась ошибка валидации URL-схемы"
+else
+  code=$?
+  [[ "$code" == "2" ]] || fail "ожидался код 2 для URL без http/https, получен $code"
+fi
+echo "[verify-wait-for-http] ✅ url scheme validation"
+
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"; if [[ -n "${SERVER_PID:-}" ]]; then kill "$SERVER_PID" >/dev/null 2>&1 || true; fi' EXIT
 

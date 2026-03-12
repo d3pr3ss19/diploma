@@ -10,6 +10,11 @@ if [[ -z "$URL" ]]; then
   exit 2
 fi
 
+[[ "$URL" =~ ^https?:// ]] || {
+  echo "[wait] ❌ URL должен начинаться с http:// или https://" >&2
+  exit 2
+}
+
 is_positive_int() {
   [[ "$1" =~ ^[0-9]+$ ]] && (( "$1" > 0 ))
 }
