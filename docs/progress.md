@@ -47,6 +47,7 @@
 - [x] Шаг 7.20: `verify-wait-for-http.sh` дополнен проверкой, что HTTP 3xx (redirect) считается успешной готовностью.
 - [x] Шаг 7.21: auth переведена с demo на БД-пользователей и JWT-like access/refresh токены; добавлен seed демо-пользователей для локального старта.
 - [x] Шаг 7.22: e2e auth/rbac-скрипты обновлены под новую auth-модель (логин без role, проверки tampered token, refresh-flow).
+- [x] Шаг 7.23: добавлен интеграционный e2e-сценарий `e2e-api-auth-integration.sh` (wrong password, login, refresh, guard/RBAC) и включён в smoke-full/tooling-проверки.
 
 
 ## Оценка до финала
@@ -64,4 +65,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.23: добавить backend интеграционные auth-тесты (login/refresh/guard) на тестовой БД.
+Перейти к Шагу 7.24: добавить CI-режим запуска backend auth-интеграционных сценариев на тестовой БД.

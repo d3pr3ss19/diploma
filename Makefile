@@ -1,4 +1,4 @@
-.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-tooling
+.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac e2e-auth-integration verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-tooling
 
 help:
 	@echo "Доступные команды:"
@@ -36,6 +36,9 @@ e2e-api:
 
 e2e-rbac:
 	./scripts/e2e-api-rbac.sh
+
+e2e-auth-integration:
+	./scripts/e2e-api-auth-integration.sh
 
 verify-scripts:
 	./scripts/verify-scripts.sh

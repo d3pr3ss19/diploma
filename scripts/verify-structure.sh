@@ -23,6 +23,7 @@ required_paths=(
   scripts/smoke-all.sh
   scripts/e2e-api-auth-flow.sh
   scripts/e2e-api-rbac.sh
+  scripts/e2e-api-auth-integration.sh
   scripts/verify-scripts.sh
   scripts/verify-tooling.sh
   scripts/verify-token-helper.sh

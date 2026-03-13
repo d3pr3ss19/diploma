@@ -18,6 +18,7 @@ run_step "Frontend smoke" "$ROOT_DIR/scripts/smoke-frontend.sh"
 if [[ "$RUN_E2E" == "1" ]]; then
   run_step "API auth e2e" "$ROOT_DIR/scripts/e2e-api-auth-flow.sh"
   run_step "API RBAC e2e" "$ROOT_DIR/scripts/e2e-api-rbac.sh"
+  run_step "API auth integration e2e" "$ROOT_DIR/scripts/e2e-api-auth-integration.sh"
 fi
 
 echo "[smoke-all] 🎉 Все smoke-проверки прошли успешно"
