@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { clearAuth, readAuth, writeAuth } from './auth-storage';
+import { clearAuth, readAuth, updateAccessToken, writeAuth } from './auth-storage';
 
 function createLocalStorageMock(): Storage {
   const store = new Map<string, string>();
@@ -18,7 +18,7 @@ function createLocalStorageMock(): Storage {
     key: (index: number) => Array.from(store.keys())[index] ?? null,
     get length() {
       return store.size;
-    },
+    }
   };
 }
 
@@ -26,7 +26,7 @@ describe('auth-storage', () => {
   beforeEach(() => {
     Object.defineProperty(globalThis, 'localStorage', {
       value: createLocalStorageMock(),
-      configurable: true,
+      configurable: true
     });
     clearAuth();
   });
@@ -39,7 +39,7 @@ describe('auth-storage', () => {
     const auth = {
       accessToken: 'access',
       refreshToken: 'refresh',
-      user: { id: 'u1', email: 'u@e.com', role: 'OPERATOR' as const },
+      user: { id: 'u1', email: 'u@e.com', role: 'OPERATOR' as const }
     };
 
     writeAuth(auth);
@@ -51,13 +51,13 @@ describe('auth-storage', () => {
     writeAuth({
       accessToken: 'old',
       refreshToken: 'old-refresh',
-      user: { id: 'u1', email: 'old@e.com', role: 'OPERATOR' as const },
+      user: { id: 'u1', email: 'old@e.com', role: 'OPERATOR' as const }
     });
 
     const next = {
       accessToken: 'new',
       refreshToken: 'new-refresh',
-      user: { id: 'u2', email: 'new@e.com', role: 'ADMIN' as const },
+      user: { id: 'u2', email: 'new@e.com', role: 'ADMIN' as const }
     };
 
     writeAuth(next);
@@ -65,11 +65,33 @@ describe('auth-storage', () => {
     expect(readAuth()).toEqual(next);
   });
 
+  it('updates access token and keeps refresh/user data', () => {
+    writeAuth({
+      accessToken: 'old-access',
+      refreshToken: 'refresh',
+      user: { id: 'u1', email: 'u@e.com', role: 'ADMIN' as const }
+    });
+
+    const updated = updateAccessToken('new-access');
+
+    expect(updated).toBe(true);
+    expect(readAuth()).toEqual({
+      accessToken: 'new-access',
+      refreshToken: 'refresh',
+      user: { id: 'u1', email: 'u@e.com', role: 'ADMIN' }
+    });
+  });
+
+  it('returns false on access-token update when auth is missing', () => {
+    expect(updateAccessToken('new-access')).toBe(false);
+    expect(readAuth()).toBeNull();
+  });
+
   it('clears auth payload', () => {
     writeAuth({
       accessToken: 'access',
       refreshToken: 'refresh',
-      user: { id: 'u1', email: 'u@e.com', role: 'ADMIN' as const },
+      user: { id: 'u1', email: 'u@e.com', role: 'ADMIN' as const }
     });
 
     clearAuth();

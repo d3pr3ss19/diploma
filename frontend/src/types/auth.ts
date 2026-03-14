@@ -14,3 +14,11 @@ export type LoginResponse = {
     role: UserRole;
   };
 };
+
+export type RefreshRequest = {
+  refreshToken: string;
+};
+
+export type RefreshResponse = {
+  accessToken: string;
+};

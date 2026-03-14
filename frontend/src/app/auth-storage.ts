@@ -20,6 +20,20 @@ export function writeAuth(auth: LoginResponse): void {
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth));
 }
 
+export function updateAccessToken(accessToken: string): boolean {
+  const current = readAuth();
+  if (!current) {
+    return false;
+  }
+
+  writeAuth({
+    ...current,
+    accessToken
+  });
+
+  return true;
+}
+
 export function clearAuth(): void {
   localStorage.removeItem(AUTH_STORAGE_KEY);
 }
