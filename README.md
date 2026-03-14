@@ -139,9 +139,10 @@ npm run dev
 - Smoke-checklist (Шаг 6.4): `docs/smoke-checklist.md`
 - Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`, `scripts/smoke-all.sh`, `scripts/e2e-api-auth-flow.sh`, `scripts/e2e-api-rbac.sh`
 - Smoke scripts поддерживают `WAIT_TIMEOUT` / `WAIT_INTERVAL` для ожидания старта сервисов
-- Make targets: `make smoke`, `make smoke-full`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make e2e-auth-integration`, `make verify-scripts`, `make verify-structure`, `make verify-configs`, `make verify-token-helper`, `make verify-wait-for-http`, `make verify-tooling`, `make test-frontend`
+- Make targets: `make smoke`, `make smoke-full`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make e2e-auth-integration`, `make ci-auth-check`, `make verify-scripts`, `make verify-structure`, `make verify-configs`, `make verify-token-helper`, `make verify-wait-for-http`, `make verify-tooling`, `make test-frontend`
 - Подсказка по командам: `make help`
 - `make verify-tooling` дополнительно проверяет, что все `scripts/*.sh` существуют и имеют executable-бит, и запускает поведенческие проверки token-helper и wait-for-http
+- CI auth-check target: `make ci-auth-check` (использует `BASE_URL` и `E2E_*` env для smoke+e2e auth-пакета на тестовой БД)
 - По каждому завершённому шагу делается отдельный коммит.
 
 ## Ветки

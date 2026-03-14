@@ -1,4 +1,4 @@
-.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac e2e-auth-integration verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-tooling
+.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac e2e-auth-integration ci-auth-check verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-tooling
 
 help:
 	@echo "Доступные команды:"
@@ -8,6 +8,7 @@ help:
 	@echo "  make smoke-frontend   - smoke только frontend"
 	@echo "  make e2e-api          - API e2e сценарий auth flow"
 	@echo "  make e2e-rbac         - API e2e сценарий RBAC"
+	@echo "  make ci-auth-check    - CI auth smoke+e2e пакет (требует env)"
 	@echo "  make verify-scripts   - синтаксис shell/python скриптов"
 	@echo "  make verify-structure - проверка структуры обязательных файлов"
 	@echo "  make verify-configs   - валидация JSON-конфигов проекта"
@@ -39,6 +40,9 @@ e2e-rbac:
 
 e2e-auth-integration:
 	./scripts/e2e-api-auth-integration.sh
+
+ci-auth-check:
+	./scripts/ci-auth-check.sh
 
 verify-scripts:
 	./scripts/verify-scripts.sh
