@@ -50,6 +50,7 @@
 - [x] Шаг 7.23: добавлен интеграционный e2e-сценарий `e2e-api-auth-integration.sh` (wrong password, login, refresh, guard/RBAC) и включён в smoke-full/tooling-проверки.
 - [x] Шаг 7.24: добавлен CI-режим `ci-auth-check.sh`/`make ci-auth-check` для smoke+e2e auth-пакета с обязательными `BASE_URL`/`E2E_*` env.
 - [x] Шаг 7.25: frontend auth-слой дополнен refresh/logout API-обёртками и unit-тестами (`auth.spec.ts`, `auth-storage.spec.ts`) для сценариев обновления access-токена.
+- [x] Шаг 7.26: в frontend `http` добавлен авто-refresh access-токена на 401 через axios response interceptor с `clearAuth()` fallback при неуспешном refresh.
 
 
 ## Оценка до финала
@@ -67,4 +68,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.26: добавить автоматический refresh access-токена через axios interceptor с безопасным logout fallback.
+Перейти к Шагу 7.27: добавить e2e frontend-сценарий истечения access-токена с проверкой auto-refresh и fallback logout.
