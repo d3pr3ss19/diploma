@@ -29,10 +29,32 @@
 ```
 
 ### `POST /auth/refresh`
-Обновление access токена.
+Обновление access токена с ротацией refresh токена.
+
+**Body:**
+```json
+{
+  "refreshToken": "..."
+}
+```
+
+**Response 200:**
+```json
+{
+  "accessToken": "...",
+  "refreshToken": "..."
+}
+```
 
 ### `POST /auth/logout`
 Выход (инвалидация refresh токена).
+
+**Body:**
+```json
+{
+  "refreshToken": "..."
+}
+```
 
 ## 2. Users/Roles (админ)
 

@@ -53,6 +53,7 @@
 - [x] Шаг 7.26: в frontend `http` добавлен авто-refresh access-токена на 401 через axios response interceptor с `clearAuth()` fallback при неуспешном refresh.
 - [x] Шаг 7.27: добавлены frontend-тесты сценария 401→auto-refresh→retry и fallback logout/clearAuth при неуспешном refresh (`http-auth.spec.ts`).
 - [x] Шаг 7.28: добавлен backend/CI check, что refresh-токен отклоняется (`401`) на защищённых endpoint при использовании как Bearer access.
+- [x] Шаг 7.29: реализованы ротация refresh-токена на backend и logout-инвалидация (покрыто в `e2e-api-auth-integration.sh`).
 
 
 ## Оценка до финала
@@ -70,4 +71,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.29: добавить сценарий ротации refresh-токенов и logout-инвалидацию на backend.
+Перейти к Шагу 7.30: добавить backend persistence для refresh-сессий (хранилище в БД вместо in-memory map).

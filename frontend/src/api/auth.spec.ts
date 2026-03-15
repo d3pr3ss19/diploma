@@ -44,9 +44,9 @@ describe('api/auth', () => {
   it('calls /auth/logout and returns success payload', async () => {
     postMock.mockResolvedValue({ data: { success: true } });
 
-    const result = await logout();
+    const result = await logout({ refreshToken: 'refresh-token' });
 
-    expect(postMock).toHaveBeenCalledWith('/auth/logout');
+    expect(postMock).toHaveBeenCalledWith('/auth/logout', { refreshToken: 'refresh-token' });
     expect(result).toEqual({ success: true });
   });
 });

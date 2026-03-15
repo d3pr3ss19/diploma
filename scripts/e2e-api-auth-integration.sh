@@ -76,21 +76,45 @@ REFRESH_WITH_ACCESS_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
   -d "{\"refreshToken\":\"$OP_ACCESS\"}")"
 [[ "$REFRESH_WITH_ACCESS_CODE" == "401" ]] || fail "ожидался 401 при refresh(access token), получен $REFRESH_WITH_ACCESS_CODE"
 
-# 5) refresh with refresh token must succeed
+# 5) refresh with refresh token must succeed and rotate refresh token
 REFRESH_CODE="$(curl -sS -o "$TMP_DIR/refresh.json" -w "%{http_code}" \
   -X POST "$BASE_URL/auth/refresh" \
   -H 'Content-Type: application/json' \
   -d "{\"refreshToken\":\"$OP_REFRESH\"}")"
 [[ "$REFRESH_CODE" == "200" || "$REFRESH_CODE" == "201" ]] || fail "refresh вернул HTTP $REFRESH_CODE"
 NEW_ACCESS="$(extract_json_field "$TMP_DIR/refresh.json" "accessToken")" || fail "refresh не вернул accessToken"
+NEW_REFRESH="$(extract_json_field "$TMP_DIR/refresh.json" "refreshToken")" || fail "refresh не вернул refreshToken"
 [[ "$NEW_ACCESS" != "$OP_ACCESS" ]] || fail "refresh вернул тот же accessToken"
+[[ "$NEW_REFRESH" != "$OP_REFRESH" ]] || fail "refresh не выполнил ротацию refresh token"
 
+# 6) old refresh token must be revoked after rotation
+OLD_REFRESH_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -X POST "$BASE_URL/auth/refresh" \
+  -H 'Content-Type: application/json' \
+  -d "{\"refreshToken\":\"$OP_REFRESH\"}")"
+[[ "$OLD_REFRESH_CODE" == "401" ]] || fail "ожидался 401 для старого refresh token после ротации, получен $OLD_REFRESH_CODE"
 
-# 6) refresh token must not work as Bearer access token on protected endpoint
-REFRESH_AS_BEARER_CODE="$(curl -sS -o /dev/null -w "%{http_code}"   -H "Authorization: Bearer $OP_REFRESH"   "$BASE_URL/requests")"
+# 7) refresh token must not work as Bearer access token on protected endpoint
+REFRESH_AS_BEARER_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer $NEW_REFRESH" \
+  "$BASE_URL/requests")"
 [[ "$REFRESH_AS_BEARER_CODE" == "401" ]] || fail "ожидался 401 для refresh token как Bearer access, получен $REFRESH_AS_BEARER_CODE"
 
-# 7) guard + RBAC behavior
+# 8) logout invalidates current refresh token
+LOGOUT_CODE="$(curl -sS -o "$TMP_DIR/logout.json" -w "%{http_code}" \
+  -X POST "$BASE_URL/auth/logout" \
+  -H 'Content-Type: application/json' \
+  -d "{\"refreshToken\":\"$NEW_REFRESH\"}")"
+[[ "$LOGOUT_CODE" == "200" || "$LOGOUT_CODE" == "201" ]] || fail "logout вернул HTTP $LOGOUT_CODE"
+grep -q '"success"[[:space:]]*:[[:space:]]*true' "$TMP_DIR/logout.json" || fail "logout не вернул success=true"
+
+POST_LOGOUT_REFRESH_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -X POST "$BASE_URL/auth/refresh" \
+  -H 'Content-Type: application/json' \
+  -d "{\"refreshToken\":\"$NEW_REFRESH\"}")"
+[[ "$POST_LOGOUT_REFRESH_CODE" == "401" ]] || fail "ожидался 401 для refresh после logout, получен $POST_LOGOUT_REFRESH_CODE"
+
+# 9) guard + RBAC behavior
 SUBSCRIBER_TO_SUBSCRIBERS_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
   -H "Authorization: Bearer $SUB_ACCESS" \
   "$BASE_URL/subscribers")"
@@ -103,4 +127,4 @@ if [[ "$OPERATOR_TO_SUBSCRIBERS_CODE" == "401" || "$OPERATOR_TO_SUBSCRIBERS_CODE
   fail "ожидался доступ operator к /subscribers, получен $OPERATOR_TO_SUBSCRIBERS_CODE"
 fi
 
-echo "[e2e-auth-int] ✅ Auth integration пройден (wrong=$WRONG_LOGIN_CODE, refresh=$REFRESH_CODE, refresh-bearer=$REFRESH_AS_BEARER_CODE, sub403=$SUBSCRIBER_TO_SUBSCRIBERS_CODE, op=$OPERATOR_TO_SUBSCRIBERS_CODE)"
+echo "[e2e-auth-int] ✅ Auth integration пройден (wrong=$WRONG_LOGIN_CODE, refresh=$REFRESH_CODE, old-refresh=$OLD_REFRESH_CODE, refresh-bearer=$REFRESH_AS_BEARER_CODE, logout=$LOGOUT_CODE, post-logout-refresh=$POST_LOGOUT_REFRESH_CODE, sub403=$SUBSCRIBER_TO_SUBSCRIBERS_CODE, op=$OPERATOR_TO_SUBSCRIBERS_CODE)"

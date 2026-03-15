@@ -1,14 +1,18 @@
+import { createHash } from 'crypto';
+
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { RoleCode } from '@prisma/client';
 
 import { Role } from '../../common/auth/role.enum';
 import { createToken, verifyToken } from '../../common/auth/token.util';
 import { PrismaService } from '../../prisma/prisma.service';
-import { LoginDto } from './dto/login.dto';
 import { verifyPassword } from './auth-password.util';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
+  private readonly refreshTokenHashesByUserId = new Map<string, string>();
+
   constructor(private readonly prisma: PrismaService) {}
 
   async login(body: LoginDto) {
@@ -22,10 +26,14 @@ export class AuthService {
     }
 
     const role = this.mapRole(user.role.code);
+    const accessToken = createToken({ sub: user.id, role, type: 'access', ttlSeconds: 15 * 60 });
+    const refreshToken = createToken({ sub: user.id, role, type: 'refresh', ttlSeconds: 7 * 24 * 60 * 60 });
+
+    this.refreshTokenHashesByUserId.set(user.id, this.hashToken(refreshToken));
 
     return {
-      accessToken: createToken({ sub: user.id, role, type: 'access', ttlSeconds: 15 * 60 }),
-      refreshToken: createToken({ sub: user.id, role, type: 'refresh', ttlSeconds: 7 * 24 * 60 * 60 }),
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -49,15 +57,40 @@ export class AuthService {
       throw new UnauthorizedException('User not found or inactive');
     }
 
+    const storedHash = this.refreshTokenHashesByUserId.get(user.id);
+    const providedHash = this.hashToken(refreshToken);
+    if (!storedHash || storedHash !== providedHash) {
+      throw new UnauthorizedException('Refresh token revoked');
+    }
+
     const role = this.mapRole(user.role.code);
+    const newAccessToken = createToken({ sub: user.id, role, type: 'access', ttlSeconds: 15 * 60 });
+    const newRefreshToken = createToken({ sub: user.id, role, type: 'refresh', ttlSeconds: 7 * 24 * 60 * 60 });
+
+    this.refreshTokenHashesByUserId.set(user.id, this.hashToken(newRefreshToken));
 
     return {
-      accessToken: createToken({ sub: user.id, role, type: 'access', ttlSeconds: 15 * 60 })
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
     };
   }
 
-  logout() {
+  logout(refreshToken: string) {
+    const payload = verifyToken(refreshToken);
+    if (!payload || payload.type !== 'refresh') {
+      return { success: true };
+    }
+
+    const storedHash = this.refreshTokenHashesByUserId.get(payload.sub);
+    if (storedHash && storedHash === this.hashToken(refreshToken)) {
+      this.refreshTokenHashesByUserId.delete(payload.sub);
+    }
+
     return { success: true };
+  }
+
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 
   private mapRole(code: RoleCode): Role {
