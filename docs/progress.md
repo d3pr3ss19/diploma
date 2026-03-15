@@ -52,6 +52,7 @@
 - [x] Шаг 7.25: frontend auth-слой дополнен refresh/logout API-обёртками и unit-тестами (`auth.spec.ts`, `auth-storage.spec.ts`) для сценариев обновления access-токена.
 - [x] Шаг 7.26: в frontend `http` добавлен авто-refresh access-токена на 401 через axios response interceptor с `clearAuth()` fallback при неуспешном refresh.
 - [x] Шаг 7.27: добавлены frontend-тесты сценария 401→auto-refresh→retry и fallback logout/clearAuth при неуспешном refresh (`http-auth.spec.ts`).
+- [x] Шаг 7.28: добавлен backend/CI check, что refresh-токен отклоняется (`401`) на защищённых endpoint при использовании как Bearer access.
 
 
 ## Оценка до финала
@@ -69,4 +70,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.28: добавить backend/CI check, что refresh-токен нельзя использовать как Bearer access в защищённых endpoint.
+Перейти к Шагу 7.29: добавить сценарий ротации refresh-токенов и logout-инвалидацию на backend.

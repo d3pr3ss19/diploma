@@ -85,7 +85,12 @@ REFRESH_CODE="$(curl -sS -o "$TMP_DIR/refresh.json" -w "%{http_code}" \
 NEW_ACCESS="$(extract_json_field "$TMP_DIR/refresh.json" "accessToken")" || fail "refresh не вернул accessToken"
 [[ "$NEW_ACCESS" != "$OP_ACCESS" ]] || fail "refresh вернул тот же accessToken"
 
-# 6) guard + RBAC behavior
+
+# 6) refresh token must not work as Bearer access token on protected endpoint
+REFRESH_AS_BEARER_CODE="$(curl -sS -o /dev/null -w "%{http_code}"   -H "Authorization: Bearer $OP_REFRESH"   "$BASE_URL/requests")"
+[[ "$REFRESH_AS_BEARER_CODE" == "401" ]] || fail "ожидался 401 для refresh token как Bearer access, получен $REFRESH_AS_BEARER_CODE"
+
+# 7) guard + RBAC behavior
 SUBSCRIBER_TO_SUBSCRIBERS_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
   -H "Authorization: Bearer $SUB_ACCESS" \
   "$BASE_URL/subscribers")"
@@ -98,4 +103,4 @@ if [[ "$OPERATOR_TO_SUBSCRIBERS_CODE" == "401" || "$OPERATOR_TO_SUBSCRIBERS_CODE
   fail "ожидался доступ operator к /subscribers, получен $OPERATOR_TO_SUBSCRIBERS_CODE"
 fi
 
-echo "[e2e-auth-int] ✅ Auth integration пройден (wrong=$WRONG_LOGIN_CODE, refresh=$REFRESH_CODE, sub403=$SUBSCRIBER_TO_SUBSCRIBERS_CODE, op=$OPERATOR_TO_SUBSCRIBERS_CODE)"
+echo "[e2e-auth-int] ✅ Auth integration пройден (wrong=$WRONG_LOGIN_CODE, refresh=$REFRESH_CODE, refresh-bearer=$REFRESH_AS_BEARER_CODE, sub403=$SUBSCRIBER_TO_SUBSCRIBERS_CODE, op=$OPERATOR_TO_SUBSCRIBERS_CODE)"
