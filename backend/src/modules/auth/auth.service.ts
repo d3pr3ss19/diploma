@@ -11,8 +11,6 @@ import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
-  private readonly refreshTokenHashesByUserId = new Map<string, string>();
-
   constructor(private readonly prisma: PrismaService) {}
 
   async login(body: LoginDto) {
@@ -29,7 +27,7 @@ export class AuthService {
     const accessToken = createToken({ sub: user.id, role, type: 'access', ttlSeconds: 15 * 60 });
     const refreshToken = createToken({ sub: user.id, role, type: 'refresh', ttlSeconds: 7 * 24 * 60 * 60 });
 
-    this.refreshTokenHashesByUserId.set(user.id, this.hashToken(refreshToken));
+    await this.storeActiveRefreshToken(user.id, refreshToken);
 
     return {
       accessToken,
@@ -57,9 +55,16 @@ export class AuthService {
       throw new UnauthorizedException('User not found or inactive');
     }
 
-    const storedHash = this.refreshTokenHashesByUserId.get(user.id);
+    const activeSession = await this.prisma.refreshSession.findFirst({
+      where: {
+        userId: user.id,
+        revokedAt: null
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
     const providedHash = this.hashToken(refreshToken);
-    if (!storedHash || storedHash !== providedHash) {
+    if (!activeSession || activeSession.tokenHash !== providedHash || activeSession.expiresAt.getTime() <= Date.now()) {
       throw new UnauthorizedException('Refresh token revoked');
     }
 
@@ -67,7 +72,13 @@ export class AuthService {
     const newAccessToken = createToken({ sub: user.id, role, type: 'access', ttlSeconds: 15 * 60 });
     const newRefreshToken = createToken({ sub: user.id, role, type: 'refresh', ttlSeconds: 7 * 24 * 60 * 60 });
 
-    this.refreshTokenHashesByUserId.set(user.id, this.hashToken(newRefreshToken));
+    await this.prisma.refreshSession.update({
+      where: { id: activeSession.id },
+      data: {
+        tokenHash: this.hashToken(newRefreshToken),
+        expiresAt: this.refreshExpiryDate()
+      }
+    });
 
     return {
       accessToken: newAccessToken,
@@ -75,18 +86,50 @@ export class AuthService {
     };
   }
 
-  logout(refreshToken: string) {
+  async logout(refreshToken: string) {
     const payload = verifyToken(refreshToken);
     if (!payload || payload.type !== 'refresh') {
       return { success: true };
     }
 
-    const storedHash = this.refreshTokenHashesByUserId.get(payload.sub);
-    if (storedHash && storedHash === this.hashToken(refreshToken)) {
-      this.refreshTokenHashesByUserId.delete(payload.sub);
-    }
+    await this.prisma.refreshSession.updateMany({
+      where: {
+        userId: payload.sub,
+        tokenHash: this.hashToken(refreshToken),
+        revokedAt: null
+      },
+      data: {
+        revokedAt: new Date()
+      }
+    });
 
     return { success: true };
+  }
+
+  private async storeActiveRefreshToken(userId: string, refreshToken: string) {
+    const tokenHash = this.hashToken(refreshToken);
+
+    await this.prisma.refreshSession.updateMany({
+      where: {
+        userId,
+        revokedAt: null
+      },
+      data: {
+        revokedAt: new Date()
+      }
+    });
+
+    await this.prisma.refreshSession.create({
+      data: {
+        userId,
+        tokenHash,
+        expiresAt: this.refreshExpiryDate()
+      }
+    });
+  }
+
+  private refreshExpiryDate(): Date {
+    return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   }
 
   private hashToken(token: string): string {

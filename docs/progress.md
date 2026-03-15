@@ -54,6 +54,7 @@
 - [x] Шаг 7.27: добавлены frontend-тесты сценария 401→auto-refresh→retry и fallback logout/clearAuth при неуспешном refresh (`http-auth.spec.ts`).
 - [x] Шаг 7.28: добавлен backend/CI check, что refresh-токен отклоняется (`401`) на защищённых endpoint при использовании как Bearer access.
 - [x] Шаг 7.29: реализованы ротация refresh-токена на backend и logout-инвалидация (покрыто в `e2e-api-auth-integration.sh`).
+- [x] Шаг 7.30: refresh-сессии перенесены в persistence-слой БД (`refresh_sessions`) вместо in-memory хранилища в auth-сервисе.
 
 
 ## Оценка до финала
@@ -71,4 +72,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.30: добавить backend persistence для refresh-сессий (хранилище в БД вместо in-memory map).
+Перейти к Шагу 7.31: добавить Prisma migration + интеграционный сценарий миграции/seed для refresh_sessions в CI.
