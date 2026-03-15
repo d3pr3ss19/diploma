@@ -55,6 +55,7 @@
 - [x] Шаг 7.28: добавлен backend/CI check, что refresh-токен отклоняется (`401`) на защищённых endpoint при использовании как Bearer access.
 - [x] Шаг 7.29: реализованы ротация refresh-токена на backend и logout-инвалидация (покрыто в `e2e-api-auth-integration.sh`).
 - [x] Шаг 7.30: refresh-сессии перенесены в persistence-слой БД (`refresh_sessions`) вместо in-memory хранилища в auth-сервисе.
+- [x] Шаг 7.31: добавлен CI-сценарий подготовки БД (`ci-prepare-auth-db.sh`) и режим `PREPARE_DB=1` в `ci-auth-check` для migrate+seed перед auth e2e.
 
 
 ## Оценка до финала
@@ -72,4 +73,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.31: добавить Prisma migration + интеграционный сценарий миграции/seed для refresh_sessions в CI.
+Перейти к Шагу 7.32: добавить Prisma migration-файлы и verify-check наличия применённых миграций для auth-модели.

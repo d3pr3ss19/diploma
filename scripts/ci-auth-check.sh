@@ -23,8 +23,13 @@ require_cmd python3
 : "${E2E_SUBSCRIBER_EMAIL:?E2E_SUBSCRIBER_EMAIL is required}"
 : "${E2E_SUBSCRIBER_PASSWORD:?E2E_SUBSCRIBER_PASSWORD is required}"
 
+if [[ "${PREPARE_DB:-0}" == "1" ]]; then
+  : "${DATABASE_URL:?DATABASE_URL is required when PREPARE_DB=1}"
+fi
+
 WAIT_TIMEOUT="${WAIT_TIMEOUT:-60}"
 WAIT_INTERVAL="${WAIT_INTERVAL:-2}"
+PREPARE_DB="${PREPARE_DB:-0}"
 
 run_step() {
   local title="$1"
@@ -33,6 +38,10 @@ run_step() {
   "$@"
   echo "[ci-auth] ✅ $title"
 }
+
+if [[ "$PREPARE_DB" == "1" ]]; then
+  run_step "prepare db (migrate + seed)" "$ROOT_DIR/scripts/ci-prepare-auth-db.sh"
+fi
 
 run_step "wait backend health" "$ROOT_DIR/scripts/wait-for-http.sh" "$BASE_URL/health" "$WAIT_TIMEOUT" "$WAIT_INTERVAL"
 run_step "smoke backend" "$ROOT_DIR/scripts/smoke-backend.sh"
