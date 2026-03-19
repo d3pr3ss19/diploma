@@ -30,6 +30,7 @@ required_paths=(
   scripts/verify-tooling.sh
   scripts/verify-token-helper.sh
   scripts/verify-wait-for-http.sh
+  scripts/verify-prisma-migrate.sh
   scripts/extract-access-token.py
 )
 

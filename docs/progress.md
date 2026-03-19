@@ -57,6 +57,7 @@
 - [x] Шаг 7.30: refresh-сессии перенесены в persistence-слой БД (`refresh_sessions`) вместо in-memory хранилища в auth-сервисе.
 - [x] Шаг 7.31: добавлен CI-сценарий подготовки БД (`ci-prepare-auth-db.sh`) и режим `PREPARE_DB=1` в `ci-auth-check` для migrate+seed перед auth e2e.
 - [x] Шаг 7.32: добавлены Prisma migration-файлы для текущей схемы и verify-check наличия migration-артефактов для auth-модели.
+- [x] Шаг 7.33: добавлен отдельный smoke-check `prisma migrate deploy` на временной Postgres БД (`verify-prisma-migrate.sh`).
 
 
 ## Оценка до финала
@@ -74,4 +75,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.33: добавить отдельный verify-check/CI smoke на `prisma migrate deploy` против временной Postgres БД.
+Перейти к Шагу 7.34: добавить backend smoke/integration-check на `seed-auth-users.ts` после `prisma migrate deploy` в изолированной БД.
