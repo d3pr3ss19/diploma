@@ -35,6 +35,7 @@ required_paths=(
   scripts/verify-auth-seed.sh
   scripts/verify-auth-runtime.sh
   scripts/lib/temp-postgres.sh
+  scripts/lib/backend-runtime.sh
   scripts/extract-access-token.py
 )
 

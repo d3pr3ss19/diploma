@@ -6,6 +6,8 @@ BACKEND_DIR="$ROOT_DIR/backend"
 SCRIPT_DIR="$ROOT_DIR/scripts"
 # shellcheck source=./lib/temp-postgres.sh
 source "$ROOT_DIR/scripts/lib/temp-postgres.sh"
+# shellcheck source=./lib/backend-runtime.sh
+source "$ROOT_DIR/scripts/lib/backend-runtime.sh"
 
 fail() {
   echo "[verify-auth-runtime] ❌ $1" >&2
@@ -17,11 +19,7 @@ require_cmd() {
 }
 
 cleanup() {
-  if [[ -n "${BACKEND_PID:-}" ]]; then
-    kill "$BACKEND_PID" >/dev/null 2>&1 || true
-    wait "$BACKEND_PID" >/dev/null 2>&1 || true
-  fi
-
+  backend_runtime_stop
   temp_pg_cleanup
 
   if [[ -n "${TMP_DIR:-}" && -d "$TMP_DIR" ]]; then
@@ -54,14 +52,6 @@ BACKEND_LOG="$TMP_DIR/backend.log"
 
 temp_pg_setup
 
-ensure_backend_alive() {
-  if [[ -n "${BACKEND_PID:-}" ]] && ! kill -0 "$BACKEND_PID" >/dev/null 2>&1; then
-    echo "[verify-auth-runtime] --- backend log ---" >&2
-    cat "$BACKEND_LOG" >&2 || true
-    fail "Backend завершился раньше времени"
-  fi
-}
-
 run_backend_step() {
   local title="$1"
   shift
@@ -77,29 +67,22 @@ run_backend_step "prisma generate" npm run prisma:generate
 run_backend_step "prisma migrate deploy" npm run prisma:migrate:deploy
 run_backend_step "seed auth users" npm run seed:auth-users
 
-echo "[verify-auth-runtime] ▶ start backend"
-(
-  cd "$BACKEND_DIR"
-  DATABASE_URL="$TEMP_PG_DATABASE_URL" \
-  PORT="$BACKEND_PORT" \
-  AUTH_JWT_SECRET="$AUTH_JWT_SECRET" \
-  npm exec -- ts-node --transpile-only src/main.ts
-) >"$BACKEND_LOG" 2>&1 &
-BACKEND_PID=$!
-
-"$SCRIPT_DIR/wait-for-http.sh" "$BASE_URL/health" "$WAIT_TIMEOUT" "$WAIT_INTERVAL" || {
-  echo "[verify-auth-runtime] --- backend log ---" >&2
-  cat "$BACKEND_LOG" >&2 || true
-  fail "Backend не поднялся вовремя"
-}
-ensure_backend_alive
-
-echo "[verify-auth-runtime] ✅ backend started on $BASE_URL"
+BACKEND_RUNTIME_LABEL="verify-auth-runtime"
+BACKEND_RUNTIME_DIR="$BACKEND_DIR"
+BACKEND_RUNTIME_DATABASE_URL="$TEMP_PG_DATABASE_URL"
+BACKEND_RUNTIME_PORT="$BACKEND_PORT"
+BACKEND_RUNTIME_AUTH_JWT_SECRET="$AUTH_JWT_SECRET"
+BACKEND_RUNTIME_LOG_FILE="$BACKEND_LOG"
+BACKEND_RUNTIME_WAIT_SCRIPT="$SCRIPT_DIR/wait-for-http.sh"
+BACKEND_RUNTIME_WAIT_TIMEOUT="$WAIT_TIMEOUT"
+BACKEND_RUNTIME_WAIT_INTERVAL="$WAIT_INTERVAL"
+BACKEND_RUNTIME_BASE_URL="$BASE_URL"
+backend_runtime_start
 
 echo "[verify-auth-runtime] ▶ smoke backend"
 BASE_URL="$BASE_URL" "$SCRIPT_DIR/smoke-backend.sh"
 echo "[verify-auth-runtime] ✅ smoke backend"
-ensure_backend_alive
+backend_runtime_ensure_alive
 
 echo "[verify-auth-runtime] ▶ auth integration e2e"
 BASE_URL="$BASE_URL" \
@@ -111,6 +94,6 @@ WAIT_TIMEOUT="$WAIT_TIMEOUT" \
 WAIT_INTERVAL="$WAIT_INTERVAL" \
 "$SCRIPT_DIR/e2e-api-auth-integration.sh"
 echo "[verify-auth-runtime] ✅ auth integration e2e"
-ensure_backend_alive
+backend_runtime_ensure_alive
 
 echo "[verify-auth-runtime] 🎉 Runtime auth smoke-check пройден"

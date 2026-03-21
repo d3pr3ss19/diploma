@@ -51,6 +51,10 @@ done
 bash -n scripts/lib/temp-postgres.sh
 echo "[verify-tooling] ✅ shell syntax: scripts/lib/temp-postgres.sh"
 
+[[ -f scripts/lib/backend-runtime.sh ]] || fail "Не найден helper: scripts/lib/backend-runtime.sh"
+bash -n scripts/lib/backend-runtime.sh
+echo "[verify-tooling] ✅ shell syntax: scripts/lib/backend-runtime.sh"
+
 python3 -m py_compile scripts/extract-access-token.py
 echo "[verify-tooling] ✅ python syntax: scripts/extract-access-token.py"
 
