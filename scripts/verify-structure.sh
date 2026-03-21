@@ -34,6 +34,7 @@ required_paths=(
   scripts/verify-prisma-redeploy.sh
   scripts/verify-auth-seed.sh
   scripts/verify-auth-seed-scope.sh
+  scripts/verify-auth-seed-after-runtime.sh
   scripts/verify-auth-runtime.sh
   scripts/verify-auth-no-seed.sh
   scripts/lib/temp-postgres.sh

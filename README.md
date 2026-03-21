@@ -139,7 +139,7 @@ npm run dev
 - Smoke-checklist (Шаг 6.4): `docs/smoke-checklist.md`
 - Smoke scripts: `scripts/smoke-backend.sh`, `scripts/smoke-frontend.sh`, `scripts/smoke-all.sh`, `scripts/e2e-api-auth-flow.sh`, `scripts/e2e-api-rbac.sh`
 - Smoke scripts поддерживают `WAIT_TIMEOUT` / `WAIT_INTERVAL` для ожидания старта сервисов
-- Make targets: `make smoke`, `make smoke-full`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make e2e-auth-integration`, `make ci-auth-check`, `make ci-prepare-auth-db`, `make verify-scripts`, `make verify-structure`, `make verify-configs`, `make verify-token-helper`, `make verify-wait-for-http`, `make verify-prisma-migrate`, `make verify-prisma-redeploy`, `make verify-auth-seed`, `make verify-auth-seed-scope`, `make verify-auth-runtime`, `make verify-auth-no-seed`, `make verify-tooling`, `make test-frontend`
+- Make targets: `make smoke`, `make smoke-full`, `make smoke-backend`, `make smoke-frontend`, `make e2e-api`, `make e2e-rbac`, `make e2e-auth-integration`, `make ci-auth-check`, `make ci-prepare-auth-db`, `make verify-scripts`, `make verify-structure`, `make verify-configs`, `make verify-token-helper`, `make verify-wait-for-http`, `make verify-prisma-migrate`, `make verify-prisma-redeploy`, `make verify-auth-seed`, `make verify-auth-seed-scope`, `make verify-auth-seed-after-runtime`, `make verify-auth-runtime`, `make verify-auth-no-seed`, `make verify-tooling`, `make test-frontend`
 - Подсказка по командам: `make help`
 - `make verify-tooling` дополнительно проверяет, что все `scripts/*.sh` существуют и имеют executable-бит, и запускает поведенческие проверки token-helper и wait-for-http
 - CI auth-check target: `make ci-auth-check` (использует `BASE_URL` и `E2E_*` env для smoke+e2e auth-пакета на тестовой БД).
@@ -148,6 +148,7 @@ npm run dev
 - Prisma redeploy smoke-check: `make verify-prisma-redeploy` (дважды запускает `prisma migrate deploy` на одной временной БД и проверяет отсутствие дублей в `_prisma_migrations`).
 - Auth seed smoke-check: `make verify-auth-seed` (в изолированной БД прогоняет `prisma migrate deploy` + `seed-auth-users` и проверяет идемпотентность сида).
 - Auth seed scope-check: `make verify-auth-seed-scope` (проверяет, что auth-seed создаёт только ожидаемых пользователей и не затрагивает доменные таблицы).
+- Auth seed-after-runtime check: `make verify-auth-seed-after-runtime` (повторно запускает auth-seed после login/refresh/logout цикла и проверяет, что состав пользователей остаётся прежним).
 - Auth runtime smoke-check: `make verify-auth-runtime` (поднимает backend на временной БД после migrate+seed и прогоняет login/refresh/logout + RBAC сценарий).
 - Auth no-seed smoke-check: `make verify-auth-no-seed` (поднимает backend после migrate без seed и проверяет, что health работает, а login демо-пользователя получает `401`).
 - Общая логика временной Postgres БД вынесена в `scripts/lib/temp-postgres.sh`, чтобы `verify-prisma-migrate`, `verify-auth-seed` и `verify-auth-runtime` использовали один и тот же helper.
