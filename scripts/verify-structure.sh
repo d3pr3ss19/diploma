@@ -32,6 +32,7 @@ required_paths=(
   scripts/verify-wait-for-http.sh
   scripts/verify-prisma-migrate.sh
   scripts/verify-auth-seed.sh
+  scripts/verify-auth-runtime.sh
   scripts/extract-access-token.py
 )
 

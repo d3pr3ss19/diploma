@@ -59,6 +59,7 @@
 - [x] Шаг 7.32: добавлены Prisma migration-файлы для текущей схемы и verify-check наличия migration-артефактов для auth-модели.
 - [x] Шаг 7.33: добавлен отдельный smoke-check `prisma migrate deploy` на временной Postgres БД (`verify-prisma-migrate.sh`).
 - [x] Шаг 7.34: добавлен backend smoke/integration-check на `seed-auth-users.ts` после `prisma migrate deploy` в изолированной БД.
+- [x] Шаг 7.35: добавлен smoke-check логина/refresh/logout поверх временной БД после migrate+seed.
 
 
 ## Оценка до финала
@@ -76,4 +77,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.35: добавить smoke-check логина/refresh/logout поверх временной БД после migrate+seed.
+Перейти к Шагу 7.36: вынести общую логику временной Postgres БД в переиспользуемый shell helper для verify-скриптов.
