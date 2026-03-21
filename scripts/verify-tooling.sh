@@ -31,6 +31,7 @@ scripts=(
   scripts/verify-prisma-migrate.sh
   scripts/verify-prisma-redeploy.sh
   scripts/verify-auth-seed.sh
+  scripts/verify-auth-seed-scope.sh
   scripts/verify-auth-runtime.sh
   scripts/verify-auth-no-seed.sh
   scripts/extract-access-token.py
@@ -60,7 +61,7 @@ python3 -m py_compile scripts/extract-access-token.py
 echo "[verify-tooling] ✅ python syntax: scripts/extract-access-token.py"
 
 # Dry-run Make targets to ensure commands are wired correctly.
-for target in smoke smoke-full smoke-backend smoke-frontend e2e-api e2e-rbac e2e-auth-integration ci-auth-check ci-prepare-auth-db verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-prisma-migrate verify-prisma-redeploy verify-auth-seed verify-auth-runtime verify-auth-no-seed verify-tooling test-frontend; do
+for target in smoke smoke-full smoke-backend smoke-frontend e2e-api e2e-rbac e2e-auth-integration ci-auth-check ci-prepare-auth-db verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-prisma-migrate verify-prisma-redeploy verify-auth-seed verify-auth-seed-scope verify-auth-runtime verify-auth-no-seed verify-tooling test-frontend; do
   make -n "$target" >/dev/null
   echo "[verify-tooling] ✅ make -n $target"
 done
