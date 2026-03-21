@@ -46,6 +46,10 @@ done
 ./scripts/verify-token-helper.sh
 ./scripts/verify-wait-for-http.sh
 
+[[ -f scripts/lib/temp-postgres.sh ]] || fail "Не найден helper: scripts/lib/temp-postgres.sh"
+bash -n scripts/lib/temp-postgres.sh
+echo "[verify-tooling] ✅ shell syntax: scripts/lib/temp-postgres.sh"
+
 python3 -m py_compile scripts/extract-access-token.py
 echo "[verify-tooling] ✅ python syntax: scripts/extract-access-token.py"
 

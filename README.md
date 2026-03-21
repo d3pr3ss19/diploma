@@ -147,6 +147,7 @@ npm run dev
 - Prisma migrate smoke-check: `make verify-prisma-migrate` (поднимает временный Postgres через Docker/Podman либо использует `TEST_DATABASE_URL`).
 - Auth seed smoke-check: `make verify-auth-seed` (в изолированной БД прогоняет `prisma migrate deploy` + `seed-auth-users` и проверяет идемпотентность сида).
 - Auth runtime smoke-check: `make verify-auth-runtime` (поднимает backend на временной БД после migrate+seed и прогоняет login/refresh/logout + RBAC сценарий).
+- Общая логика временной Postgres БД вынесена в `scripts/lib/temp-postgres.sh`, чтобы `verify-prisma-migrate`, `verify-auth-seed` и `verify-auth-runtime` использовали один и тот же helper.
 - По каждому завершённому шагу делается отдельный коммит.
 
 ## Ветки
