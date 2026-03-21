@@ -68,6 +68,7 @@
 - [x] Шаг 7.41: добавлен verify-check на повторный auth-seed после runtime smoke (seed после login/refresh/logout цикла).
 - [x] Шаг 7.42: добавлен smoke-check, что refresh/logout цикл не создаёт доменных записей и не ломает повторный login.
 - [x] Шаг 7.43: добавлен verify-check, что `verify-auth-runtime` и `verify-auth-runtime-domain-safety` можно запускать с внешним `TEST_DATABASE_URL` без container runtime.
+- [x] Шаг 7.44: добавлен отдельный smoke-check жизненного цикла `refresh_sessions` (active/rotated/revoked) через SQL-проверки после runtime auth-flow.
 
 
 ## Оценка до финала
@@ -85,4 +86,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.44: добавить отдельный smoke-check жизненного цикла refresh_sessions (active/revoked) через SQL-проверки после runtime auth-flow.
+Перейти к Шагу 7.45: добавить verify-check на множественные последовательные login пользователя, чтобы предыдущая активная `refresh_session` ревокалась и в БД оставалась только одна активная запись.
