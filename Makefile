@@ -1,4 +1,4 @@
-.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac e2e-auth-integration ci-auth-check ci-prepare-auth-db verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-prisma-migrate verify-prisma-redeploy verify-auth-seed verify-auth-runtime verify-tooling
+.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac e2e-auth-integration ci-auth-check ci-prepare-auth-db verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-prisma-migrate verify-prisma-redeploy verify-auth-seed verify-auth-runtime verify-auth-no-seed verify-tooling
 
 help:
 	@echo "Доступные команды:"
@@ -19,6 +19,7 @@ help:
 	@echo "  make verify-prisma-redeploy - smoke-проверка повторного prisma migrate deploy на временной БД"
 	@echo "  make verify-auth-seed - smoke-проверка seed-auth-users.ts на изолированной БД"
 	@echo "  make verify-auth-runtime - runtime smoke login/refresh/logout на временной БД"
+	@echo "  make verify-auth-no-seed - negative smoke старта backend без seed пользователей"
 	@echo "  make verify-tooling   - проверка tooling + dry-run make-таргетов"
 	@echo "  make test-frontend    - запуск frontend unit-тестов"
 
@@ -81,3 +82,6 @@ verify-auth-seed:
 
 verify-auth-runtime:
 	./scripts/verify-auth-runtime.sh
+
+verify-auth-no-seed:
+	./scripts/verify-auth-no-seed.sh
