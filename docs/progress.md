@@ -66,6 +66,7 @@
 - [x] Шаг 7.39: добавлен отдельный smoke-check для негативного сценария старта backend без seed пользователей на временной БД.
 - [x] Шаг 7.40: добавлен verify-check, что seed создаёт только ожидаемые auth-пользователи и не трогает доменные таблицы.
 - [x] Шаг 7.41: добавлен verify-check на повторный auth-seed после runtime smoke (seed после login/refresh/logout цикла).
+- [x] Шаг 7.42: добавлен smoke-check, что refresh/logout цикл не создаёт доменных записей и не ломает повторный login.
 
 
 ## Оценка до финала
@@ -83,4 +84,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.42: добавить smoke-check, что refresh/logout цикл не создаёт доменных записей и не ломает повторный login.
+Перейти к Шагу 7.43: добавить verify-check, что `verify-auth-runtime` и `verify-auth-runtime-domain-safety` можно запускать с внешним `TEST_DATABASE_URL` без container runtime.

@@ -36,6 +36,7 @@ required_paths=(
   scripts/verify-auth-seed-scope.sh
   scripts/verify-auth-seed-after-runtime.sh
   scripts/verify-auth-runtime.sh
+  scripts/verify-auth-runtime-domain-safety.sh
   scripts/verify-auth-no-seed.sh
   scripts/lib/temp-postgres.sh
   scripts/lib/backend-runtime.sh
