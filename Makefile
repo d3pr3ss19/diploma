@@ -1,4 +1,4 @@
-.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac e2e-auth-integration ci-auth-check ci-prepare-auth-db verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-prisma-migrate verify-auth-seed verify-auth-runtime verify-tooling
+.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac e2e-auth-integration ci-auth-check ci-prepare-auth-db verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-prisma-migrate verify-prisma-redeploy verify-auth-seed verify-auth-runtime verify-tooling
 
 help:
 	@echo "Доступные команды:"
@@ -16,6 +16,7 @@ help:
 	@echo "  make verify-token-helper - поведение helper извлечения accessToken"
 	@echo "  make verify-wait-for-http - поведенческая проверка wait-for-http.sh"
 	@echo "  make verify-prisma-migrate - smoke-проверка prisma migrate deploy на временной Postgres БД"
+	@echo "  make verify-prisma-redeploy - smoke-проверка повторного prisma migrate deploy на временной БД"
 	@echo "  make verify-auth-seed - smoke-проверка seed-auth-users.ts на изолированной БД"
 	@echo "  make verify-auth-runtime - runtime smoke login/refresh/logout на временной БД"
 	@echo "  make verify-tooling   - проверка tooling + dry-run make-таргетов"
@@ -71,6 +72,9 @@ verify-configs:
 
 verify-prisma-migrate:
 	./scripts/verify-prisma-migrate.sh
+
+verify-prisma-redeploy:
+	./scripts/verify-prisma-redeploy.sh
 
 verify-auth-seed:
 	./scripts/verify-auth-seed.sh

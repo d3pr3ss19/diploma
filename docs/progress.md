@@ -61,6 +61,7 @@
 - [x] Шаг 7.34: добавлен backend smoke/integration-check на `seed-auth-users.ts` после `prisma migrate deploy` в изолированной БД.
 - [x] Шаг 7.35: добавлен smoke-check логина/refresh/logout поверх временной БД после migrate+seed.
 - [x] Шаг 7.36: общая логика временной Postgres БД вынесена в переиспользуемый shell helper для verify-скриптов.
+- [x] Шаг 7.37: добавлен smoke-check повторного `prisma migrate deploy`/rollback-safety на уже подготовленной временной БД.
 
 
 ## Оценка до финала
@@ -78,4 +79,4 @@
 
 ## Следующий шаг (ближайший)
 
-Перейти к Шагу 7.37: добавить smoke-check повторного `prisma migrate deploy`/rollback-safety на уже подготовленной временной БД.
+Перейти к Шагу 7.38: добавить общий helper для повторного запуска backend с временной БД и сократить дублирование runtime verify-скриптов.
