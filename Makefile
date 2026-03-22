@@ -1,4 +1,4 @@
-.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac e2e-auth-integration ci-auth-check ci-prepare-auth-db verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-prisma-migrate verify-prisma-redeploy verify-auth-seed verify-auth-seed-scope verify-auth-seed-after-runtime verify-auth-runtime verify-auth-runtime-domain-safety verify-auth-refresh-sessions verify-auth-multi-login verify-auth-logout-idempotent verify-auth-external-db-url verify-auth-no-seed verify-tooling
+.PHONY: help smoke smoke-full smoke-backend smoke-frontend test-frontend e2e-api e2e-rbac e2e-auth-integration ci-auth-check ci-prepare-auth-db verify-scripts verify-structure verify-configs verify-token-helper verify-wait-for-http verify-prisma-migrate verify-prisma-redeploy verify-auth-seed verify-auth-seed-scope verify-auth-seed-after-runtime verify-auth-runtime verify-auth-runtime-domain-safety verify-auth-refresh-sessions verify-auth-multi-login verify-auth-logout-idempotent verify-auth-repeat-logout verify-auth-external-db-url verify-auth-no-seed verify-tooling
 
 help:
 	@echo "Доступные команды:"
@@ -25,6 +25,7 @@ help:
 	@echo "  make verify-auth-refresh-sessions - SQL smoke-check lifecycle active/revoked в refresh_sessions"
 	@echo "  make verify-auth-multi-login - SQL verify-check последовательных login и single active refresh_session"
 	@echo "  make verify-auth-logout-idempotent - logout со stale/revoked refresh token не трогает active session"
+	@echo "  make verify-auth-repeat-logout - повторный logout тем же refresh token не меняет БД сверх первого revoke"
 	@echo "  make verify-auth-external-db-url - прогон runtime-check'ов через внешний TEST_DATABASE_URL"
 	@echo "  make verify-auth-no-seed - negative smoke старта backend без seed пользователей"
 	@echo "  make verify-tooling   - проверка tooling + dry-run make-таргетов"
@@ -107,6 +108,9 @@ verify-auth-multi-login:
 
 verify-auth-logout-idempotent:
 	./scripts/verify-auth-logout-idempotent.sh
+
+verify-auth-repeat-logout:
+	./scripts/verify-auth-repeat-logout.sh
 
 verify-auth-external-db-url:
 	./scripts/verify-auth-external-db-url.sh

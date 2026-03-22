@@ -40,6 +40,7 @@ required_paths=(
   scripts/verify-auth-refresh-sessions.sh
   scripts/verify-auth-multi-login.sh
   scripts/verify-auth-logout-idempotent.sh
+  scripts/verify-auth-repeat-logout.sh
   scripts/verify-auth-external-db-url.sh
   scripts/verify-auth-no-seed.sh
   scripts/lib/temp-postgres.sh
