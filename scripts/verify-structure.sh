@@ -38,6 +38,7 @@ required_paths=(
   scripts/verify-auth-runtime.sh
   scripts/verify-auth-runtime-domain-safety.sh
   scripts/verify-auth-refresh-sessions.sh
+  scripts/verify-auth-multi-login.sh
   scripts/verify-auth-external-db-url.sh
   scripts/verify-auth-no-seed.sh
   scripts/lib/temp-postgres.sh
