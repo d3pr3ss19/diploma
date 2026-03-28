@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_URL="${BASE_URL:-http://localhost:3000/api/v1}"
+EMAIL="${E2E_EMAIL:-operator@kp.local}"
+PASSWORD="${E2E_PASSWORD:-password123}"
+
+fail() {
+  echo "[e2e-api] ❌ $1" >&2
+  exit 1
+}
+
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || fail "Требуется команда '$1'"
+}
+
+require_cmd curl
+require_cmd python3
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+EXTRACT_TOKEN_SCRIPT="$SCRIPT_DIR/extract-access-token.py"
+[[ -f "$EXTRACT_TOKEN_SCRIPT" ]] || fail "Не найден helper: $EXTRACT_TOKEN_SCRIPT"
+"$SCRIPT_DIR/wait-for-http.sh" "$BASE_URL/health" "${WAIT_TIMEOUT:-30}" "${WAIT_INTERVAL:-1}"
+
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+LOGIN_FILE="$TMP_DIR/login.json"
+INVALID_LOGIN_FILE="$TMP_DIR/invalid-login.json"
+REFRESH_FILE="$TMP_DIR/refresh.json"
+
+# 0) Invalid payload must be rejected by validation
+INVALID_LOGIN_CODE="$(curl -sS -o "$INVALID_LOGIN_FILE" -w "%{http_code}" \
+  -X POST "$BASE_URL/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"not-an-email","password":"short","role":"INVALID"}')"
+[[ "$INVALID_LOGIN_CODE" == "400" ]] || fail "ожидался 400 для невалидного payload login, получен $INVALID_LOGIN_CODE"
+
+# 1) Login and extract token
+LOGIN_CODE="$(curl -sS -o "$LOGIN_FILE" -w "%{http_code}" \
+  -X POST "$BASE_URL/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")"
+[[ "$LOGIN_CODE" == "200" || "$LOGIN_CODE" == "201" ]] || fail "login вернул HTTP $LOGIN_CODE"
+
+TOKEN="$(python3 "$EXTRACT_TOKEN_SCRIPT" "$LOGIN_FILE")" || fail "не удалось извлечь accessToken"
+
+# 2) Missing token should be unauthorized on protected endpoint
+MISSING_CODE="$(curl -sS -o /dev/null -w "%{http_code}" "$BASE_URL/requests")"
+[[ "$MISSING_CODE" == "401" ]] || fail "ожидался 401 без токена, получен $MISSING_CODE"
+
+# 3) Invalid token should be unauthorized
+INVALID_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H 'Authorization: Bearer invalid-token' \
+  "$BASE_URL/requests")"
+[[ "$INVALID_CODE" == "401" ]] || fail "ожидался 401 с невалидным токеном, получен $INVALID_CODE"
+
+# 4) Tampered token should be unauthorized
+TAMPERED_TOKEN="${TOKEN%?}x"
+TAMPERED_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer $TAMPERED_TOKEN" \
+  "$BASE_URL/requests")"
+[[ "$TAMPERED_CODE" == "401" ]] || fail "ожидался 401 для подменённого токена, получен $TAMPERED_CODE"
+
+# 5) Valid token should pass auth layer (usually 200, but not 401/403)
+VALID_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer $TOKEN" \
+  "$BASE_URL/requests")"
+if [[ "$VALID_CODE" == "401" || "$VALID_CODE" == "403" ]]; then
+  fail "с валидным токеном получен $VALID_CODE (ожидалось прохождение auth)"
+fi
+
+# 6) Refresh token flow
+REFRESH_TOKEN="$(python3 - <<'PY' "$LOGIN_FILE"
+import json
+import sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    data = json.load(f)
+rt = data.get('refreshToken')
+if not isinstance(rt, str) or not rt:
+    raise SystemExit(1)
+print(rt)
+PY
+)" || fail "не удалось извлечь refreshToken"
+
+REFRESH_CODE="$(curl -sS -o "$REFRESH_FILE" -w "%{http_code}" \
+  -X POST "$BASE_URL/auth/refresh" \
+  -H 'Content-Type: application/json' \
+  -d "{\"refreshToken\":\"$REFRESH_TOKEN\"}")"
+[[ "$REFRESH_CODE" == "200" || "$REFRESH_CODE" == "201" ]] || fail "refresh вернул HTTP $REFRESH_CODE"
+grep -q '"accessToken"' "$REFRESH_FILE" || fail "refresh не вернул accessToken"
+
+echo "[e2e-api] ✅ E2E auth-flow пройден (valid=$VALID_CODE, invalid=$INVALID_CODE, tampered=$TAMPERED_CODE, refresh=$REFRESH_CODE)"
