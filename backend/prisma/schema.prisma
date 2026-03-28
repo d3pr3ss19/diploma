@@ -43,6 +43,8 @@ model Role {
   code  RoleCode @unique
   name  String
   users User[]
+
+  @@map("roles")
 }
 
 model User {
@@ -56,6 +58,7 @@ model User {
   role         Role         @relation(fields: [roleId], references: [id])
   subscriber   Subscriber?
   readings     MeterReading[] @relation("ReadingSubmittedBy")
+  refreshSessions RefreshSession[]
 
   createdRequests  Request[]              @relation("RequestCreatedBy")
   assignedRequests Request[]              @relation("RequestAssignedTo")
