@@ -10,7 +10,6 @@ async function main() {
     { code: RoleCode.OPERATOR, name: 'Оператор' },
     { code: RoleCode.SUBSCRIBER, name: 'Абонент' }
   ];
-
   for (const role of roles) {
     await prisma.role.upsert({
       where: { code: role.code },
