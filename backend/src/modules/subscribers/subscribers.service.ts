@@ -32,7 +32,12 @@ export class SubscribersService {
         accounts: {
           select: {
             id: true,
-            balance: true
+            balance: true,
+            _count: {
+              select: {
+                requests: true
+              }
+            }
           }
         }
       }

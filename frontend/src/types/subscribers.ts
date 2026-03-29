@@ -15,6 +15,9 @@ export type Subscriber = {
   accounts?: Array<{
     id: string;
     balance: string;
+    _count?: {
+      requests: number;
+    };
   }>;
   createdAt: string;
   updatedAt: string;

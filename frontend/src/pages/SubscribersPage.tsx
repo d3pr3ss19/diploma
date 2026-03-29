@@ -325,6 +325,12 @@ export function SubscribersPage() {
           { title: 'Телефон', dataIndex: 'phone', key: 'phone', render: (value: string | null) => value ?? '—' },
           { title: 'Адрес', dataIndex: 'address', key: 'address' },
           { title: 'Роль', key: 'role', render: (_: unknown, subscriber: Subscriber) => roleLabel(subscriber) },
+          {
+            title: 'Заявок создано',
+            key: 'requestsCount',
+            render: (_: unknown, subscriber: Subscriber) =>
+              (subscriber.accounts ?? []).reduce((sum, account) => sum + (account._count?.requests ?? 0), 0),
+          },
           { title: 'Статус', key: 'status', render: (_: unknown, subscriber: Subscriber) => renderUserStatus(subscriber) },
           ...(isAdmin ? [{
             title: 'Действия',

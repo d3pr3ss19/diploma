@@ -46,8 +46,8 @@ export function AccountPage() {
     return { total, open, done };
   }, [recentRequests]);
 
-  async function handleSearch() {
-    const targetId = subscriberId.trim() || subscriberQuery.trim();
+  async function handleSearch(explicitId?: string) {
+    const targetId = explicitId?.trim() || subscriberId.trim() || subscriberQuery.trim();
     if (!targetId) {
       setError('Введите ID абонента или выберите абонента по ФИО.');
       return;
@@ -94,12 +94,13 @@ export function AccountPage() {
             onSelect={(value) => {
               setSubscriberId(value);
               setSubscriberQuery(value);
+              void handleSearch(value);
             }}
             filterOption={(inputValue, option) =>
               (option?.label as string).toLowerCase().includes(inputValue.toLowerCase())
             }
           >
-            <Input.Search placeholder="Поиск абонента по ФИО/адресу" enterButton="Выбрать" />
+            <Input placeholder="Поиск абонента по ФИО/адресу" />
           </AutoComplete>
 
           <Space.Compact style={{ width: '100%' }}>
