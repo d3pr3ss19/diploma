@@ -49,7 +49,7 @@ export function AccountPage() {
   async function handleSearch(explicitId?: string) {
     const targetId = explicitId?.trim() || subscriberId.trim() || subscriberQuery.trim();
     if (!targetId) {
-      setError('Введите ID абонента или выберите абонента по ФИО.');
+      setError('Выберите абонента по ФИО.');
       return;
     }
 
@@ -108,7 +108,7 @@ export function AccountPage() {
               size="large"
               value={subscriberId}
               onChange={(event) => setSubscriberId(event.target.value)}
-              placeholder="Или введите subscriberId вручную"
+              placeholder="subscriberId выбранного абонента"
             />
             <Button type="primary" size="large" onClick={handleSearch} loading={loading}>
               Открыть счёт

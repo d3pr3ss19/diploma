@@ -52,8 +52,8 @@ export async function updateUserRole(userId: string, role: UserRole): Promise<{ 
   return data;
 }
 
-export async function updateMyProfile(email: string): Promise<LoginResponse['user']> {
-  const { data } = await http.patch<{ success: boolean; user: LoginResponse['user'] }>('/auth/me', { email });
+export async function updateMyProfile(email: string, fullName: string): Promise<LoginResponse['user']> {
+  const { data } = await http.patch<{ success: boolean; user: LoginResponse['user'] }>('/auth/me', { email, fullName });
   return data.user;
 }
 

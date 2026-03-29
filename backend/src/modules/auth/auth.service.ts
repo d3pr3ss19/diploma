@@ -37,6 +37,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        fullName: user.fullName ?? null,
         role
       }
     };
@@ -213,6 +214,7 @@ export class AuthService {
       user: {
         id: updated.id,
         email: updated.email,
+        fullName: updated.fullName ?? null,
         role: this.mapRole(updated.role.code)
       }
     };
@@ -226,14 +228,14 @@ export class AuthService {
     const before = await this.prisma.user.findUniqueOrThrow({ where: { id: actorUserId } });
     const updated = await this.prisma.user.update({
       where: { id: actorUserId },
-      data: { email: payload.email },
+      data: { email: payload.email, fullName: payload.fullName },
       include: { role: true }
     });
 
     await this.createAuditLog(actorUserId, actorUserId, 'USER_PROFILE_UPDATED', {
       section: 'USERS',
-      before: { email: before.email },
-      after: { email: updated.email }
+      before: { email: before.email, fullName: before.fullName },
+      after: { email: updated.email, fullName: updated.fullName }
     });
 
     return {
@@ -241,6 +243,7 @@ export class AuthService {
       user: {
         id: updated.id,
         email: updated.email,
+        fullName: updated.fullName ?? null,
         role: this.mapRole(updated.role.code)
       }
     };

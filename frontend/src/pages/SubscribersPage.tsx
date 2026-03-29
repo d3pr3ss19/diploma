@@ -70,8 +70,11 @@ export function SubscribersPage() {
       setError(null);
       const data = await getSubscribers();
       setItems(data);
+      setSelectedSubscriber((prev) => (prev ? data.find((item) => item.id === prev.id) ?? prev : prev));
+      return data;
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось загрузить абонентов.'));
+      return [] as Subscriber[];
     } finally {
       setLoading(false);
     }

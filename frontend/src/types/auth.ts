@@ -11,6 +11,7 @@ export type LoginResponse = {
   user: {
     id: string;
     email: string;
+    fullName?: string | null;
     role: UserRole;
   };
 };
