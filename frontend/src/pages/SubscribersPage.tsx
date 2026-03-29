@@ -290,7 +290,12 @@ export function SubscribersPage() {
                           cancelText="Нет"
                           onConfirm={() => void handleDeactivateUser(subscriber.userId as string)}
                         >
-                          <Button size="small" danger loading={deactivatingUserId === subscriber.userId}>
+                          <Button
+                            size="small"
+                            danger
+                            loading={deactivatingUserId === subscriber.userId}
+                            disabled={subscriber.user?.isActual === false}
+                          >
                             Деактивировать
                           </Button>
                         </Popconfirm>
