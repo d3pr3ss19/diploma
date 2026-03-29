@@ -1,4 +1,4 @@
-import { Body, Controller, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../../common/auth/auth.guard';
 import { Role } from '../../common/auth/role.enum';
@@ -33,5 +33,19 @@ export class AuthController {
   @Post('users/:id/deactivate')
   deactivateUser(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.authService.deactivateUser(id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Post('users/:id/activate')
+  activateUser(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.authService.activateUser(id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Delete('users/:id')
+  deleteUser(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.authService.deleteUser(id);
   }
 }

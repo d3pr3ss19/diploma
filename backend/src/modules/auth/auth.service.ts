@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { RoleCode } from '@prisma/client';
 
 import { Role } from '../../common/auth/role.enum';
@@ -19,7 +19,7 @@ export class AuthService {
       include: { role: true }
     });
 
-    if (!user || !user.isActive || !verifyPassword(body.password, user.passwordHash)) {
+    if (!user || !user.isActual || !verifyPassword(body.password, user.passwordHash)) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -51,7 +51,7 @@ export class AuthService {
       include: { role: true }
     });
 
-    if (!user || !user.isActive) {
+    if (!user || !user.isActual) {
       throw new UnauthorizedException('User not found or inactive');
     }
 
@@ -109,7 +109,7 @@ export class AuthService {
   async deactivateUser(userId: string) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { isActive: false }
+      data: { isActual: false }
     });
 
     await this.prisma.refreshSession.updateMany({
@@ -120,6 +120,31 @@ export class AuthService {
     return { success: true };
   }
 
+
+  async activateUser(userId: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActual: true }
+    });
+
+    return { success: true };
+  }
+
+  async deleteUser(userId: string) {
+    await this.prisma.refreshSession.deleteMany({
+      where: { userId }
+    });
+
+    try {
+      await this.prisma.user.delete({
+        where: { id: userId }
+      });
+    } catch (error) {
+      throw new ConflictException('Нельзя удалить пользователя: есть связанные заявки или показания. Сначала отвяжите связанные записи.');
+    }
+
+    return { success: true };
+  }
   private async storeActiveRefreshToken(userId: string, refreshToken: string) {
     const tokenHash = this.hashToken(refreshToken);
 

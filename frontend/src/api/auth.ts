@@ -20,3 +20,13 @@ export async function deactivateUser(userId: string): Promise<{ success: boolean
   const { data } = await http.post<{ success: boolean }>(`/auth/users/${userId}/deactivate`);
   return data;
 }
+
+export async function activateUser(userId: string): Promise<{ success: boolean }> {
+  const { data } = await http.post<{ success: boolean }>(`/auth/users/${userId}/activate`);
+  return data;
+}
+
+export async function deleteUser(userId: string): Promise<{ success: boolean }> {
+  const { data } = await http.delete<{ success: boolean }>(`/auth/users/${userId}`);
+  return data;
+}
