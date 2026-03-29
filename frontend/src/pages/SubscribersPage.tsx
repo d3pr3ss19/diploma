@@ -1,4 +1,5 @@
-import { Alert, Button, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Alert, Button, Descriptions, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { activateUser, deactivateUser, deleteUser, resetUserPassword } from '../api/auth';
@@ -17,22 +18,35 @@ type SubscriberForm = {
 };
 
 const PAGE_SIZE = 10;
-
 const SUBSCRIBERS_PRESET_KEY = 'subscribers-last-preset';
+
+function renderUserStatus(subscriber: Subscriber) {
+  const isArchived = Boolean(subscriber.user?.deletedAt);
+  if (isArchived) {
+    return <Tag color="default">В АРХИВЕ</Tag>;
+  }
+
+  const isActual = subscriber.user?.isActual ?? true;
+  return <Tag color={isActual ? 'green' : 'red'}>{isActual ? 'АКТИВЕН' : 'НЕАКТИВЕН'}</Tag>;
+}
 
 export function SubscribersPage() {
   const [items, setItems] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingSubscriber, setEditingSubscriber] = useState<Subscriber | null>(null);
+
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileMode, setProfileMode] = useState<'view' | 'edit'>('view');
+  const [selectedSubscriber, setSelectedSubscriber] = useState<Subscriber | null>(null);
+
   const [saving, setSaving] = useState(false);
   const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
   const [activatingUserId, setActivatingUserId] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [selectedSubscriber, setSelectedSubscriber] = useState<Subscriber | null>(null);
-  const [form] = Form.useForm<SubscriberForm>();
+
+  const [createForm] = Form.useForm<SubscriberForm>();
+  const [profileForm] = Form.useForm<SubscriberForm>();
   const [messageApi, contextHolder] = message.useMessage();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -76,11 +90,15 @@ export function SubscribersPage() {
     const base = filterSubscribers(items, search);
     const byStatus = base.filter((subscriber) => {
       if (statusFilter === 'ALL') return true;
+
       const isActual = subscriber.user?.isActual ?? true;
       const isArchived = Boolean(subscriber.user?.deletedAt);
+
       if (statusFilter === 'ARCHIVED') return isArchived;
-      return statusFilter === 'ACTIVE' ? isActual : !isActual;
+      if (statusFilter === 'ACTIVE') return isActual && !isArchived;
+      return !isActual && !isArchived;
     });
+
     return sortSubscribers(byStatus, sort);
   }, [items, search, sort, statusFilter]);
 
@@ -101,30 +119,19 @@ export function SubscribersPage() {
   }
 
   function openCreateModal() {
-    setEditingSubscriber(null);
-    setModalOpen(true);
-    form.setFieldsValue({
-      fullName: '',
-      phone: '',
-      address: '',
-      apartment: undefined,
-    });
+    setCreateModalOpen(true);
+    createForm.setFieldsValue({ fullName: '', phone: '', address: '', apartment: undefined });
   }
 
-  function openEditModal(subscriber: Subscriber) {
-    setEditingSubscriber(subscriber);
-    setModalOpen(true);
-    form.setFieldsValue({
+  function openSubscriberProfile(subscriber: Subscriber) {
+    setSelectedSubscriber(subscriber);
+    setProfileMode('view');
+    profileForm.setFieldsValue({
       fullName: subscriber.fullName,
       phone: subscriber.phone ?? '',
       address: subscriber.address,
       apartment: subscriber.apartment ?? undefined,
     });
-  }
-
-
-  function openSubscriberProfile(subscriber: Subscriber) {
-    setSelectedSubscriber(subscriber);
     setProfileOpen(true);
   }
 
@@ -142,7 +149,6 @@ export function SubscribersPage() {
     }
   }
 
-
   async function handleActivateUser(userId: string) {
     try {
       setActivatingUserId(userId);
@@ -157,7 +163,7 @@ export function SubscribersPage() {
     }
   }
 
-  async function handleDeleteUser(userId: string) {
+  async function handleArchiveUser(userId: string) {
     try {
       setDeletingUserId(userId);
       setError(null);
@@ -165,7 +171,7 @@ export function SubscribersPage() {
       messageApi.success('Пользователь архивирован');
       await loadSubscribers();
     } catch (err) {
-      setError(extractApiErrorMessage(err, 'Не удалось удалить пользователя.'));
+      setError(extractApiErrorMessage(err, 'Не удалось архивировать пользователя.'));
     } finally {
       setDeletingUserId(null);
     }
@@ -180,60 +186,68 @@ export function SubscribersPage() {
         content: <Typography.Text copyable>Пароль: {result.password}</Typography.Text>
       });
       messageApi.success('Пароль сброшен');
-      await loadSubscribers();
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось сбросить пароль пользователя.'));
     }
   }
 
-  async function handleSubmit(values: SubscriberForm) {
+  async function handleCreate(values: SubscriberForm) {
     try {
       setSaving(true);
       setError(null);
 
-      if (editingSubscriber) {
-        await updateSubscriber(editingSubscriber.id, {
-          fullName: values.fullName,
-          phone: values.phone,
-          address: values.address,
-          apartment: values.apartment || undefined,
-        });
-        messageApi.success('Карточка абонента обновлена');
-      } else {
-        const created = await createSubscriber({
-          fullName: values.fullName,
-          phone: values.phone,
-          address: values.address,
-          apartment: values.apartment || undefined,
-        });
-        messageApi.success('Абонент успешно создан');
+      const created = await createSubscriber({
+        fullName: values.fullName,
+        phone: values.phone,
+        address: values.address,
+        apartment: values.apartment || undefined,
+      });
 
-        if (created.generatedCredentials) {
-          Modal.info({
-            title: 'Данные для входа абонента',
-            content: (
-              <Space direction="vertical" size={4}>
-                <Typography.Text>Логин: {created.generatedCredentials.login}</Typography.Text>
-                <Typography.Text copyable>Пароль: {created.generatedCredentials.password}</Typography.Text>
-              </Space>
-            )
-          });
-        }
+      messageApi.success('Абонент успешно создан');
+
+      if (created.generatedCredentials) {
+        Modal.info({
+          title: 'Данные для входа абонента',
+          content: (
+            <Space direction="vertical" size={4}>
+              <Typography.Text>Логин: {created.generatedCredentials.login}</Typography.Text>
+              <Typography.Text copyable>Пароль: {created.generatedCredentials.password}</Typography.Text>
+            </Space>
+          )
+        });
       }
 
-      setModalOpen(false);
-      form.resetFields();
-      setEditingSubscriber(null);
+      setCreateModalOpen(false);
+      createForm.resetFields();
       await loadSubscribers();
     } catch (err) {
-      setError(
-        extractApiErrorMessage(
-          err,
-          editingSubscriber
-            ? 'Не удалось обновить абонента. Проверьте введённые данные.'
-            : 'Не удалось создать абонента. Проверьте введённые данные.',
-        ),
-      );
+      setError(extractApiErrorMessage(err, 'Не удалось создать абонента. Проверьте введённые данные.'));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleProfileSave(values: SubscriberForm) {
+    if (!selectedSubscriber) return;
+
+    try {
+      setSaving(true);
+      setError(null);
+      await updateSubscriber(selectedSubscriber.id, {
+        fullName: values.fullName,
+        phone: values.phone,
+        address: values.address,
+        apartment: values.apartment || undefined,
+      });
+      messageApi.success('Карточка абонента обновлена');
+      setProfileMode('view');
+      await loadSubscribers();
+      const refreshed = items.find((item) => item.id === selectedSubscriber.id);
+      if (refreshed) {
+        setSelectedSubscriber(refreshed);
+      }
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось обновить абонента.'));
     } finally {
       setSaving(false);
     }
@@ -264,7 +278,7 @@ export function SubscribersPage() {
         <Select
           value={sort}
           onChange={(value) => updateParam('sort', value)}
-          style={{ width: 240 }}
+          style={{ width: 220 }}
           size="middle"
           options={[
             { value: 'newest', label: 'Сначала новые' },
@@ -276,27 +290,21 @@ export function SubscribersPage() {
         <Select
           value={statusFilter}
           onChange={(value) => updateParam('status', value)}
-          style={{ width: 180 }}
+          style={{ width: 200 }}
           size="middle"
           options={[
             { value: 'ALL', label: 'Все статусы' },
-            { value: 'ACTIVE', label: 'Только ACTIVE' },
-            { value: 'INACTIVE', label: 'Только INACTIVE' },
-            { value: 'ARCHIVED', label: 'Только архивные' },
+            { value: 'ACTIVE', label: 'Активные' },
+            { value: 'INACTIVE', label: 'Неактивные' },
+            { value: 'ARCHIVED', label: 'Архивные' },
           ]}
         />
       </Space>
 
       <Space.Compact style={{ marginBottom: 16 }} block>
-        <Button size="middle" onClick={() => applyPreset('newest')}>
-          Пресет: новые
-        </Button>
-        <Button size="middle" onClick={() => applyPreset('nameAsc')}>
-          Пресет: по алфавиту
-        </Button>
-        <Button size="middle" onClick={resetFilters}>
-          Сбросить фильтры
-        </Button>
+        <Button size="middle" onClick={() => applyPreset('newest')}>Пресет: новые</Button>
+        <Button size="middle" onClick={() => applyPreset('nameAsc')}>Пресет: по алфавиту</Button>
+        <Button size="middle" onClick={resetFilters}>Сбросить фильтры</Button>
       </Space.Compact>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
@@ -316,70 +324,16 @@ export function SubscribersPage() {
           { title: 'ФИО', dataIndex: 'fullName', key: 'fullName' },
           { title: 'Телефон', dataIndex: 'phone', key: 'phone', render: (value: string | null) => value ?? '—' },
           { title: 'Адрес', dataIndex: 'address', key: 'address' },
-          {
-            title: 'Статус',
-            key: 'status',
-            render: (_: unknown, subscriber: Subscriber) => {
-              const isActual = subscriber.user?.isActual ?? true;
-              return <Tag color={isActual ? 'green' : 'red'}>{isActual ? 'ACTIVE' : 'INACTIVE'}</Tag>;
-            },
-          },
+          { title: 'Статус', key: 'status', render: (_: unknown, subscriber: Subscriber) => renderUserStatus(subscriber) },
           ...(isAdmin
             ? [
                 {
                   title: 'Действия',
                   key: 'actions',
                   render: (_: unknown, subscriber: Subscriber) => (
-                    <Space wrap>
-                      <Button size="small" onClick={() => openSubscriberProfile(subscriber)}>
-                        Карточка
-                      </Button>
-                      <Button size="small" onClick={() => openEditModal(subscriber)}>
-                        Редактировать
-                      </Button>
-                      {subscriber.userId ? (subscriber.user?.isActual === false ? (
-                        <Button
-                          size="small"
-                          type="primary"
-                          ghost
-                          loading={activatingUserId === subscriber.userId}
-                          onClick={() => void handleActivateUser(subscriber.userId as string)}
-                        >
-                          Активировать
-                        </Button>
-                      ) : (
-                        <Popconfirm
-                          title="Деактивировать пользователя?"
-                          description="Пользователь потеряет доступ в систему до повторной активации."
-                          okText="Да"
-                          cancelText="Нет"
-                          onConfirm={() => void handleDeactivateUser(subscriber.userId as string)}
-                        >
-                          <Button size="small" danger loading={deactivatingUserId === subscriber.userId}>
-                            Деактивировать
-                          </Button>
-                        </Popconfirm>
-                      )) : null}
-                      {subscriber.userId ? (
-                        <Button size="small" onClick={() => void handleResetPassword(subscriber.userId as string)}>
-                          Сбросить пароль
-                        </Button>
-                      ) : null}
-                      {subscriber.userId ? (
-                        <Popconfirm
-                          title="Архивировать пользователя?"
-                          description="Пользователь будет скрыт и отключён (soft-delete), его можно восстановить через активацию."
-                          okText="Удалить"
-                          okButtonProps={{ danger: true }}
-                          cancelText="Отмена"
-                          onConfirm={() => void handleDeleteUser(subscriber.userId as string)}
-                        >
-                          <Button size="small" danger type="default" loading={deletingUserId === subscriber.userId}>
-                            Удалить
-                          </Button>
-                        </Popconfirm>
-                      ) : null}
-                    </Space>
+                    <Button size="small" onClick={() => openSubscriberProfile(subscriber)}>
+                      Открыть карточку
+                    </Button>
                   ),
                 },
               ]
@@ -389,59 +343,101 @@ export function SubscribersPage() {
 
       <Modal
         open={profileOpen}
-        title={selectedSubscriber ? `Карточка: ${selectedSubscriber.fullName}` : 'Карточка абонента'}
+        width={760}
+        title={profileMode === 'edit' ? (
+          <Space>
+            <Button icon={<ArrowLeftOutlined />} onClick={() => setProfileMode('view')}>
+              Назад к карточке
+            </Button>
+            <Typography.Text strong>Редактирование абонента</Typography.Text>
+          </Space>
+        ) : (
+          selectedSubscriber ? `Карточка: ${selectedSubscriber.fullName}` : 'Карточка абонента'
+        )}
         footer={null}
         onCancel={() => {
           setProfileOpen(false);
           setSelectedSubscriber(null);
+          setProfileMode('view');
         }}
       >
-        {selectedSubscriber ? (
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <Typography.Text>Телефон: {selectedSubscriber.phone ?? '—'}</Typography.Text>
-            <Typography.Text>Адрес: {selectedSubscriber.address}</Typography.Text>
-            <Typography.Text>Статус: {selectedSubscriber.user?.isActual ? 'ACTIVE' : 'INACTIVE'}</Typography.Text>
+        {selectedSubscriber && profileMode === 'view' ? (
+          <Space direction="vertical" style={{ width: '100%' }} size="large">
+            <Descriptions bordered size="small" column={1}>
+              <Descriptions.Item label="Телефон">{selectedSubscriber.phone ?? '—'}</Descriptions.Item>
+              <Descriptions.Item label="Адрес">{selectedSubscriber.address}</Descriptions.Item>
+              <Descriptions.Item label="Статус">{renderUserStatus(selectedSubscriber)}</Descriptions.Item>
+            </Descriptions>
+
             <Space wrap>
-              <Button onClick={() => openEditModal(selectedSubscriber)}>Изменить</Button>
-              {selectedSubscriber.userId && selectedSubscriber.user?.isActual ? (
-                <Button danger onClick={() => void handleDeactivateUser(selectedSubscriber.userId as string)}>
+              <Button onClick={() => setProfileMode('edit')}>Изменить</Button>
+              {selectedSubscriber.userId && (selectedSubscriber.user?.isActual ?? true) ? (
+                <Button danger loading={deactivatingUserId === selectedSubscriber.userId} onClick={() => void handleDeactivateUser(selectedSubscriber.userId as string)}>
                   Деактивировать
                 </Button>
               ) : null}
-              {selectedSubscriber.userId && !selectedSubscriber.user?.isActual ? (
-                <Button type="primary" ghost onClick={() => void handleActivateUser(selectedSubscriber.userId as string)}>
+              {selectedSubscriber.userId && !(selectedSubscriber.user?.isActual ?? true) ? (
+                <Button type="primary" ghost loading={activatingUserId === selectedSubscriber.userId} onClick={() => void handleActivateUser(selectedSubscriber.userId as string)}>
                   Активировать
                 </Button>
               ) : null}
               {selectedSubscriber.userId ? (
-                <Button onClick={() => void handleResetPassword(selectedSubscriber.userId as string)}>
-                  Сбросить пароль
-                </Button>
+                <Button onClick={() => void handleResetPassword(selectedSubscriber.userId as string)}>Сбросить пароль</Button>
               ) : null}
               {selectedSubscriber.userId ? (
-                <Button danger onClick={() => void handleDeleteUser(selectedSubscriber.userId as string)}>
-                  Архивировать
-                </Button>
+                <Popconfirm
+                  title="Архивировать пользователя?"
+                  description="Пользователь будет скрыт и отключён, при необходимости его можно снова активировать."
+                  okText="Архивировать"
+                  cancelText="Отмена"
+                  onConfirm={() => void handleArchiveUser(selectedSubscriber.userId as string)}
+                >
+                  <Button danger loading={deletingUserId === selectedSubscriber.userId}>Архивировать</Button>
+                </Popconfirm>
               ) : null}
             </Space>
           </Space>
         ) : null}
+
+        {selectedSubscriber && profileMode === 'edit' ? (
+          <Form form={profileForm} layout="vertical" onFinish={handleProfileSave}>
+            <Form.Item label="ФИО" name="fullName" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Телефон (+7...)"
+              name="phone"
+              rules={[
+                { required: true, message: 'Введите телефон' },
+                { pattern: /^\+7\d{10}$/, message: 'Формат: +7XXXXXXXXXX' },
+              ]}
+            >
+              <Input placeholder="+79001234567" />
+            </Form.Item>
+            <Form.Item label="Адрес" name="address" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item label="Квартира" name="apartment" rules={[{ max: 20, message: 'До 20 символов' }]}>
+              <Input />
+            </Form.Item>
+            <Space>
+              <Button onClick={() => setProfileMode('view')}>Назад</Button>
+              <Button type="primary" htmlType="submit" loading={saving}>Сохранить</Button>
+            </Space>
+          </Form>
+        ) : null}
       </Modal>
 
-
       <Modal
-        open={modalOpen}
-        title={editingSubscriber ? 'Редактирование абонента' : 'Новый абонент'}
-        okText={editingSubscriber ? 'Сохранить' : 'Создать'}
+        open={createModalOpen}
+        title="Новый абонент"
+        okText="Создать"
         cancelText="Отмена"
-        onCancel={() => {
-          setModalOpen(false);
-          setEditingSubscriber(null);
-        }}
-        onOk={() => form.submit()}
+        onCancel={() => setCreateModalOpen(false)}
+        onOk={() => createForm.submit()}
         confirmLoading={saving}
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        <Form form={createForm} layout="vertical" onFinish={handleCreate}>
           <Form.Item label="ФИО" name="fullName" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
             <Input />
           </Form.Item>

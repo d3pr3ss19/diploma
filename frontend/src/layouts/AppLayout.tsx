@@ -54,8 +54,10 @@ export function AppLayout() {
             </Button>
           </Space>
         </Header>
-        <Content style={{ padding: 24, background: '#f5f7fb' }}>
-          <Outlet />
+        <Content style={{ padding: 24, background: '#f5f7fb', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '80%', minWidth: 960, maxWidth: 1440 }}>
+            <Outlet />
+          </div>
         </Content>
       </Layout>
     </Layout>
