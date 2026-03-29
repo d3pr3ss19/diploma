@@ -6,10 +6,16 @@ export type CreateSubscriberPayload = {
   phone: string;
   address: string;
   apartment?: string;
-  userId?: string;
 };
 
 export type UpdateSubscriberPayload = Partial<CreateSubscriberPayload>;
+
+export type CreatedSubscriberResponse = Subscriber & {
+  generatedCredentials?: {
+    login: string;
+    password: string;
+  };
+};
 
 export async function getSubscribers(): Promise<Subscriber[]> {
   const { data } = await http.get<Subscriber[]>('/subscribers');
@@ -21,8 +27,8 @@ export async function getSubscriberById(id: string): Promise<SubscriberDetails> 
   return data;
 }
 
-export async function createSubscriber(payload: CreateSubscriberPayload): Promise<Subscriber> {
-  const { data } = await http.post<Subscriber>('/subscribers', payload);
+export async function createSubscriber(payload: CreateSubscriberPayload): Promise<CreatedSubscriberResponse> {
+  const { data } = await http.post<CreatedSubscriberResponse>('/subscribers', payload);
   return data;
 }
 

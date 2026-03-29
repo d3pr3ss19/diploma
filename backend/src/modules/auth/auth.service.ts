@@ -120,6 +120,15 @@ export class AuthService {
     return { success: true };
   }
 
+
+  async activateUser(userId: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActual: true }
+    });
+
+    return { success: true };
+  }
   private async storeActiveRefreshToken(userId: string, refreshToken: string) {
     const tokenHash = this.hashToken(refreshToken);
 

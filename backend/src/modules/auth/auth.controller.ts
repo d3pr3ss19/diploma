@@ -34,4 +34,11 @@ export class AuthController {
   deactivateUser(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.authService.deactivateUser(id);
   }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Post('users/:id/activate')
+  activateUser(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.authService.activateUser(id);
+  }
 }
