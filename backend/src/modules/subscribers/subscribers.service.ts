@@ -1,5 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { RoleCode } from '@prisma/client';
+
+import { hashPassword } from '../auth/auth-password.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
@@ -14,7 +18,9 @@ export class SubscribersService {
       include: {
         user: {
           select: {
-            isActual: true
+            id: true,
+            isActual: true,
+            email: true
           }
         },
         accounts: {
@@ -34,7 +40,9 @@ export class SubscribersService {
         accounts: true,
         user: {
           select: {
-            isActual: true
+            id: true,
+            isActual: true,
+            email: true
           }
         }
       }
@@ -47,16 +55,52 @@ export class SubscribersService {
     return subscriber;
   }
 
-  create(payload: CreateSubscriberDto) {
-    return this.prisma.subscriber.create({
-      data: {
-        fullName: payload.fullName,
-        phone: payload.phone,
-        address: payload.address,
-        apartment: payload.apartment,
-        userId: payload.userId
-      }
+  async create(payload: CreateSubscriberDto) {
+    const subscriberRole = await this.prisma.role.findUniqueOrThrow({ where: { code: RoleCode.SUBSCRIBER } });
+
+    const password = this.generatePassword();
+    const email = await this.generateSubscriberEmail(payload.phone);
+    const passwordHash = hashPassword(password);
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email,
+          passwordHash,
+          roleId: subscriberRole.id,
+          isActual: true
+        }
+      });
+
+      const subscriber = await tx.subscriber.create({
+        data: {
+          fullName: payload.fullName,
+          phone: payload.phone,
+          address: payload.address,
+          apartment: payload.apartment,
+          userId: user.id
+        }
+      });
+
+      await tx.account.create({
+        data: {
+          subscriberId: subscriber.id,
+          accountNumber: this.generateAccountNumber(),
+          balance: 0,
+          openedAt: new Date()
+        }
+      });
+
+      return subscriber;
     });
+
+    return {
+      ...result,
+      generatedCredentials: {
+        login: email,
+        password
+      }
+    };
   }
 
   async update(id: string, payload: UpdateSubscriberDto) {
@@ -68,9 +112,30 @@ export class SubscribersService {
         fullName: payload.fullName,
         phone: payload.phone,
         address: payload.address,
-        apartment: payload.apartment,
-        userId: payload.userId
+        apartment: payload.apartment
       }
     });
+  }
+
+  private generatePassword(): string {
+    return randomBytes(6).toString('base64url');
+  }
+
+  private generateAccountNumber(): string {
+    const timestampPart = Date.now().toString().slice(-6);
+    const randomPart = Math.floor(1000 + Math.random() * 9000);
+    return `LS${timestampPart}${randomPart}`;
+  }
+
+  private async generateSubscriberEmail(phone: string): Promise<string> {
+    const digits = phone.replace(/\D/g, '').slice(-10);
+    const base = `subscriber.${digits || Date.now()}@kp.local`;
+
+    const exists = await this.prisma.user.findUnique({ where: { email: base } });
+    if (!exists) {
+      return base;
+    }
+
+    return `subscriber.${digits || Date.now()}.${randomBytes(2).toString('hex')}@kp.local`;
   }
 }
