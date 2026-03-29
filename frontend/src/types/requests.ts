@@ -9,6 +9,10 @@ export type ServiceRequest = {
   createdByUser?: {
     id: string;
     email: string;
+    subscriber?: {
+      id: string;
+      fullName: string;
+    } | null;
   };
   assignedToUserId: string | null;
   createdAt: string;

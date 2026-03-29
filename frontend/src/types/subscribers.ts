@@ -8,6 +8,9 @@ export type Subscriber = {
   user?: {
     isActual: boolean;
     deletedAt?: string | null;
+    role?: {
+      code: "ADMIN" | "OPERATOR" | "SUBSCRIBER";
+    };
   } | null;
   accounts?: Array<{
     id: string;

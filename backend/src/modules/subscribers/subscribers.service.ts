@@ -21,7 +21,12 @@ export class SubscribersService {
             id: true,
             isActual: true,
             deletedAt: true,
-            email: true
+            email: true,
+            role: {
+              select: {
+                code: true
+              }
+            }
           }
         },
         accounts: {
@@ -44,7 +49,12 @@ export class SubscribersService {
             id: true,
             isActual: true,
             deletedAt: true,
-            email: true
+            email: true,
+            role: {
+              select: {
+                code: true
+              }
+            }
           }
         }
       }

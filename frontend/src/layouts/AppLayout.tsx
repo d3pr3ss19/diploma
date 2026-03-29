@@ -23,42 +23,42 @@ export function AppLayout() {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f5f7fb' }}>
-      <Sider theme="light" style={{ borderRight: '1px solid #f0f0f0' }}>
-        <div style={{ padding: 16, color: '#1677ff', fontWeight: 700 }}>КП ИС</div>
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          items={menuItems}
-          onClick={({ key }) => navigate(key)}
-        />
-      </Sider>
-      <Layout style={{ background: '#f5f7fb' }}>
-        <Header
-          style={{
-            background: '#fff',
-            borderBottom: '1px solid #f0f0f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Typography.Title level={5} style={{ margin: 0 }}>
-            Веб-ориентированная ИС коммунального предприятия
-          </Typography.Title>
-          <Space>
-            <Typography.Text type="secondary">{auth?.user.email}</Typography.Text>
-            <Button icon={<LogoutOutlined />} onClick={handleLogout}>
-              Выход
-            </Button>
-          </Space>
-        </Header>
-        <Content style={{ padding: 24, background: '#f5f7fb', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: '80%', minWidth: 960, maxWidth: 1440 }}>
+    <Layout style={{ minHeight: '100vh', background: '#f5f7fb', display: 'flex', justifyContent: 'center' }}>
+      <Layout style={{ width: '80%', minWidth: 1180, maxWidth: 1600, boxShadow: '0 0 24px rgba(15, 23, 42, 0.08)' }}>
+        <Sider theme="light" style={{ borderRight: '1px solid #f0f0f0' }}>
+          <div style={{ padding: 16, color: '#1677ff', fontWeight: 700 }}>КП ИС</div>
+          <Menu
+            theme="light"
+            mode="inline"
+            selectedKeys={[location.pathname]}
+            items={menuItems}
+            onClick={({ key }) => navigate(key)}
+          />
+        </Sider>
+        <Layout style={{ background: '#f5f7fb' }}>
+          <Header
+            style={{
+              background: '#fff',
+              borderBottom: '1px solid #f0f0f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Typography.Title level={5} style={{ margin: 0 }}>
+              Веб-ориентированная ИС коммунального предприятия
+            </Typography.Title>
+            <Space>
+              <Typography.Text type="secondary">{auth?.user.email}</Typography.Text>
+              <Button icon={<LogoutOutlined />} onClick={handleLogout}>
+                Выход
+              </Button>
+            </Space>
+          </Header>
+          <Content style={{ padding: 24, background: '#f5f7fb' }}>
             <Outlet />
-          </div>
-        </Content>
+          </Content>
+        </Layout>
       </Layout>
     </Layout>
   );

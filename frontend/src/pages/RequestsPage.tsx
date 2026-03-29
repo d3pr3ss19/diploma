@@ -1,4 +1,4 @@
-import { Alert, Button, Form, Input, List, Modal, Pagination, Select, Space, Tag, Typography, message } from 'antd';
+import { Alert, Button, Descriptions, Form, Input, List, Modal, Pagination, Select, Space, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { extractApiErrorMessage } from '../api/error';
@@ -49,6 +49,14 @@ function statusColor(status: string): string {
   return 'default';
 }
 
+function statusLabel(status: string): string {
+  if (status === 'NEW') return 'Новая';
+  if (status === 'IN_PROGRESS') return 'В работе';
+  if (status === 'DONE') return 'Выполнена';
+  if (status === 'REJECTED') return 'Отклонена';
+  return status;
+}
+
 function categoryLabel(category: string): string {
   if (category === 'ACCIDENT') return 'Авария';
   if (category === 'COMPLAINT') return 'Жалоба';
@@ -68,6 +76,8 @@ export function RequestsPage() {
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState<ServiceRequest | null>(null);
+  const [authorModalOpen, setAuthorModalOpen] = useState(false);
+  const [authorRequest, setAuthorRequest] = useState<ServiceRequest | null>(null);
   const [form] = Form.useForm<CreateRequestForm>();
   const [editForm] = Form.useForm<EditRequestForm>();
   const [messageApi, contextHolder] = message.useMessage();
@@ -235,6 +245,12 @@ export function RequestsPage() {
     }
   }
 
+
+  function openAuthorProfile(request: ServiceRequest) {
+    setAuthorRequest(request);
+    setAuthorModalOpen(true);
+  }
+
   return (
     <>
       {contextHolder}
@@ -264,10 +280,10 @@ export function RequestsPage() {
           size="middle"
           options={[
             { value: 'ALL', label: 'Все статусы' },
-            { value: 'NEW', label: 'NEW' },
-            { value: 'IN_PROGRESS', label: 'IN_PROGRESS' },
-            { value: 'DONE', label: 'DONE' },
-            { value: 'REJECTED', label: 'REJECTED' },
+            { value: 'NEW', label: 'Новая' },
+            { value: 'IN_PROGRESS', label: 'В работе' },
+            { value: 'DONE', label: 'Выполнена' },
+            { value: 'REJECTED', label: 'Отклонена' },
           ]}
         />
         <Select
@@ -309,13 +325,19 @@ export function RequestsPage() {
               <Typography.Text type="secondary">{new Date(item.createdAt).toLocaleString('ru-RU')}</Typography.Text>
               <Space size={8} wrap>
                 <Tag color="purple">{categoryLabel(item.category)}</Tag>
-                <Typography.Text type="secondary">Автор: {item.createdByUser?.email ?? item.createdByUserId}</Typography.Text>
+                {item.createdByUser?.subscriber?.fullName ? (
+                  <Typography.Link onClick={() => openAuthorProfile(item)}>
+                    Автор: {item.createdByUser.subscriber.fullName}
+                  </Typography.Link>
+                ) : (
+                  <Typography.Text type="secondary">Автор: {item.createdByUser?.email ?? item.createdByUserId}</Typography.Text>
+                )}
               </Space>
             </Space>
             <Space style={{ marginLeft: 'auto' }}>
-              <Tag color={statusColor(item.status)}>{item.status}</Tag>
+              <Tag color={statusColor(item.status)}>{statusLabel(item.status)}</Tag>
               {canEditRequests ? (
-                <Button size="small" onClick={() => openEditModal(item)}>
+                <Button size="middle" onClick={() => openEditModal(item)}>
                   Редактировать
                 </Button>
               ) : null}
@@ -434,10 +456,10 @@ export function RequestsPage() {
           <Form.Item label="Статус" name="status" rules={[{ required: true, message: 'Выберите статус' }]}>
             <Select
               options={[
-                { value: 'NEW', label: 'NEW' },
-                { value: 'IN_PROGRESS', label: 'IN_PROGRESS' },
-                { value: 'DONE', label: 'DONE' },
-                { value: 'REJECTED', label: 'REJECTED' },
+                { value: 'NEW', label: 'Новая' },
+                { value: 'IN_PROGRESS', label: 'В работе' },
+                { value: 'DONE', label: 'Выполнена' },
+                { value: 'REJECTED', label: 'Отклонена' },
               ]}
             />
           </Form.Item>
@@ -447,6 +469,28 @@ export function RequestsPage() {
             </Form.Item>
           ) : null}
         </Form>
+      </Modal>
+
+
+
+      <Modal
+        open={authorModalOpen}
+        title="Карточка автора заявки"
+        footer={null}
+        onCancel={() => {
+          setAuthorModalOpen(false);
+          setAuthorRequest(null);
+        }}
+      >
+        {authorRequest?.createdByUser?.subscriber ? (
+          <Descriptions bordered column={1} size="small">
+            <Descriptions.Item label="ФИО">{authorRequest.createdByUser.subscriber.fullName}</Descriptions.Item>
+            <Descriptions.Item label="ID абонента">{authorRequest.createdByUser.subscriber.id}</Descriptions.Item>
+            <Descriptions.Item label="Email">{authorRequest.createdByUser.email}</Descriptions.Item>
+          </Descriptions>
+        ) : (
+          <Typography.Text type="secondary">Для автора нет связанной карточки абонента.</Typography.Text>
+        )}
       </Modal>
 
     </>

@@ -16,7 +16,13 @@ export class RequestsService {
         createdByUser: {
           select: {
             id: true,
-            email: true
+            email: true,
+            subscriber: {
+              select: {
+                id: true,
+                fullName: true
+              }
+            }
           }
         }
       }
@@ -31,7 +37,13 @@ export class RequestsService {
         createdByUser: {
           select: {
             id: true,
-            email: true
+            email: true,
+            subscriber: {
+              select: {
+                id: true,
+                fullName: true
+              }
+            }
           }
         }
       }
