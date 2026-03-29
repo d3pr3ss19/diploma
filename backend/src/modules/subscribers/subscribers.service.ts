@@ -3,8 +3,8 @@ import { randomBytes } from 'crypto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { RoleCode } from '@prisma/client';
 
-import { hashPassword } from '../auth/auth-password.util';
 import { PrismaService } from '../../prisma/prisma.service';
+import { hashPassword } from '../auth/auth-password.util';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
 
@@ -72,7 +72,7 @@ export class SubscribersService {
     return subscriber;
   }
 
-  async create(payload: CreateSubscriberDto) {
+  async create(payload: CreateSubscriberDto, actorUserId?: string) {
     const subscriberRole = await this.prisma.role.findUniqueOrThrow({ where: { code: RoleCode.SUBSCRIBER } });
 
     const password = this.generatePassword();
@@ -108,6 +108,19 @@ export class SubscribersService {
         }
       });
 
+      await tx.adminAuditLog.create({
+        data: {
+          actorUserId,
+          targetUserId: user.id,
+          action: 'SUBSCRIBER_CREATED',
+          details: {
+            section: 'SUBSCRIBERS',
+            subscriberId: subscriber.id,
+            fullName: payload.fullName
+          }
+        }
+      });
+
       return subscriber;
     });
 
@@ -120,10 +133,10 @@ export class SubscribersService {
     };
   }
 
-  async update(id: string, payload: UpdateSubscriberDto) {
-    await this.findOne(id);
+  async update(id: string, payload: UpdateSubscriberDto, actorUserId?: string) {
+    const before = await this.findOne(id);
 
-    return this.prisma.subscriber.update({
+    const updated = await this.prisma.subscriber.update({
       where: { id },
       data: {
         fullName: payload.fullName,
@@ -132,6 +145,35 @@ export class SubscribersService {
         apartment: payload.apartment
       }
     });
+
+    const targetUserId = before.userId ?? actorUserId;
+    if (targetUserId) {
+      await this.prisma.adminAuditLog.create({
+        data: {
+          actorUserId,
+          targetUserId,
+        action: 'SUBSCRIBER_UPDATED',
+        details: {
+          section: 'SUBSCRIBERS',
+          subscriberId: id,
+          before: {
+            fullName: before.fullName,
+            phone: before.phone,
+            address: before.address,
+            apartment: before.apartment
+          },
+          after: {
+            fullName: updated.fullName,
+            phone: updated.phone,
+            address: updated.address,
+            apartment: updated.apartment
+          }
+        }
+        }
+      });
+    }
+
+    return updated;
   }
 
   private generatePassword(): string {

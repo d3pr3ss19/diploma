@@ -8,6 +8,8 @@ import { createToken, verifyToken } from '../../common/auth/token.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { hashPassword, verifyPassword } from './auth-password.util';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Injectable()
 export class AuthService {
@@ -120,11 +122,10 @@ export class AuthService {
       data: { revokedAt: new Date() }
     });
 
-    await this.createAuditLog(actorUserId, userId, 'USER_DEACTIVATED');
+    await this.createAuditLog(actorUserId, userId, 'USER_DEACTIVATED', { section: 'USERS' });
 
     return { success: true };
   }
-
 
   async activateUser(userId: string, actorUserId?: string) {
     await this.prisma.user.update({
@@ -135,7 +136,7 @@ export class AuthService {
       }
     });
 
-    await this.createAuditLog(actorUserId, userId, 'USER_ACTIVATED');
+    await this.createAuditLog(actorUserId, userId, 'USER_ACTIVATED', { section: 'USERS' });
 
     return { success: true };
   }
@@ -155,13 +156,14 @@ export class AuthService {
         data: { revokedAt: new Date() }
       });
 
-      await this.createAuditLog(actorUserId, userId, 'USER_ARCHIVED');
-    } catch (error) {
+      await this.createAuditLog(actorUserId, userId, 'USER_ARCHIVED', { section: 'USERS' });
+    } catch {
       throw new ConflictException('Не удалось архивировать пользователя.');
     }
 
     return { success: true };
   }
+
   async resetUserPassword(userId: string, actorUserId?: string) {
     const newPassword = randomBytes(6).toString('base64url');
 
@@ -179,7 +181,7 @@ export class AuthService {
       data: { revokedAt: new Date() }
     });
 
-    await this.createAuditLog(actorUserId, userId, 'USER_PASSWORD_RESET');
+    await this.createAuditLog(actorUserId, userId, 'USER_PASSWORD_RESET', { section: 'USERS' });
 
     return {
       success: true,
@@ -187,12 +189,89 @@ export class AuthService {
     };
   }
 
-  private async createAuditLog(actorUserId: string | undefined, targetUserId: string, action: string) {
+  async updateUserRole(userId: string, payload: UpdateRoleDto, actorUserId?: string) {
+    const role = await this.prisma.role.findUniqueOrThrow({ where: { code: payload.role } });
+    const previous = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: { role: true }
+    });
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { roleId: role.id },
+      include: { role: true }
+    });
+
+    await this.createAuditLog(actorUserId, userId, 'USER_ROLE_UPDATED', {
+      section: 'USERS',
+      fromRole: previous.role.code,
+      toRole: updated.role.code
+    });
+
+    return {
+      success: true,
+      user: {
+        id: updated.id,
+        email: updated.email,
+        role: this.mapRole(updated.role.code)
+      }
+    };
+  }
+
+  async updateProfile(actorUserId: string | undefined, payload: UpdateProfileDto) {
+    if (!actorUserId) {
+      throw new UnauthorizedException('Missing authenticated user id');
+    }
+
+    const before = await this.prisma.user.findUniqueOrThrow({ where: { id: actorUserId } });
+    const updated = await this.prisma.user.update({
+      where: { id: actorUserId },
+      data: { email: payload.email },
+      include: { role: true }
+    });
+
+    await this.createAuditLog(actorUserId, actorUserId, 'USER_PROFILE_UPDATED', {
+      section: 'USERS',
+      before: { email: before.email },
+      after: { email: updated.email }
+    });
+
+    return {
+      success: true,
+      user: {
+        id: updated.id,
+        email: updated.email,
+        role: this.mapRole(updated.role.code)
+      }
+    };
+  }
+
+  async listAuditLogs(section?: 'USERS' | 'SUBSCRIBERS' | 'REQUESTS') {
+    return this.prisma.adminAuditLog.findMany({
+      where: section
+        ? {
+            details: {
+              path: ['section'],
+              equals: section
+            }
+          }
+        : undefined,
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: {
+        actorUser: { select: { id: true, email: true } },
+        targetUser: { select: { id: true, email: true } }
+      }
+    });
+  }
+
+  async createAuditLog(actorUserId: string | undefined, targetUserId: string, action: string, details?: object) {
     await this.prisma.adminAuditLog.create({
       data: {
         actorUserId,
         targetUserId,
-        action
+        action,
+        details: details ?? undefined
       }
     });
   }

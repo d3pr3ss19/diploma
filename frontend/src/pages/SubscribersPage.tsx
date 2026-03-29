@@ -1,7 +1,7 @@
 import { Alert, Button, Descriptions, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { activateUser, deactivateUser, deleteUser, resetUserPassword } from '../api/auth';
+import { activateUser, deactivateUser, deleteUser, resetUserPassword, updateUserRole } from '../api/auth';
 import { extractApiErrorMessage } from '../api/error';
 import { createSubscriber, getSubscribers, updateSubscriber } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
@@ -48,6 +48,7 @@ export function SubscribersPage() {
   const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
   const [activatingUserId, setActivatingUserId] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [changingRoleUserId, setChangingRoleUserId] = useState<string | null>(null);
 
   const [createForm] = Form.useForm<SubscriberForm>();
   const [profileForm] = Form.useForm<SubscriberForm>();
@@ -177,6 +178,20 @@ export function SubscribersPage() {
       setError(extractApiErrorMessage(err, 'Не удалось архивировать пользователя.'));
     } finally {
       setDeletingUserId(null);
+    }
+  }
+
+
+  async function handleRoleChange(userId: string, role: 'ADMIN' | 'OPERATOR' | 'SUBSCRIBER') {
+    try {
+      setChangingRoleUserId(userId);
+      await updateUserRole(userId, role);
+      messageApi.success('Роль пользователя обновлена');
+      await loadSubscribers();
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось обновить роль пользователя.'));
+    } finally {
+      setChangingRoleUserId(null);
     }
   }
 
@@ -385,7 +400,21 @@ export function SubscribersPage() {
                 ) : (selectedSubscriber.apartment ?? '—')}
               </Descriptions.Item>
               <Descriptions.Item label="Статус">{renderUserStatus(selectedSubscriber)}</Descriptions.Item>
-              <Descriptions.Item label="Роль">{roleLabel(selectedSubscriber)}</Descriptions.Item>
+              <Descriptions.Item label="Роль">
+                {isAdmin && selectedSubscriber.userId ? (
+                  <Select
+                    style={{ width: 240 }}
+                    value={selectedSubscriber.user?.role?.code ?? 'SUBSCRIBER'}
+                    loading={changingRoleUserId === selectedSubscriber.userId}
+                    onChange={(value) => void handleRoleChange(selectedSubscriber.userId as string, value)}
+                    options={[
+                      { value: 'SUBSCRIBER', label: 'Абонент' },
+                      { value: 'OPERATOR', label: 'Оператор' },
+                      { value: 'ADMIN', label: 'Администратор' },
+                    ]}
+                  />
+                ) : roleLabel(selectedSubscriber)}
+              </Descriptions.Item>
             </Descriptions>
 
             <Space wrap>

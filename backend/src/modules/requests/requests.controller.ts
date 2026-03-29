@@ -14,19 +14,19 @@ import { UpdateRequestDto } from './dto/update-request.dto';
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
-  @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
+  @Roles(Role.ADMIN, Role.OPERATOR)
   @Get()
   list() {
     return this.requestsService.list();
   }
 
-  @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
+  @Roles(Role.ADMIN, Role.OPERATOR)
   @Get(':id')
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.requestsService.findOne(id);
   }
 
-  @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
+  @Roles(Role.ADMIN, Role.OPERATOR)
   @Post()
   create(@Body() body: CreateRequestDto, @Req() req: Request & { user?: { id: string } }) {
     const createdByUserId = req.user?.id;

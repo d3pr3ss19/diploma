@@ -1,5 +1,16 @@
 import { http } from './http';
-import type { LoginRequest, LoginResponse, LogoutRequest, RefreshRequest, RefreshResponse } from '../types/auth';
+import type { LoginRequest, LoginResponse, LogoutRequest, RefreshRequest, RefreshResponse, UserRole } from '../types/auth';
+
+export type AuditLogSection = 'USERS' | 'SUBSCRIBERS' | 'REQUESTS';
+
+export type AuditLogItem = {
+  id: string;
+  action: string;
+  createdAt: string;
+  details?: Record<string, unknown>;
+  actorUser?: { id: string; email: string } | null;
+  targetUser?: { id: string; email: string } | null;
+};
 
 export async function login(payload: LoginRequest): Promise<LoginResponse> {
   const { data } = await http.post<LoginResponse>('/auth/login', payload);
@@ -33,5 +44,22 @@ export async function deleteUser(userId: string): Promise<{ success: boolean }> 
 
 export async function resetUserPassword(userId: string): Promise<{ success: boolean; password: string }> {
   const { data } = await http.post<{ success: boolean; password: string }>(`/auth/users/${userId}/reset-password`);
+  return data;
+}
+
+export async function updateUserRole(userId: string, role: UserRole): Promise<{ success: boolean }> {
+  const { data } = await http.patch<{ success: boolean }>(`/auth/users/${userId}/role`, { role });
+  return data;
+}
+
+export async function updateMyProfile(email: string): Promise<LoginResponse['user']> {
+  const { data } = await http.patch<{ success: boolean; user: LoginResponse['user'] }>('/auth/me', { email });
+  return data.user;
+}
+
+export async function getAuditLogs(section?: AuditLogSection): Promise<AuditLogItem[]> {
+  const { data } = await http.get<AuditLogItem[]>('/auth/audit-logs', {
+    params: section ? { section } : undefined,
+  });
   return data;
 }

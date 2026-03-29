@@ -56,7 +56,6 @@ export class RequestsService {
     return request;
   }
 
-
   async update(id: string, payload: UpdateRequestDto, changedByUserId: string) {
     const existing = await this.findOne(id);
 
@@ -83,6 +82,32 @@ export class RequestsService {
       });
     }
 
+    await this.prisma.adminAuditLog.create({
+      data: {
+        actorUserId: changedByUserId,
+        targetUserId: existing.createdByUserId,
+        action: 'REQUEST_UPDATED',
+        details: {
+          section: 'REQUESTS',
+          requestId: id,
+          before: {
+            title: existing.title,
+            description: existing.description,
+            category: existing.category,
+            status: existing.status,
+            assignedToUserId: existing.assignedToUserId
+          },
+          after: {
+            title: updated.title,
+            description: updated.description,
+            category: updated.category,
+            status: updated.status,
+            assignedToUserId: updated.assignedToUserId
+          }
+        }
+      }
+    });
+
     return updated;
   }
 
@@ -106,6 +131,20 @@ export class RequestsService {
         newStatus: RequestStatus.NEW,
         changedByUserId: createdByUserId,
         comment: 'Заявка создана'
+      }
+    });
+
+    await this.prisma.adminAuditLog.create({
+      data: {
+        actorUserId: createdByUserId,
+        targetUserId: createdByUserId,
+        action: 'REQUEST_CREATED',
+        details: {
+          section: 'REQUESTS',
+          requestId: created.id,
+          category: created.category,
+          title: created.title
+        }
       }
     });
 

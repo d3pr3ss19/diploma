@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards
+} from '@nestjs/common';
 import { Request } from 'express';
 
 import { AuthGuard } from '../../common/auth/auth.guard';
@@ -9,6 +21,8 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -62,5 +76,29 @@ export class AuthController {
   @Post('users/:id/reset-password')
   resetUserPassword(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: AuthenticatedRequest) {
     return this.authService.resetUserPassword(id, req.user?.id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Patch('users/:id/role')
+  updateUserRole(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: UpdateRoleDto,
+    @Req() req: AuthenticatedRequest
+  ) {
+    return this.authService.updateUserRole(id, body, req.user?.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('me')
+  updateMyProfile(@Body() body: UpdateProfileDto, @Req() req: AuthenticatedRequest) {
+    return this.authService.updateProfile(req.user?.id, body);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Get('audit-logs')
+  listAuditLogs(@Query('section') section?: 'USERS' | 'SUBSCRIBERS' | 'REQUESTS') {
+    return this.authService.listAuditLogs(section);
   }
 }

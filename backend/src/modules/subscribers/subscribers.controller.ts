@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 
 import { AuthGuard } from '../../common/auth/auth.guard';
 import { Role } from '../../common/auth/role.enum';
@@ -27,13 +28,17 @@ export class SubscribersController {
 
   @Roles(Role.ADMIN, Role.OPERATOR)
   @Post()
-  create(@Body() body: CreateSubscriberDto) {
-    return this.subscribersService.create(body);
+  create(@Body() body: CreateSubscriberDto, @Req() req: Request & { user?: { id: string } }) {
+    return this.subscribersService.create(body, req.user?.id);
   }
 
   @Roles(Role.ADMIN)
   @Patch(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() body: UpdateSubscriberDto) {
-    return this.subscribersService.update(id, body);
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: UpdateSubscriberDto,
+    @Req() req: Request & { user?: { id: string } }
+  ) {
+    return this.subscribersService.update(id, body, req.user?.id);
   }
 }

@@ -5,6 +5,7 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { LoginPage } from '../pages/LoginPage';
 import { RequestsPage } from '../pages/RequestsPage';
 import { SubscribersPage } from '../pages/SubscribersPage';
+import { SettingsPage } from '../pages/SettingsPage';
 import { RequireAuth } from './RequireAuth';
 
 export function AppRouter() {
@@ -24,6 +25,7 @@ export function AppRouter() {
           <Route path="/subscribers" element={<SubscribersPage />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
