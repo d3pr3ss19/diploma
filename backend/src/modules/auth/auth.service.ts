@@ -19,7 +19,7 @@ export class AuthService {
       include: { role: true }
     });
 
-    if (!user || !user.isActive || !verifyPassword(body.password, user.passwordHash)) {
+    if (!user || !user.isActual || !verifyPassword(body.password, user.passwordHash)) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -51,7 +51,7 @@ export class AuthService {
       include: { role: true }
     });
 
-    if (!user || !user.isActive) {
+    if (!user || !user.isActual) {
       throw new UnauthorizedException('User not found or inactive');
     }
 
@@ -109,7 +109,7 @@ export class AuthService {
   async deactivateUser(userId: string) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { isActive: false }
+      data: { isActual: false }
     });
 
     await this.prisma.refreshSession.updateMany({

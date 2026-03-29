@@ -5,6 +5,13 @@ export type Subscriber = {
   address: string;
   apartment: string | null;
   userId: string | null;
+  user?: {
+    isActual: boolean;
+  } | null;
+  accounts?: Array<{
+    id: string;
+    balance: string;
+  }>;
   createdAt: string;
   updatedAt: string;
 };

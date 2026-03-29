@@ -10,14 +10,34 @@ export class SubscribersService {
 
   list() {
     return this.prisma.subscriber.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            isActual: true
+          }
+        },
+        accounts: {
+          select: {
+            id: true,
+            balance: true
+          }
+        }
+      }
     });
   }
 
   async findOne(id: string) {
     const subscriber = await this.prisma.subscriber.findUnique({
       where: { id },
-      include: { accounts: true }
+      include: {
+        accounts: true,
+        user: {
+          select: {
+            isActual: true
+          }
+        }
+      }
     });
 
     if (!subscriber) {
