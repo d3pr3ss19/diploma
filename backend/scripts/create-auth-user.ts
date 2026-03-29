@@ -35,13 +35,13 @@ async function main() {
     update: {
       passwordHash,
       roleId: role.id,
-      isActive: true
+      isActual: true
     },
     create: {
       email,
       passwordHash,
       roleId: role.id,
-      isActive: true
+      isActual: true
     }
   });
 

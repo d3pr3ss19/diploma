@@ -1,7 +1,7 @@
 import { Alert, Button, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { deactivateUser } from '../api/auth';
+import { activateUser, deactivateUser } from '../api/auth';
 import { extractApiErrorMessage } from '../api/error';
 import { createSubscriber, getSubscribers, updateSubscriber } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
@@ -14,15 +14,10 @@ type SubscriberForm = {
   phone: string;
   address: string;
   apartment?: string;
-  userId?: string;
-};
-
-const uuidRule = {
-  pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-  message: 'Введите корректный UUID',
 };
 
 const PAGE_SIZE = 10;
+
 const SUBSCRIBERS_PRESET_KEY = 'subscribers-last-preset';
 
 export function SubscribersPage() {
@@ -33,6 +28,7 @@ export function SubscribersPage() {
   const [editingSubscriber, setEditingSubscriber] = useState<Subscriber | null>(null);
   const [saving, setSaving] = useState(false);
   const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
+  const [activatingUserId, setActivatingUserId] = useState<string | null>(null);
   const [form] = Form.useForm<SubscriberForm>();
   const [messageApi, contextHolder] = message.useMessage();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -91,7 +87,6 @@ export function SubscribersPage() {
   }
 
   function openCreateModal() {
-    const authData = readAuth();
     setEditingSubscriber(null);
     setModalOpen(true);
     form.setFieldsValue({
@@ -99,7 +94,6 @@ export function SubscribersPage() {
       phone: '',
       address: '',
       apartment: undefined,
-      userId: authData?.user.id ?? undefined,
     });
   }
 
@@ -111,7 +105,6 @@ export function SubscribersPage() {
       phone: subscriber.phone ?? '',
       address: subscriber.address,
       apartment: subscriber.apartment ?? undefined,
-      userId: subscriber.userId ?? undefined,
     });
   }
 
@@ -129,6 +122,20 @@ export function SubscribersPage() {
     }
   }
 
+
+  async function handleActivateUser(userId: string) {
+    try {
+      setActivatingUserId(userId);
+      setError(null);
+      await activateUser(userId);
+      messageApi.success('Пользователь активирован');
+      await loadSubscribers();
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось активировать пользователя.'));
+    } finally {
+      setActivatingUserId(null);
+    }
+  }
   async function handleSubmit(values: SubscriberForm) {
     try {
       setSaving(true);
@@ -140,18 +147,28 @@ export function SubscribersPage() {
           phone: values.phone,
           address: values.address,
           apartment: values.apartment || undefined,
-          userId: values.userId || undefined,
         });
         messageApi.success('Карточка абонента обновлена');
       } else {
-        await createSubscriber({
+        const created = await createSubscriber({
           fullName: values.fullName,
           phone: values.phone,
           address: values.address,
           apartment: values.apartment || undefined,
-          userId: values.userId || undefined,
         });
         messageApi.success('Абонент успешно создан');
+
+        if (created.generatedCredentials) {
+          Modal.info({
+            title: 'Данные для входа абонента',
+            content: (
+              <Space direction="vertical" size={4}>
+                <Typography.Text>Логин: {created.generatedCredentials.login}</Typography.Text>
+                <Typography.Text copyable>Пароль: {created.generatedCredentials.password}</Typography.Text>
+              </Space>
+            )
+          });
+        }
       }
 
       setModalOpen(false);
@@ -208,11 +225,17 @@ export function SubscribersPage() {
         />
       </Space>
 
-      <Space style={{ marginBottom: 16 }} wrap>
-        <Button size="middle" onClick={() => applyPreset('newest')}>Пресет: новые</Button>
-        <Button size="middle" onClick={() => applyPreset('nameAsc')}>Пресет: по алфавиту</Button>
-        <Button size="middle" onClick={resetFilters}>Сбросить фильтры</Button>
-      </Space>
+      <Space.Compact style={{ marginBottom: 16 }} block>
+        <Button size="middle" onClick={() => applyPreset('newest')}>
+          Пресет: новые
+        </Button>
+        <Button size="middle" onClick={() => applyPreset('nameAsc')}>
+          Пресет: по алфавиту
+        </Button>
+        <Button size="middle" onClick={resetFilters}>
+          Сбросить фильтры
+        </Button>
+      </Space.Compact>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
 
@@ -234,7 +257,10 @@ export function SubscribersPage() {
           {
             title: 'Статус',
             key: 'status',
-            render: () => <Tag color="green">ACTIVE</Tag>,
+            render: (_: unknown, subscriber: Subscriber) => {
+              const isActual = subscriber.user?.isActual ?? true;
+              return <Tag color={isActual ? 'green' : 'red'}>{isActual ? 'ACTIVE' : 'INACTIVE'}</Tag>;
+            },
           },
           ...(isAdmin
             ? [
@@ -246,7 +272,17 @@ export function SubscribersPage() {
                       <Button size="small" onClick={() => openEditModal(subscriber)}>
                         Редактировать
                       </Button>
-                      {subscriber.userId ? (
+                      {subscriber.userId ? (subscriber.user?.isActual === false ? (
+                        <Button
+                          size="small"
+                          type="primary"
+                          ghost
+                          loading={activatingUserId === subscriber.userId}
+                          onClick={() => void handleActivateUser(subscriber.userId as string)}
+                        >
+                          Активировать
+                        </Button>
+                      ) : (
                         <Popconfirm
                           title="Деактивировать пользователя?"
                           description="Пользователь потеряет доступ в систему до повторной активации."
@@ -258,7 +294,7 @@ export function SubscribersPage() {
                             Деактивировать
                           </Button>
                         </Popconfirm>
-                      ) : null}
+                      )) : null}
                     </Space>
                   ),
                 },
@@ -297,9 +333,6 @@ export function SubscribersPage() {
             <Input />
           </Form.Item>
           <Form.Item label="Квартира" name="apartment" rules={[{ max: 20, message: 'До 20 символов' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item label="userId (UUID, опционально)" name="userId" rules={[uuidRule]}>
             <Input />
           </Form.Item>
         </Form>
