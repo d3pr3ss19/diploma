@@ -3,6 +3,7 @@ import { RequestStatus } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRequestDto } from './dto/create-request.dto';
+import { UpdateRequestDto } from './dto/update-request.dto';
 
 @Injectable()
 export class RequestsService {
@@ -25,6 +26,36 @@ export class RequestsService {
     }
 
     return request;
+  }
+
+
+  async update(id: string, payload: UpdateRequestDto, changedByUserId: string) {
+    const existing = await this.findOne(id);
+
+    const updated = await this.prisma.request.update({
+      where: { id },
+      data: {
+        title: payload.title,
+        description: payload.description,
+        category: payload.category,
+        status: payload.status,
+        assignedToUserId: payload.assignedToUserId
+      }
+    });
+
+    if (payload.status && payload.status !== existing.status) {
+      await this.prisma.requestStatusHistory.create({
+        data: {
+          requestId: id,
+          oldStatus: existing.status,
+          newStatus: payload.status,
+          changedByUserId,
+          comment: 'Статус обновлён оператором/админом'
+        }
+      });
+    }
+
+    return updated;
   }
 
   async create(payload: CreateRequestDto, createdByUserId: string) {

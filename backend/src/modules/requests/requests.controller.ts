@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 
 import { AuthGuard } from '../../common/auth/auth.guard';
@@ -7,6 +7,7 @@ import { RolesGuard } from '../../common/auth/roles.guard';
 import { Roles } from '../../common/auth/roles.decorator';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { RequestsService } from './requests.service';
+import { UpdateRequestDto } from './dto/update-request.dto';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('requests')
@@ -34,5 +35,20 @@ export class RequestsController {
     }
 
     return this.requestsService.create(body, createdByUserId);
+  }
+
+  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Patch(':id')
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: UpdateRequestDto,
+    @Req() req: Request & { user?: { id: string } }
+  ) {
+    const changedByUserId = req.user?.id;
+    if (!changedByUserId) {
+      throw new UnauthorizedException('Missing authenticated user id');
+    }
+
+    return this.requestsService.update(id, body, changedByUserId);
   }
 }

@@ -30,6 +30,8 @@ export function SubscribersPage() {
   const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
   const [activatingUserId, setActivatingUserId] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [selectedSubscriber, setSelectedSubscriber] = useState<Subscriber | null>(null);
   const [form] = Form.useForm<SubscriberForm>();
   const [messageApi, contextHolder] = message.useMessage();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -39,7 +41,7 @@ export function SubscribersPage() {
 
   const search = searchParams.get('q') ?? '';
   const sort = (searchParams.get('sort') as SubscriberSort | null) ?? 'newest';
-  const statusFilter = (searchParams.get('status') as 'ALL' | 'ACTIVE' | 'INACTIVE' | null) ?? 'ALL';
+  const statusFilter = (searchParams.get('status') as 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | null) ?? 'ALL';
   const currentPage = Number(searchParams.get('page') ?? '1') || 1;
 
   async function loadSubscribers() {
@@ -75,6 +77,8 @@ export function SubscribersPage() {
     const byStatus = base.filter((subscriber) => {
       if (statusFilter === 'ALL') return true;
       const isActual = subscriber.user?.isActual ?? true;
+      const isArchived = Boolean(subscriber.user?.deletedAt);
+      if (statusFilter === 'ARCHIVED') return isArchived;
       return statusFilter === 'ACTIVE' ? isActual : !isActual;
     });
     return sortSubscribers(byStatus, sort);
@@ -116,6 +120,12 @@ export function SubscribersPage() {
       address: subscriber.address,
       apartment: subscriber.apartment ?? undefined,
     });
+  }
+
+
+  function openSubscriberProfile(subscriber: Subscriber) {
+    setSelectedSubscriber(subscriber);
+    setProfileOpen(true);
   }
 
   async function handleDeactivateUser(userId: string) {
@@ -272,6 +282,7 @@ export function SubscribersPage() {
             { value: 'ALL', label: 'Все статусы' },
             { value: 'ACTIVE', label: 'Только ACTIVE' },
             { value: 'INACTIVE', label: 'Только INACTIVE' },
+            { value: 'ARCHIVED', label: 'Только архивные' },
           ]}
         />
       </Space>
@@ -320,6 +331,9 @@ export function SubscribersPage() {
                   key: 'actions',
                   render: (_: unknown, subscriber: Subscriber) => (
                     <Space wrap>
+                      <Button size="small" onClick={() => openSubscriberProfile(subscriber)}>
+                        Карточка
+                      </Button>
                       <Button size="small" onClick={() => openEditModal(subscriber)}>
                         Редактировать
                       </Button>
@@ -372,6 +386,48 @@ export function SubscribersPage() {
             : []),
         ]}
       />
+
+      <Modal
+        open={profileOpen}
+        title={selectedSubscriber ? `Карточка: ${selectedSubscriber.fullName}` : 'Карточка абонента'}
+        footer={null}
+        onCancel={() => {
+          setProfileOpen(false);
+          setSelectedSubscriber(null);
+        }}
+      >
+        {selectedSubscriber ? (
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Typography.Text>Телефон: {selectedSubscriber.phone ?? '—'}</Typography.Text>
+            <Typography.Text>Адрес: {selectedSubscriber.address}</Typography.Text>
+            <Typography.Text>Статус: {selectedSubscriber.user?.isActual ? 'ACTIVE' : 'INACTIVE'}</Typography.Text>
+            <Space wrap>
+              <Button onClick={() => openEditModal(selectedSubscriber)}>Изменить</Button>
+              {selectedSubscriber.userId && selectedSubscriber.user?.isActual ? (
+                <Button danger onClick={() => void handleDeactivateUser(selectedSubscriber.userId as string)}>
+                  Деактивировать
+                </Button>
+              ) : null}
+              {selectedSubscriber.userId && !selectedSubscriber.user?.isActual ? (
+                <Button type="primary" ghost onClick={() => void handleActivateUser(selectedSubscriber.userId as string)}>
+                  Активировать
+                </Button>
+              ) : null}
+              {selectedSubscriber.userId ? (
+                <Button onClick={() => void handleResetPassword(selectedSubscriber.userId as string)}>
+                  Сбросить пароль
+                </Button>
+              ) : null}
+              {selectedSubscriber.userId ? (
+                <Button danger onClick={() => void handleDeleteUser(selectedSubscriber.userId as string)}>
+                  Архивировать
+                </Button>
+              ) : null}
+            </Space>
+          </Space>
+        ) : null}
+      </Modal>
+
 
       <Modal
         open={modalOpen}

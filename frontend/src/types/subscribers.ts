@@ -7,6 +7,7 @@ export type Subscriber = {
   userId: string | null;
   user?: {
     isActual: boolean;
+    deletedAt?: string | null;
   } | null;
   accounts?: Array<{
     id: string;

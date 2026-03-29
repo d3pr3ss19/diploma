@@ -2,7 +2,7 @@ import { Alert, Button, Form, Input, List, Modal, Pagination, Select, Space, Tag
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { extractApiErrorMessage } from '../api/error';
-import { createRequest, getRequests } from '../api/requests';
+import { createRequest, getRequests, updateRequest } from '../api/requests';
 import { getSubscriberById, getSubscribers } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
 import type { ServiceRequest } from '../types/requests';
@@ -16,6 +16,14 @@ type CreateRequestForm = {
   title: string;
   description: string;
   category: 'ACCIDENT' | 'COMPLAINT' | 'QUESTION';
+  assignedToUserId?: string;
+};
+
+type EditRequestForm = {
+  title: string;
+  description: string;
+  category: 'ACCIDENT' | 'COMPLAINT' | 'QUESTION';
+  status: 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED';
   assignedToUserId?: string;
 };
 
@@ -41,12 +49,16 @@ export function RequestsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingRequest, setEditingRequest] = useState<ServiceRequest | null>(null);
   const [form] = Form.useForm<CreateRequestForm>();
+  const [editForm] = Form.useForm<EditRequestForm>();
   const [messageApi, contextHolder] = message.useMessage();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const auth = readAuth();
   const isAdmin = auth?.user.role === 'ADMIN';
+  const canEditRequests = auth?.user.role === 'ADMIN' || auth?.user.role === 'OPERATOR';
 
   const statusFilter = (searchParams.get('status') as RequestStatusFilter | null) ?? 'ALL';
   const search = searchParams.get('q') ?? '';
@@ -169,6 +181,43 @@ export function RequestsPage() {
     }
   }
 
+
+  function openEditModal(request: ServiceRequest) {
+    setEditingRequest(request);
+    setEditModalOpen(true);
+    editForm.setFieldsValue({
+      title: request.title,
+      description: request.description,
+      category: request.category as EditRequestForm['category'],
+      status: request.status as EditRequestForm['status'],
+      assignedToUserId: request.assignedToUserId ?? undefined
+    });
+  }
+
+  async function handleUpdate(values: EditRequestForm) {
+    if (!editingRequest) return;
+
+    try {
+      setSaving(true);
+      setError(null);
+      await updateRequest(editingRequest.id, {
+        title: values.title,
+        description: values.description,
+        category: values.category,
+        status: values.status,
+        assignedToUserId: values.assignedToUserId || null
+      });
+      messageApi.success('Заявка обновлена');
+      setEditModalOpen(false);
+      setEditingRequest(null);
+      await loadRequests();
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось обновить заявку.'));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <>
       {contextHolder}
@@ -240,7 +289,14 @@ export function RequestsPage() {
               <Typography.Text strong>{item.title}</Typography.Text>
               <Typography.Text type="secondary">{new Date(item.createdAt).toLocaleString('ru-RU')}</Typography.Text>
             </Space>
-            <Tag style={{ marginLeft: 'auto' }}>{item.status}</Tag>
+            <Space style={{ marginLeft: 'auto' }}>
+              <Tag>{item.status}</Tag>
+              {canEditRequests ? (
+                <Button size="small" onClick={() => openEditModal(item)}>
+                  Редактировать
+                </Button>
+              ) : null}
+            </Space>
           </List.Item>
         )}
       />
@@ -318,6 +374,58 @@ export function RequestsPage() {
           ) : null}
         </Form>
       </Modal>
+
+
+      <Modal
+        open={editModalOpen}
+        title="Редактировать заявку"
+        okText="Сохранить"
+        cancelText="Отмена"
+        onCancel={() => {
+          setEditModalOpen(false);
+          setEditingRequest(null);
+        }}
+        onOk={() => editForm.submit()}
+        confirmLoading={saving}
+      >
+        <Form form={editForm} layout="vertical" onFinish={handleUpdate}>
+          <Form.Item label="Заголовок" name="title" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Описание"
+            name="description"
+            rules={[{ required: true, min: 10, message: 'Минимум 10 символов' }]}
+          >
+            <Input.TextArea rows={3} />
+          </Form.Item>
+          <Form.Item label="Категория" name="category" rules={[{ required: true, message: 'Выберите категорию' }]}>
+            <Select
+              options={[
+                { value: 'ACCIDENT', label: 'Авария' },
+                { value: 'COMPLAINT', label: 'Жалоба' },
+                { value: 'QUESTION', label: 'Вопрос' },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label="Статус" name="status" rules={[{ required: true, message: 'Выберите статус' }]}>
+            <Select
+              options={[
+                { value: 'NEW', label: 'NEW' },
+                { value: 'IN_PROGRESS', label: 'IN_PROGRESS' },
+                { value: 'DONE', label: 'DONE' },
+                { value: 'REJECTED', label: 'REJECTED' },
+              ]}
+            />
+          </Form.Item>
+          {isAdmin ? (
+            <Form.Item label="assignedToUserId (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>
+              <Input />
+            </Form.Item>
+          ) : null}
+        </Form>
+      </Modal>
+
     </>
   );
 }

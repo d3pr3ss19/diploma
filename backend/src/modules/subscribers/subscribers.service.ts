@@ -20,6 +20,7 @@ export class SubscribersService {
           select: {
             id: true,
             isActual: true,
+            deletedAt: true,
             email: true
           }
         },
@@ -42,6 +43,7 @@ export class SubscribersService {
           select: {
             id: true,
             isActual: true,
+            deletedAt: true,
             email: true
           }
         }
