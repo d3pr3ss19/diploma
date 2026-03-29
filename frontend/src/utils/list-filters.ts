@@ -2,7 +2,7 @@ import type { ServiceRequest } from '../types/requests';
 import type { Subscriber } from '../types/subscribers';
 
 export type SubscriberSort = 'newest' | 'oldest' | 'nameAsc' | 'nameDesc';
-export type RequestSort = 'newest' | 'oldest';
+export type RequestSort = 'newest' | 'oldest' | 'categoryAsc' | 'categoryDesc';
 export type RequestStatusFilter = 'ALL' | 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED';
 
 export function filterSubscribers(items: Subscriber[], search: string): Subscriber[] {
@@ -53,9 +53,12 @@ export function filterRequests(items: ServiceRequest[], search: string, statusFi
 export function sortRequests(items: ServiceRequest[], sort: RequestSort): ServiceRequest[] {
   const sorted = [...items];
 
-  sorted.sort((a, b) =>
-    sort === 'oldest' ? Date.parse(a.createdAt) - Date.parse(b.createdAt) : Date.parse(b.createdAt) - Date.parse(a.createdAt),
-  );
+  sorted.sort((a, b) => {
+    if (sort === 'oldest') return Date.parse(a.createdAt) - Date.parse(b.createdAt);
+    if (sort === 'categoryAsc') return a.category.localeCompare(b.category, 'ru');
+    if (sort === 'categoryDesc') return b.category.localeCompare(a.category, 'ru');
+    return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+  });
 
   return sorted;
 }

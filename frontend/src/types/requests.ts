@@ -6,6 +6,10 @@ export type ServiceRequest = {
   category: string;
   status: string;
   createdByUserId: string;
+  createdByUser?: {
+    id: string;
+    email: string;
+  };
   assignedToUserId: string | null;
   createdAt: string;
   updatedAt: string;

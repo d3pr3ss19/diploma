@@ -40,6 +40,23 @@ const uuidRule = {
 const PAGE_SIZE = 10;
 const REQUESTS_PRESET_KEY = 'requests-last-preset';
 
+
+function statusColor(status: string): string {
+  if (status === 'NEW') return 'blue';
+  if (status === 'IN_PROGRESS') return 'gold';
+  if (status === 'DONE') return 'green';
+  if (status === 'REJECTED') return 'red';
+  return 'default';
+}
+
+function categoryLabel(category: string): string {
+  if (category === 'ACCIDENT') return 'Авария';
+  if (category === 'COMPLAINT') return 'Жалоба';
+  if (category === 'QUESTION') return 'Вопрос';
+  return category;
+}
+
+
 export function RequestsPage() {
   const [items, setItems] = useState<ServiceRequest[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -261,6 +278,8 @@ export function RequestsPage() {
           options={[
             { value: 'newest', label: 'Сначала новые' },
             { value: 'oldest', label: 'Сначала старые' },
+            { value: 'categoryAsc', label: 'Категория: А→Я' },
+            { value: 'categoryDesc', label: 'Категория: Я→А' },
           ]}
         />
       </Space>
@@ -285,12 +304,16 @@ export function RequestsPage() {
         dataSource={paginatedItems}
         renderItem={(item) => (
           <List.Item>
-            <Space direction="vertical" size={0}>
+            <Space direction="vertical" size={2}>
               <Typography.Text strong>{item.title}</Typography.Text>
               <Typography.Text type="secondary">{new Date(item.createdAt).toLocaleString('ru-RU')}</Typography.Text>
+              <Space size={8} wrap>
+                <Tag color="purple">{categoryLabel(item.category)}</Tag>
+                <Typography.Text type="secondary">Автор: {item.createdByUser?.email ?? item.createdByUserId}</Typography.Text>
+              </Space>
             </Space>
             <Space style={{ marginLeft: 'auto' }}>
-              <Tag>{item.status}</Tag>
+              <Tag color={statusColor(item.status)}>{item.status}</Tag>
               {canEditRequests ? (
                 <Button size="small" onClick={() => openEditModal(item)}>
                   Редактировать

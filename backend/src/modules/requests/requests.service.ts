@@ -11,14 +11,30 @@ export class RequestsService {
 
   list() {
     return this.prisma.request.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        createdByUser: {
+          select: {
+            id: true,
+            email: true
+          }
+        }
+      }
     });
   }
 
   async findOne(id: string) {
     const request = await this.prisma.request.findUnique({
       where: { id },
-      include: { history: true }
+      include: {
+        history: true,
+        createdByUser: {
+          select: {
+            id: true,
+            email: true
+          }
+        }
+      }
     });
 
     if (!request) {
