@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { RoleCode } from '@prisma/client';
@@ -6,7 +6,7 @@ import { RoleCode } from '@prisma/client';
 import { Role } from '../../common/auth/role.enum';
 import { createToken, verifyToken } from '../../common/auth/token.util';
 import { PrismaService } from '../../prisma/prisma.service';
-import { verifyPassword } from './auth-password.util';
+import { hashPassword, verifyPassword } from './auth-password.util';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
@@ -106,10 +106,13 @@ export class AuthService {
     return { success: true };
   }
 
-  async deactivateUser(userId: string) {
+  async deactivateUser(userId: string, actorUserId?: string) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { isActual: false }
+      data: {
+        isActual: false,
+        deletedAt: null
+      }
     });
 
     await this.prisma.refreshSession.updateMany({
@@ -117,34 +120,83 @@ export class AuthService {
       data: { revokedAt: new Date() }
     });
 
+    await this.createAuditLog(actorUserId, userId, 'USER_DEACTIVATED');
+
     return { success: true };
   }
 
 
-  async activateUser(userId: string) {
+  async activateUser(userId: string, actorUserId?: string) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { isActual: true }
+      data: {
+        isActual: true,
+        deletedAt: null
+      }
     });
+
+    await this.createAuditLog(actorUserId, userId, 'USER_ACTIVATED');
 
     return { success: true };
   }
 
-  async deleteUser(userId: string) {
-    await this.prisma.refreshSession.deleteMany({
-      where: { userId }
-    });
-
+  async deleteUser(userId: string, actorUserId?: string) {
     try {
-      await this.prisma.user.delete({
-        where: { id: userId }
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          isActual: false,
+          deletedAt: new Date()
+        }
       });
+
+      await this.prisma.refreshSession.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() }
+      });
+
+      await this.createAuditLog(actorUserId, userId, 'USER_ARCHIVED');
     } catch (error) {
-      throw new ConflictException('Нельзя удалить пользователя: есть связанные заявки или показания. Сначала отвяжите связанные записи.');
+      throw new ConflictException('Не удалось архивировать пользователя.');
     }
 
     return { success: true };
   }
+  async resetUserPassword(userId: string, actorUserId?: string) {
+    const newPassword = randomBytes(6).toString('base64url');
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash: hashPassword(newPassword),
+        isActual: true,
+        deletedAt: null
+      }
+    });
+
+    await this.prisma.refreshSession.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() }
+    });
+
+    await this.createAuditLog(actorUserId, userId, 'USER_PASSWORD_RESET');
+
+    return {
+      success: true,
+      password: newPassword
+    };
+  }
+
+  private async createAuditLog(actorUserId: string | undefined, targetUserId: string, action: string) {
+    await this.prisma.adminAuditLog.create({
+      data: {
+        actorUserId,
+        targetUserId,
+        action
+      }
+    });
+  }
+
   private async storeActiveRefreshToken(userId: string, refreshToken: string) {
     const tokenHash = this.hashToken(refreshToken);
 

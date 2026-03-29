@@ -55,16 +55,36 @@ model User {
   isActual        Boolean                @default(true) @map("is_actual")
   createdAt       DateTime               @default(now()) @map("created_at")
   updatedAt       DateTime               @updatedAt @map("updated_at")
+  deletedAt       DateTime?              @map("deleted_at")
   role            Role                   @relation(fields: [roleId], references: [id])
   subscriber      Subscriber?
   readings        MeterReading[]         @relation("ReadingSubmittedBy")
   refreshSessions RefreshSession[]
+  auditActionsAsActor  AdminAuditLog[] @relation("AuditActor")
+  auditActionsAsTarget AdminAuditLog[] @relation("AuditTarget")
 
   createdRequests  Request[]              @relation("RequestCreatedBy")
   assignedRequests Request[]              @relation("RequestAssignedTo")
   statusChanges    RequestStatusHistory[] @relation("RequestStatusChangedBy")
 
   @@map("users")
+}
+
+
+model AdminAuditLog {
+  id           String   @id @default(uuid())
+  actorUserId  String?  @map("actor_user_id")
+  targetUserId String   @map("target_user_id")
+  action       String
+  details      Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  actorUser  User? @relation("AuditActor", fields: [actorUserId], references: [id])
+  targetUser User  @relation("AuditTarget", fields: [targetUserId], references: [id])
+
+  @@index([targetUserId])
+  @@index([actorUserId])
+  @@map("admin_audit_logs")
 }
 
 model RefreshSession {

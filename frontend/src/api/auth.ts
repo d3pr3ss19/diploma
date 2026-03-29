@@ -30,3 +30,8 @@ export async function deleteUser(userId: string): Promise<{ success: boolean }> 
   const { data } = await http.delete<{ success: boolean }>(`/auth/users/${userId}`);
   return data;
 }
+
+export async function resetUserPassword(userId: string): Promise<{ success: boolean; password: string }> {
+  const { data } = await http.post<{ success: boolean; password: string }>(`/auth/users/${userId}/reset-password`);
+  return data;
+}

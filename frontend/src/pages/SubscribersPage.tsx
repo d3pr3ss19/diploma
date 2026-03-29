@@ -1,7 +1,7 @@
 import { Alert, Button, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { activateUser, deactivateUser, deleteUser } from '../api/auth';
+import { activateUser, deactivateUser, deleteUser, resetUserPassword } from '../api/auth';
 import { extractApiErrorMessage } from '../api/error';
 import { createSubscriber, getSubscribers, updateSubscriber } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
@@ -39,6 +39,7 @@ export function SubscribersPage() {
 
   const search = searchParams.get('q') ?? '';
   const sort = (searchParams.get('sort') as SubscriberSort | null) ?? 'newest';
+  const statusFilter = (searchParams.get('status') as 'ALL' | 'ACTIVE' | 'INACTIVE' | null) ?? 'ALL';
   const currentPage = Number(searchParams.get('page') ?? '1') || 1;
 
   async function loadSubscribers() {
@@ -69,7 +70,15 @@ export function SubscribersPage() {
     }
   }, [searchParams, setSearchParams]);
 
-  const filteredItems = useMemo(() => sortSubscribers(filterSubscribers(items, search), sort), [items, search, sort]);
+  const filteredItems = useMemo(() => {
+    const base = filterSubscribers(items, search);
+    const byStatus = base.filter((subscriber) => {
+      if (statusFilter === 'ALL') return true;
+      const isActual = subscriber.user?.isActual ?? true;
+      return statusFilter === 'ACTIVE' ? isActual : !isActual;
+    });
+    return sortSubscribers(byStatus, sort);
+  }, [items, search, sort, statusFilter]);
 
   const paginatedItems = useMemo(() => paginate(filteredItems, currentPage, PAGE_SIZE), [filteredItems, currentPage]);
 
@@ -143,7 +152,7 @@ export function SubscribersPage() {
       setDeletingUserId(userId);
       setError(null);
       await deleteUser(userId);
-      messageApi.success('Пользователь удалён');
+      messageApi.success('Пользователь архивирован');
       await loadSubscribers();
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось удалить пользователя.'));
@@ -151,6 +160,22 @@ export function SubscribersPage() {
       setDeletingUserId(null);
     }
   }
+
+  async function handleResetPassword(userId: string) {
+    try {
+      setError(null);
+      const result = await resetUserPassword(userId);
+      Modal.info({
+        title: 'Новый пароль пользователя',
+        content: <Typography.Text copyable>Пароль: {result.password}</Typography.Text>
+      });
+      messageApi.success('Пароль сброшен');
+      await loadSubscribers();
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось сбросить пароль пользователя.'));
+    }
+  }
+
   async function handleSubmit(values: SubscriberForm) {
     try {
       setSaving(true);
@@ -238,6 +263,17 @@ export function SubscribersPage() {
             { value: 'nameDesc', label: 'ФИО: Я→А' },
           ]}
         />
+        <Select
+          value={statusFilter}
+          onChange={(value) => updateParam('status', value)}
+          style={{ width: 180 }}
+          size="middle"
+          options={[
+            { value: 'ALL', label: 'Все статусы' },
+            { value: 'ACTIVE', label: 'Только ACTIVE' },
+            { value: 'INACTIVE', label: 'Только INACTIVE' },
+          ]}
+        />
       </Space>
 
       <Space.Compact style={{ marginBottom: 16 }} block>
@@ -311,9 +347,14 @@ export function SubscribersPage() {
                         </Popconfirm>
                       )) : null}
                       {subscriber.userId ? (
+                        <Button size="small" onClick={() => void handleResetPassword(subscriber.userId as string)}>
+                          Сбросить пароль
+                        </Button>
+                      ) : null}
+                      {subscriber.userId ? (
                         <Popconfirm
-                          title="Удалить пользователя полностью?"
-                          description="Будет удалён логин пользователя. Если есть связанные заявки/показания — удаление не выполнится."
+                          title="Архивировать пользователя?"
+                          description="Пользователь будет скрыт и отключён (soft-delete), его можно восстановить через активацию."
                           okText="Удалить"
                           okButtonProps={{ danger: true }}
                           cancelText="Отмена"
