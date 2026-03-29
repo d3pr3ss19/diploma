@@ -216,11 +216,17 @@ export function RequestsPage() {
         />
       </Space>
 
-      <Space style={{ marginBottom: 16 }} wrap>
-        <Button size="middle" onClick={() => applyPreset('open')}>Пресет: новые</Button>
-        <Button size="middle" onClick={() => applyPreset('inProgress')}>Пресет: в работе</Button>
-        <Button size="middle" onClick={resetFilters}>Сбросить фильтры</Button>
-      </Space>
+      <Space.Compact style={{ marginBottom: 16 }} block>
+        <Button size="middle" onClick={() => applyPreset('open')}>
+          Пресет: новые
+        </Button>
+        <Button size="middle" onClick={() => applyPreset('inProgress')}>
+          Пресет: в работе
+        </Button>
+        <Button size="middle" onClick={resetFilters}>
+          Сбросить фильтры
+        </Button>
+      </Space.Compact>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
 

@@ -208,11 +208,17 @@ export function SubscribersPage() {
         />
       </Space>
 
-      <Space style={{ marginBottom: 16 }} wrap>
-        <Button size="middle" onClick={() => applyPreset('newest')}>Пресет: новые</Button>
-        <Button size="middle" onClick={() => applyPreset('nameAsc')}>Пресет: по алфавиту</Button>
-        <Button size="middle" onClick={resetFilters}>Сбросить фильтры</Button>
-      </Space>
+      <Space.Compact style={{ marginBottom: 16 }} block>
+        <Button size="middle" onClick={() => applyPreset('newest')}>
+          Пресет: новые
+        </Button>
+        <Button size="middle" onClick={() => applyPreset('nameAsc')}>
+          Пресет: по алфавиту
+        </Button>
+        <Button size="middle" onClick={resetFilters}>
+          Сбросить фильтры
+        </Button>
+      </Space.Compact>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
 
@@ -234,7 +240,10 @@ export function SubscribersPage() {
           {
             title: 'Статус',
             key: 'status',
-            render: () => <Tag color="green">ACTIVE</Tag>,
+            render: (_: unknown, subscriber: Subscriber) => {
+              const isActual = subscriber.user?.isActual ?? true;
+              return <Tag color={isActual ? 'green' : 'red'}>{isActual ? 'ACTIVE' : 'INACTIVE'}</Tag>;
+            },
           },
           ...(isAdmin
             ? [
@@ -254,7 +263,12 @@ export function SubscribersPage() {
                           cancelText="Нет"
                           onConfirm={() => void handleDeactivateUser(subscriber.userId as string)}
                         >
-                          <Button size="small" danger loading={deactivatingUserId === subscriber.userId}>
+                          <Button
+                            size="small"
+                            danger
+                            loading={deactivatingUserId === subscriber.userId}
+                            disabled={subscriber.user?.isActual === false}
+                          >
                             Деактивировать
                           </Button>
                         </Popconfirm>
