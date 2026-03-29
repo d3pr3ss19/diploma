@@ -3,7 +3,7 @@ import { Button, Layout, Menu, Space, Typography } from 'antd';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { clearAuth, readAuth } from '../app/auth-storage';
 
-const { Header, Sider, Content } = Layout;
+const { Header, Sider, Content, Footer } = Layout;
 
 const menuItems = [
   { key: '/dashboard', icon: <HomeOutlined />, label: 'Панель' },
@@ -23,8 +23,15 @@ export function AppLayout() {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f5f7fb', display: 'flex', justifyContent: 'center' }}>
-      <Layout style={{ width: '80%', minWidth: 1180, maxWidth: 1600, boxShadow: '0 0 24px rgba(15, 23, 42, 0.08)' }}>
+    <Layout style={{ minHeight: '100vh', background: '#f5f7fb', alignItems: 'center' }}>
+      <Layout
+        style={{
+          width: 'min(80vw, 1600px)',
+          minWidth: 1000,
+          boxShadow: '0 0 24px rgba(15, 23, 42, 0.08)',
+          margin: '0 auto',
+        }}
+      >
         <Sider theme="light" style={{ borderRight: '1px solid #f0f0f0' }}>
           <div style={{ padding: 16, color: '#1677ff', fontWeight: 700 }}>КП ИС</div>
           <Menu
@@ -58,6 +65,9 @@ export function AppLayout() {
           <Content style={{ padding: 24, background: '#f5f7fb' }}>
             <Outlet />
           </Content>
+          <Footer style={{ textAlign: 'center', background: '#fff', borderTop: '1px solid #f0f0f0' }}>
+            Дипломная работа. БИА22-02, Гурова Станислава Вячеславовича
+          </Footer>
         </Layout>
       </Layout>
     </Layout>

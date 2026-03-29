@@ -1,10 +1,10 @@
-import { Alert, Button, Card, Empty, Input, List, Space, Statistic, Table, Tag, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import { Alert, AutoComplete, Button, Card, Empty, Input, List, Space, Statistic, Table, Tag, Typography } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 import { extractApiErrorMessage } from '../api/error';
 import { getRequests } from '../api/requests';
-import { getSubscriberById } from '../api/subscribers';
+import { getSubscriberById, getSubscribers } from '../api/subscribers';
 import type { ServiceRequest } from '../types/requests';
-import type { SubscriberDetails } from '../types/subscribers';
+import type { Subscriber, SubscriberDetails } from '../types/subscribers';
 
 const RUB_FORMATTER = new Intl.NumberFormat('ru-RU', {
   style: 'currency',
@@ -14,10 +14,30 @@ const RUB_FORMATTER = new Intl.NumberFormat('ru-RU', {
 
 export function AccountPage() {
   const [subscriberId, setSubscriberId] = useState('');
+  const [subscriberQuery, setSubscriberQuery] = useState('');
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [details, setDetails] = useState<SubscriberDetails | null>(null);
   const [recentRequests, setRecentRequests] = useState<ServiceRequest[]>([]);
+
+  useEffect(() => {
+    async function loadSubscribers() {
+      try {
+        const data = await getSubscribers();
+        setSubscribers(data);
+      } catch {
+        // silently ignore, manual input still available
+      }
+    }
+
+    void loadSubscribers();
+  }, []);
+
+  const subscriberOptions = useMemo(
+    () => subscribers.map((item) => ({ value: item.id, label: `${item.fullName} (${item.address})` })),
+    [subscribers],
+  );
 
   const stats = useMemo(() => {
     const total = recentRequests.length;
@@ -27,8 +47,9 @@ export function AccountPage() {
   }, [recentRequests]);
 
   async function handleSearch() {
-    if (!subscriberId.trim()) {
-      setError('Введите ID абонента.');
+    const targetId = subscriberId.trim() || subscriberQuery.trim();
+    if (!targetId) {
+      setError('Введите ID абонента или выберите абонента по ФИО.');
       return;
     }
 
@@ -36,7 +57,7 @@ export function AccountPage() {
       setLoading(true);
       setError(null);
 
-      const subscriber = await getSubscriberById(subscriberId.trim());
+      const subscriber = await getSubscriberById(targetId);
       setDetails(subscriber);
 
       const requests = await getRequests();
@@ -50,7 +71,7 @@ export function AccountPage() {
     } catch (err) {
       setDetails(null);
       setRecentRequests([]);
-      setError(extractApiErrorMessage(err, 'Не удалось получить лицевой счёт по указанному ID абонента.'));
+      setError(extractApiErrorMessage(err, 'Не удалось получить лицевой счёт по указанному абоненту.'));
     } finally {
       setLoading(false);
     }
@@ -63,16 +84,36 @@ export function AccountPage() {
       </Typography.Title>
 
       <Card>
-        <Space.Compact style={{ width: '100%' }}>
-          <Input
-            value={subscriberId}
-            onChange={(event) => setSubscriberId(event.target.value)}
-            placeholder="Введите subscriberId"
-          />
-          <Button type="primary" onClick={handleSearch} loading={loading}>
-            Найти
-          </Button>
-        </Space.Compact>
+        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+          <AutoComplete
+            style={{ width: '100%' }}
+            size="large"
+            options={subscriberOptions}
+            value={subscriberQuery}
+            onSearch={setSubscriberQuery}
+            onSelect={(value) => {
+              setSubscriberId(value);
+              setSubscriberQuery(value);
+            }}
+            filterOption={(inputValue, option) =>
+              (option?.label as string).toLowerCase().includes(inputValue.toLowerCase())
+            }
+          >
+            <Input.Search placeholder="Поиск абонента по ФИО/адресу" enterButton="Выбрать" />
+          </AutoComplete>
+
+          <Space.Compact style={{ width: '100%' }}>
+            <Input
+              size="large"
+              value={subscriberId}
+              onChange={(event) => setSubscriberId(event.target.value)}
+              placeholder="Или введите subscriberId вручную"
+            />
+            <Button type="primary" size="large" onClick={handleSearch} loading={loading}>
+              Открыть счёт
+            </Button>
+          </Space.Compact>
+        </Space>
       </Card>
 
       {error ? <Alert type="error" showIcon message={error} /> : null}

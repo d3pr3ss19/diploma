@@ -60,6 +60,7 @@ export function SubscribersPage() {
   const search = searchParams.get('q') ?? '';
   const sort = (searchParams.get('sort') as SubscriberSort | null) ?? 'newest';
   const statusFilter = (searchParams.get('status') as 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | null) ?? 'ALL';
+  const roleFilter = (searchParams.get('role') as 'ALL' | 'ADMIN' | 'OPERATOR' | 'SUBSCRIBER' | null) ?? 'ALL';
   const currentPage = Number(searchParams.get('page') ?? '1') || 1;
 
   async function loadSubscribers() {
@@ -100,8 +101,12 @@ export function SubscribersPage() {
       if (statusFilter === 'ACTIVE') return isActual && !isArchived;
       return !isActual && !isArchived;
     });
-    return sortSubscribers(byStatus, sort);
-  }, [items, search, sort, statusFilter]);
+    const byRole = byStatus.filter((subscriber) => {
+      if (roleFilter === 'ALL') return true;
+      return subscriber.user?.role?.code === roleFilter;
+    });
+    return sortSubscribers(byRole, sort);
+  }, [items, search, sort, statusFilter, roleFilter]);
 
   const paginatedItems = useMemo(() => paginate(filteredItems, currentPage, PAGE_SIZE), [filteredItems, currentPage]);
 
@@ -280,6 +285,18 @@ export function SubscribersPage() {
             { value: 'ACTIVE', label: 'Активные' },
             { value: 'INACTIVE', label: 'Неактивные' },
             { value: 'ARCHIVED', label: 'Архивные' },
+          ]}
+        />
+        <Select
+          value={roleFilter}
+          onChange={(value) => updateParam('role', value)}
+          style={{ width: 220 }}
+          size="large"
+          options={[
+            { value: 'ALL', label: 'Все роли' },
+            { value: 'ADMIN', label: 'Администратор' },
+            { value: 'OPERATOR', label: 'Оператор' },
+            { value: 'SUBSCRIBER', label: 'Абонент' },
           ]}
         />
       </Space>

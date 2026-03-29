@@ -259,7 +259,7 @@ export function RequestsPage() {
         <Typography.Title level={3} style={{ margin: 0 }}>
           Заявки
         </Typography.Title>
-        <Button type="primary" onClick={openCreateModal} size="middle">
+        <Button type="primary" onClick={openCreateModal} size="large">
           Создать заявку
         </Button>
       </Space>
@@ -271,13 +271,13 @@ export function RequestsPage() {
           value={search}
           onChange={(event) => updateParam('q', event.target.value)}
           style={{ width: 340 }}
-          size="middle"
+          size="large"
         />
         <Select
           value={statusFilter}
           onChange={(value) => updateParam('status', value)}
           style={{ width: 220 }}
-          size="middle"
+          size="large"
           options={[
             { value: 'ALL', label: 'Все статусы' },
             { value: 'NEW', label: 'Новая' },
@@ -290,7 +290,7 @@ export function RequestsPage() {
           value={sort}
           onChange={(value) => updateParam('sort', value)}
           style={{ width: 200 }}
-          size="middle"
+          size="large"
           options={[
             { value: 'newest', label: 'Сначала новые' },
             { value: 'oldest', label: 'Сначала старые' },
@@ -301,13 +301,13 @@ export function RequestsPage() {
       </Space>
 
       <Space.Compact style={{ marginBottom: 16 }} block>
-        <Button size="middle" onClick={() => applyPreset('open')}>
+        <Button size="large" onClick={() => applyPreset('open')}>
           Пресет: новые
         </Button>
-        <Button size="middle" onClick={() => applyPreset('inProgress')}>
+        <Button size="large" onClick={() => applyPreset('inProgress')}>
           Пресет: в работе
         </Button>
-        <Button size="middle" onClick={resetFilters}>
+        <Button size="large" onClick={resetFilters}>
           Сбросить фильтры
         </Button>
       </Space.Compact>
@@ -321,10 +321,10 @@ export function RequestsPage() {
         renderItem={(item) => (
           <List.Item>
             <Space direction="vertical" size={2}>
-              <Typography.Text strong>{item.title}</Typography.Text>
+              <Typography.Text strong style={{ fontSize: 16 }}>{item.title}</Typography.Text>
               <Typography.Text type="secondary">{new Date(item.createdAt).toLocaleString('ru-RU')}</Typography.Text>
               <Space size={8} wrap>
-                <Tag color="purple">{categoryLabel(item.category)}</Tag>
+                <Tag color="purple" style={{ fontSize: 13 }}>{categoryLabel(item.category)}</Tag>
                 {item.createdByUser?.subscriber?.fullName ? (
                   <Typography.Link onClick={() => openAuthorProfile(item)}>
                     Автор: {item.createdByUser.subscriber.fullName}
@@ -335,9 +335,9 @@ export function RequestsPage() {
               </Space>
             </Space>
             <Space style={{ marginLeft: 'auto' }}>
-              <Tag color={statusColor(item.status)}>{statusLabel(item.status)}</Tag>
+              <Tag color={statusColor(item.status)} style={{ fontSize: 14, paddingInline: 10, paddingBlock: 2 }}>{statusLabel(item.status)}</Tag>
               {canEditRequests ? (
-                <Button size="middle" onClick={() => openEditModal(item)}>
+                <Button size="large" onClick={() => openEditModal(item)}>
                   Редактировать
                 </Button>
               ) : null}
