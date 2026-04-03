@@ -1,5 +1,6 @@
 import { Alert, AutoComplete, Button, Card, Empty, Input, List, Space, Statistic, Table, Tag, Typography } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+
 import { extractApiErrorMessage } from '../api/error';
 import { getRequests } from '../api/requests';
 import { getSubscriberById, getSubscribers } from '../api/subscribers';
@@ -12,9 +13,17 @@ const RUB_FORMATTER = new Intl.NumberFormat('ru-RU', {
   maximumFractionDigits: 2,
 });
 
+type SubscriberOption = {
+  value: string;
+  label: string;
+  id: string;
+  fullName: string;
+};
+
 export function AccountPage() {
-  const [subscriberId, setSubscriberId] = useState('');
+  const [selectedSubscriberId, setSelectedSubscriberId] = useState('');
   const [subscriberQuery, setSubscriberQuery] = useState('');
+  const [selectedSubscriberName, setSelectedSubscriberName] = useState('');
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,15 +36,20 @@ export function AccountPage() {
         const data = await getSubscribers();
         setSubscribers(data);
       } catch {
-        // silently ignore, manual input still available
+        // ignored
       }
     }
 
     void loadSubscribers();
   }, []);
 
-  const subscriberOptions = useMemo(
-    () => subscribers.map((item) => ({ value: item.id, label: `${item.fullName} (${item.address})` })),
+  const subscriberOptions = useMemo<SubscriberOption[]>(
+    () => subscribers.map((item) => ({
+      value: `${item.fullName} (${item.address})`,
+      label: `${item.fullName} (${item.address})`,
+      id: item.id,
+      fullName: item.fullName,
+    })),
     [subscribers],
   );
 
@@ -47,9 +61,9 @@ export function AccountPage() {
   }, [recentRequests]);
 
   async function handleSearch(explicitId?: string) {
-    const targetId = explicitId?.trim() || subscriberId.trim() || subscriberQuery.trim();
+    const targetId = explicitId?.trim() || selectedSubscriberId.trim();
     if (!targetId) {
-      setError('Выберите абонента по ФИО.');
+      setError('Выберите абонента из списка.');
       return;
     }
 
@@ -59,6 +73,7 @@ export function AccountPage() {
 
       const subscriber = await getSubscriberById(targetId);
       setDetails(subscriber);
+      setSelectedSubscriberName(subscriber.fullName);
 
       const requests = await getRequests();
       const accountIds = new Set(subscriber.accounts.map((account) => account.id));
@@ -71,10 +86,16 @@ export function AccountPage() {
     } catch (err) {
       setDetails(null);
       setRecentRequests([]);
-      setError(extractApiErrorMessage(err, 'Не удалось получить лицевой счёт по указанному абоненту.'));
+      setError(extractApiErrorMessage(err, 'Не удалось получить лицевой счёт по выбранному абоненту.'));
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleSelect(_: string, option: SubscriberOption) {
+    setSelectedSubscriberId(option.id);
+    setSubscriberQuery(option.value);
+    setSelectedSubscriberName(option.fullName);
   }
 
   return (
@@ -91,29 +112,23 @@ export function AccountPage() {
             options={subscriberOptions}
             value={subscriberQuery}
             onSearch={setSubscriberQuery}
-            onSelect={(value) => {
-              setSubscriberId(value);
-              setSubscriberQuery(value);
-              void handleSearch(value);
-            }}
+            onSelect={handleSelect}
             filterOption={(inputValue, option) =>
               (option?.label as string).toLowerCase().includes(inputValue.toLowerCase())
             }
           >
-            <Input placeholder="Поиск абонента по ФИО/адресу" />
+            <Input allowClear placeholder="Поиск абонента по ФИО/адресу" />
           </AutoComplete>
 
-          <Space.Compact style={{ width: '100%' }}>
-            <Input
-              size="large"
-              value={subscriberId}
-              onChange={(event) => setSubscriberId(event.target.value)}
-              placeholder="subscriberId выбранного абонента"
-            />
-            <Button type="primary" size="large" onClick={handleSearch} loading={loading}>
-              Открыть счёт
-            </Button>
-          </Space.Compact>
+          {selectedSubscriberName ? (
+            <Typography.Text>
+              Выбран абонент: <Typography.Text strong>{selectedSubscriberName}</Typography.Text>
+            </Typography.Text>
+          ) : null}
+
+          <Button type="primary" size="large" onClick={() => void handleSearch()} loading={loading}>
+            Открыть счёт
+          </Button>
         </Space>
       </Card>
 

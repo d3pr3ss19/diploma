@@ -1,5 +1,5 @@
-import { Alert, Button, Card, Form, Input, List, Segmented, Space, Switch, Typography, message } from 'antd';
-import { useEffect, useState } from 'react';
+import { Alert, Button, Card, Form, Input, List, Segmented, Slider, Space, Switch, Typography, message } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AuditLogItem, AuditLogSection, getAuditLogs, updateMyProfile } from '../api/auth';
 import { extractApiErrorMessage } from '../api/error';
@@ -8,6 +8,23 @@ import { readAuth, updateStoredUser } from '../app/auth-storage';
 import { readTheme, writeTheme } from '../app/theme';
 
 type ProfileForm = { email: string; fullName: string };
+
+const ACTION_LABELS: Record<string, string> = {
+  USER_DEACTIVATED: 'Пользователь деактивирован',
+  USER_ACTIVATED: 'Пользователь активирован',
+  USER_ARCHIVED: 'Пользователь архивирован',
+  USER_PASSWORD_RESET: 'Пароль пользователя сброшен',
+  USER_ROLE_UPDATED: 'Роль пользователя изменена',
+  USER_PROFILE_UPDATED: 'Профиль пользователя обновлён',
+  SUBSCRIBER_CREATED: 'Абонент создан',
+  SUBSCRIBER_UPDATED: 'Карточка абонента обновлена',
+  REQUEST_CREATED: 'Заявка создана',
+  REQUEST_UPDATED: 'Заявка обновлена',
+};
+
+function getActionLabel(action: string): string {
+  return ACTION_LABELS[action] ?? `Действие: ${action}`;
+}
 
 export function SettingsPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>(readTheme());
@@ -20,6 +37,7 @@ export function SettingsPage() {
   const [form] = Form.useForm<ProfileForm>();
   const [messageApi, contextHolder] = message.useMessage();
 
+  const canSpeech = useMemo(() => 'speechSynthesis' in window, []);
   const auth = readAuth();
 
   useEffect(() => {
@@ -82,14 +100,40 @@ export function SettingsPage() {
             <Typography.Text>Тёмный режим</Typography.Text>
             <Switch checked={theme === 'dark'} onChange={(checked) => setTheme(checked ? 'dark' : 'light')} />
           </Space>
+
           <Space>
             <Typography.Text>Высокий контраст</Typography.Text>
             <Switch checked={prefs.highContrast} onChange={(checked) => setPrefs((prev) => ({ ...prev, highContrast: checked }))} />
           </Space>
-          <Space>
-            <Typography.Text>Увеличенный текст</Typography.Text>
-            <Switch checked={prefs.largeText} onChange={(checked) => setPrefs((prev) => ({ ...prev, largeText: checked }))} />
+
+          <Space direction="vertical" style={{ width: 380 }}>
+            <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+              <Typography.Text>Экранная лупа</Typography.Text>
+              <Switch checked={prefs.magnifierEnabled} onChange={(checked) => setPrefs((prev) => ({ ...prev, magnifierEnabled: checked }))} />
+            </Space>
+            <Slider
+              min={100}
+              max={200}
+              step={5}
+              disabled={!prefs.magnifierEnabled}
+              value={Math.round(prefs.magnifierScale * 100)}
+              onChange={(value) => setPrefs((prev) => ({ ...prev, magnifierScale: Number(value) / 100 }))}
+            />
           </Space>
+
+          <Space>
+            <Typography.Text>Озвучка при наведении</Typography.Text>
+            <Switch
+              disabled={!canSpeech}
+              checked={prefs.speechOnHover}
+              onChange={(checked) => setPrefs((prev) => ({ ...prev, speechOnHover: checked }))}
+            />
+          </Space>
+
+          {!canSpeech ? (
+            <Typography.Text type="secondary">Браузер не поддерживает Web Speech API, озвучка недоступна.</Typography.Text>
+          ) : null}
+
           <Space>
             <Typography.Text>Уменьшение анимаций</Typography.Text>
             <Switch checked={prefs.reducedMotion} onChange={(checked) => setPrefs((prev) => ({ ...prev, reducedMotion: checked }))} />
@@ -124,10 +168,10 @@ export function SettingsPage() {
           <List
             loading={loadingLogs}
             dataSource={logs}
-            renderItem={(item) => (
+            renderItem={(item: AuditLogItem) => (
               <List.Item>
                 <List.Item.Meta
-                  title={`${item.action} · ${new Date(item.createdAt).toLocaleString('ru-RU')}`}
+                  title={`${getActionLabel(item.action)} · ${new Date(item.createdAt).toLocaleString('ru-RU')}`}
                   description={`Кто: ${item.actorUser?.email ?? 'Система'} → Кому: ${item.targetUser?.email ?? '—'}`}
                 />
               </List.Item>

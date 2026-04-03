@@ -12,7 +12,6 @@ applyAccessibilityPrefs(readAccessibilityPrefs());
 
 const style = document.createElement('style');
 style.innerHTML = `
-html[data-large-text] { font-size: 18px; }
 html[data-high-contrast] body { filter: contrast(1.2) saturate(0.9); }
 html[data-reduced-motion] *, html[data-reduced-motion] *::before, html[data-reduced-motion] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 `;
