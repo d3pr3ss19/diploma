@@ -1,7 +1,7 @@
-import { Alert, Button, Card, Form, Input, List, Segmented, Slider, Space, Switch, Typography, message } from 'antd';
+import { Alert, Button, Card, Form, Input, Slider, Space, Switch, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 
-import { AuditLogItem, AuditLogSection, getAuditLogs, updateMyProfile } from '../api/auth';
+import { updateMyProfile } from '../api/auth';
 import { extractApiErrorMessage } from '../api/error';
 import { applyAccessibilityPrefs, readAccessibilityPrefs, writeAccessibilityPrefs } from '../app/accessibility';
 import { readAuth, updateStoredUser } from '../app/auth-storage';
@@ -9,28 +9,8 @@ import { readTheme, writeTheme } from '../app/theme';
 
 type ProfileForm = { email: string; fullName: string };
 
-const ACTION_LABELS: Record<string, string> = {
-  USER_DEACTIVATED: 'Пользователь деактивирован',
-  USER_ACTIVATED: 'Пользователь активирован',
-  USER_ARCHIVED: 'Пользователь архивирован',
-  USER_PASSWORD_RESET: 'Пароль пользователя сброшен',
-  USER_ROLE_UPDATED: 'Роль пользователя изменена',
-  USER_PROFILE_UPDATED: 'Профиль пользователя обновлён',
-  SUBSCRIBER_CREATED: 'Абонент создан',
-  SUBSCRIBER_UPDATED: 'Карточка абонента обновлена',
-  REQUEST_CREATED: 'Заявка создана',
-  REQUEST_UPDATED: 'Заявка обновлена',
-};
-
-function getActionLabel(action: string): string {
-  return ACTION_LABELS[action] ?? `Действие: ${action}`;
-}
-
 export function SettingsPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>(readTheme());
-  const [section, setSection] = useState<AuditLogSection>('USERS');
-  const [logs, setLogs] = useState<AuditLogItem[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prefs, setPrefs] = useState(readAccessibilityPrefs());
@@ -55,23 +35,6 @@ export function SettingsPage() {
       fullName: auth?.user?.fullName ?? '',
     });
   }, [auth?.user?.email, auth?.user?.fullName, form]);
-
-  useEffect(() => {
-    async function loadLogs() {
-      try {
-        setLoadingLogs(true);
-        setError(null);
-        const data = await getAuditLogs(section);
-        setLogs(data);
-      } catch (err) {
-        setError(extractApiErrorMessage(err, 'Не удалось загрузить аудит-логи.'));
-      } finally {
-        setLoadingLogs(false);
-      }
-    }
-
-    void loadLogs();
-  }, [section]);
 
   async function handleProfileSave(values: ProfileForm) {
     try {
@@ -151,33 +114,6 @@ export function SettingsPage() {
           </Form.Item>
           <Button type="primary" htmlType="submit" loading={savingProfile}>Сохранить профиль</Button>
         </Form>
-      </Card>
-
-      <Card title="Аудит-логи">
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Segmented
-            block
-            value={section}
-            onChange={(value) => setSection(value as AuditLogSection)}
-            options={[
-              { label: 'Пользователи', value: 'USERS' },
-              { label: 'Абоненты', value: 'SUBSCRIBERS' },
-              { label: 'Заявки', value: 'REQUESTS' },
-            ]}
-          />
-          <List
-            loading={loadingLogs}
-            dataSource={logs}
-            renderItem={(item: AuditLogItem) => (
-              <List.Item>
-                <List.Item.Meta
-                  title={`${getActionLabel(item.action)} · ${new Date(item.createdAt).toLocaleString('ru-RU')}`}
-                  description={`Кто: ${item.actorUser?.email ?? 'Система'} → Кому: ${item.targetUser?.email ?? '—'}`}
-                />
-              </List.Item>
-            )}
-          />
-        </Space>
       </Card>
     </Space>
   );

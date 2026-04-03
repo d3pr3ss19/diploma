@@ -1,4 +1,4 @@
-import { CreditCardOutlined, HomeOutlined, LogoutOutlined, SettingOutlined, TeamOutlined, ToolOutlined } from '@ant-design/icons';
+import { CreditCardOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, SettingOutlined, TeamOutlined, ToolOutlined } from '@ant-design/icons';
 import { Button, ConfigProvider, Layout, Menu, Space, Typography, theme as antdTheme } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import { useEffect, useState } from 'react';
@@ -15,6 +15,7 @@ const menuItems = [
   { key: '/requests', icon: <ToolOutlined />, label: 'Заявки' },
   { key: '/account', icon: <CreditCardOutlined />, label: 'Лицевой счёт' },
   { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' },
+  { key: '/logs', icon: <FileTextOutlined />, label: 'Логи' },
 ];
 
 export function AppLayout() {
