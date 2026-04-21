@@ -5,6 +5,9 @@ export type ServiceRequest = {
   description: string;
   category: string;
   status: string;
+  priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+  contactPhone?: string | null;
+  preferredVisitAt?: string | null;
   createdByUserId: string;
   createdByUser?: {
     id: string;

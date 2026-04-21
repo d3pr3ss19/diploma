@@ -20,6 +20,12 @@ export class SubscribersController {
     return this.subscribersService.list();
   }
 
+  @Roles(Role.SUBSCRIBER)
+  @Get('me')
+  me(@Req() req: Request & { user?: { id: string } }) {
+    return this.subscribersService.findByUserId(req.user?.id);
+  }
+
   @Roles(Role.ADMIN, Role.OPERATOR)
   @Get(':id')
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {

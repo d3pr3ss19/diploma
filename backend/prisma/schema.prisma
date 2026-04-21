@@ -38,6 +38,13 @@ enum RequestStatus {
   REJECTED
 }
 
+enum RequestPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
 model Role {
   id    Int      @id @default(autoincrement())
   code  RoleCode @unique
@@ -211,6 +218,9 @@ model Request {
   description      String
   category         RequestCategory
   status           RequestStatus
+  priority         RequestPriority @default(NORMAL)
+  contactPhone     String?         @map("contact_phone")
+  preferredVisitAt DateTime?       @map("preferred_visit_at")
   createdByUserId  String          @map("created_by_user_id")
   assignedToUserId String?         @map("assigned_to_user_id")
   createdAt        DateTime        @default(now()) @map("created_at")

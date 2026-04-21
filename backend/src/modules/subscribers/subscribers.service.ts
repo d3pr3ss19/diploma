@@ -44,6 +44,35 @@ export class SubscribersService {
     });
   }
 
+
+  async findByUserId(userId?: string) {
+    if (!userId) {
+      throw new NotFoundException('Subscriber profile not found');
+    }
+
+    const subscriber = await this.prisma.subscriber.findFirst({
+      where: { userId },
+      include: {
+        accounts: true,
+        user: {
+          select: {
+            id: true,
+            isActual: true,
+            deletedAt: true,
+            email: true,
+            role: { select: { code: true } }
+          }
+        }
+      }
+    });
+
+    if (!subscriber) {
+      throw new NotFoundException('Subscriber profile not found');
+    }
+
+    return subscriber;
+  }
+
   async findOne(id: string) {
     const subscriber = await this.prisma.subscriber.findUnique({
       where: { id },

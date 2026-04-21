@@ -36,3 +36,8 @@ export async function updateSubscriber(id: string, payload: UpdateSubscriberPayl
   const { data } = await http.patch<Subscriber>(`/subscribers/${id}`, payload);
   return data;
 }
+
+export async function getMySubscriber(): Promise<SubscriberDetails> {
+  const { data } = await http.get<SubscriberDetails>('/subscribers/me');
+  return data;
+}

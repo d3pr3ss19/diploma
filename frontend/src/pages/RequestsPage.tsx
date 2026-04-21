@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { extractApiErrorMessage } from '../api/error';
 import { createRequest, getRequestHistory, getRequests, updateRequest } from '../api/requests';
-import { getSubscriberById, getSubscribers } from '../api/subscribers';
+import { getMySubscriber, getSubscriberById, getSubscribers } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
 import type { RequestHistoryItem, ServiceRequest } from '../types/requests';
 import type { Subscriber } from '../types/subscribers';
@@ -11,11 +11,14 @@ import { filterRequests, paginate, sortRequests, type RequestSort, type RequestS
 import { buildRequestsPresetQuery, hasActiveQuery, withUpdatedParam } from '../utils/list-query-state';
 
 type CreateRequestForm = {
-  subscriberId: string;
+  subscriberId?: string;
   accountId: string;
   title: string;
   description: string;
   category: 'ACCIDENT' | 'COMPLAINT' | 'QUESTION';
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+  contactPhone?: string;
+  preferredVisitAt?: string;
   assignedToUserId?: string;
 };
 
@@ -24,6 +27,9 @@ type EditRequestForm = {
   description: string;
   category: 'ACCIDENT' | 'COMPLAINT' | 'QUESTION';
   status: 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED';
+  priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+  contactPhone?: string;
+  preferredVisitAt?: string;
   assignedToUserId?: string;
   comment?: string;
 };
@@ -65,6 +71,12 @@ function categoryLabel(category: string): string {
   return category;
 }
 
+function priorityLabel(priority?: string): string {
+  if (priority === 'LOW') return 'Низкий';
+  if (priority === 'HIGH') return 'Высокий';
+  if (priority === 'URGENT') return 'Аварийный';
+  return 'Обычный';
+}
 
 export function RequestsPage() {
   const [items, setItems] = useState<ServiceRequest[]>([]);
@@ -90,6 +102,7 @@ export function RequestsPage() {
 
   const auth = readAuth();
   const isAdmin = auth?.user.role === 'ADMIN';
+  const isSubscriber = auth?.user.role === 'SUBSCRIBER';
   const canEditRequests = auth?.user.role === 'ADMIN' || auth?.user.role === 'OPERATOR';
 
   const statusFilter = (searchParams.get('status') as RequestStatusFilter | null) ?? 'ALL';
@@ -112,6 +125,17 @@ export function RequestsPage() {
 
   async function loadSubscribersList() {
     try {
+      if (isSubscriber) {
+        const me = await getMySubscriber();
+        setSubscribers([me]);
+        const options = me.accounts.map((account) => ({
+          value: account.id,
+          label: `${account.accountNumber} (${account.id.slice(0, 8)}...)`,
+        }));
+        setAccountOptions(options);
+        return;
+      }
+
       const data = await getSubscribers();
       setSubscribers(data);
     } catch (err) {
@@ -163,6 +187,9 @@ export function RequestsPage() {
     setAccountOptions([]);
     form.setFieldsValue({
       category: 'QUESTION',
+      priority: 'NORMAL',
+      contactPhone: undefined,
+      preferredVisitAt: undefined,
       subscriberId: undefined,
       accountId: undefined,
       assignedToUserId: undefined,
@@ -200,6 +227,9 @@ export function RequestsPage() {
         title: values.title,
         description: values.description,
         category: values.category,
+        priority: values.priority,
+        contactPhone: values.contactPhone || undefined,
+        preferredVisitAt: values.preferredVisitAt || undefined,
         assignedToUserId: values.assignedToUserId || undefined,
       });
       setModalOpen(false);
@@ -222,6 +252,9 @@ export function RequestsPage() {
       description: request.description,
       category: request.category as EditRequestForm['category'],
       status: request.status as EditRequestForm['status'],
+      priority: (request as any).priority as EditRequestForm['priority'],
+      contactPhone: (request as any).contactPhone ?? undefined,
+      preferredVisitAt: (request as any).preferredVisitAt ?? undefined,
       assignedToUserId: request.assignedToUserId ?? undefined,
       comment: ''
     });
@@ -238,6 +271,9 @@ export function RequestsPage() {
         description: values.description,
         category: values.category,
         status: values.status,
+        priority: values.priority,
+        contactPhone: values.contactPhone || undefined,
+        preferredVisitAt: values.preferredVisitAt || undefined,
         assignedToUserId: values.assignedToUserId || null,
         comment: values.comment || ''
       });
@@ -349,6 +385,7 @@ export function RequestsPage() {
               <Typography.Text type="secondary">{new Date(item.createdAt).toLocaleString('ru-RU')}</Typography.Text>
               <Space size={8} wrap>
                 <Tag color="purple" style={{ fontSize: 13 }}>{categoryLabel(item.category)}</Tag>
+                <Tag color="geekblue">{priorityLabel((item as any).priority)}</Tag>
                 {item.createdByUser?.subscriber?.fullName ? (
                   <Typography.Link onClick={() => openAuthorProfile(item)}>
                     Автор: {item.createdByUser.subscriber.fullName}
@@ -390,19 +427,21 @@ export function RequestsPage() {
         confirmLoading={saving}
       >
         <Form form={form} layout="vertical" onFinish={handleCreate}>
-          <Form.Item
-            label="Абонент"
-            name="subscriberId"
-            rules={[{ required: true, message: 'Выберите абонента' }]}
-          >
-            <Select
-              showSearch
-              placeholder="Выберите абонента"
-              optionFilterProp="label"
-              options={subscribers.map((subscriber) => ({ value: subscriber.id, label: `${subscriber.fullName} (${subscriber.id.slice(0, 8)}...)` }))}
-              onChange={(value) => void loadAccountsForSubscriber(value)}
-            />
-          </Form.Item>
+          {!isSubscriber ? (
+            <Form.Item
+              label="Абонент"
+              name="subscriberId"
+              rules={[{ required: true, message: 'Выберите абонента' }]}
+            >
+              <Select
+                showSearch
+                placeholder="Выберите абонента"
+                optionFilterProp="label"
+                options={subscribers.map((subscriber) => ({ value: subscriber.id, label: `${subscriber.fullName} (${subscriber.id.slice(0, 8)}...)` }))}
+                onChange={(value) => void loadAccountsForSubscriber(value)}
+              />
+            </Form.Item>
+          ) : null}
 
           <Form.Item
             label="Лицевой счёт"
@@ -413,7 +452,7 @@ export function RequestsPage() {
               loading={loadingAccounts}
               placeholder={loadingAccounts ? 'Загружаем лицевые счета...' : 'Выберите лицевой счёт'}
               options={accountOptions}
-              disabled={!form.getFieldValue('subscriberId')}
+              disabled={!isSubscriber && !form.getFieldValue('subscriberId')}
             />
           </Form.Item>
 
@@ -437,6 +476,23 @@ export function RequestsPage() {
             />
           </Form.Item>
 
+
+          <Form.Item label="Приоритет" name="priority" rules={[{ required: true, message: 'Выберите приоритет' }]}>
+            <Select
+              options={[
+                { value: 'LOW', label: 'Низкий' },
+                { value: 'NORMAL', label: 'Обычный' },
+                { value: 'HIGH', label: 'Высокий' },
+                { value: 'URGENT', label: 'Аварийный' },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label="Контактный телефон" name="contactPhone" rules={[{ pattern: /^\+7\d{10}$/, message: 'Формат: +7XXXXXXXXXX' }]}>
+            <Input placeholder="+79001234567" />
+          </Form.Item>
+          <Form.Item label="Желаемая дата/время визита" name="preferredVisitAt">
+            <Input type="datetime-local" />
+          </Form.Item>
           {canEditRequests ? (
             <Form.Item label="Назначить на сотрудника (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>
               <Input />
@@ -487,6 +543,23 @@ export function RequestsPage() {
                 { value: 'REJECTED', label: 'Отклонена' },
               ]}
             />
+          </Form.Item>
+
+          <Form.Item label="Приоритет" name="priority">
+            <Select
+              options={[
+                { value: 'LOW', label: 'Низкий' },
+                { value: 'NORMAL', label: 'Обычный' },
+                { value: 'HIGH', label: 'Высокий' },
+                { value: 'URGENT', label: 'Аварийный' },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item label="Контактный телефон" name="contactPhone" rules={[{ pattern: /^\+7\d{10}$/, message: 'Формат: +7XXXXXXXXXX' }]}>
+            <Input placeholder="+79001234567" />
+          </Form.Item>
+          <Form.Item label="Желаемая дата/время визита" name="preferredVisitAt">
+            <Input type="datetime-local" />
           </Form.Item>
           {canEditRequests ? (
             <Form.Item label="Назначить на сотрудника (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>

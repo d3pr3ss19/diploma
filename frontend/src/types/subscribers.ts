@@ -14,6 +14,7 @@ export type Subscriber = {
   } | null;
   accounts?: Array<{
     id: string;
+    accountNumber?: string;
     balance: string;
     _count?: {
       requests: number;

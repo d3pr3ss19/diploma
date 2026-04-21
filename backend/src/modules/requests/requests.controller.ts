@@ -14,33 +14,45 @@ import { UpdateRequestDto } from './dto/update-request.dto';
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
-  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get()
-  list() {
-    return this.requestsService.list();
+  list(@Req() req: Request & { user?: { id: string; role: Role } }) {
+    const user = req.user;
+    if (!user) {
+      throw new UnauthorizedException('Missing authenticated user');
+    }
+    return this.requestsService.list(user.id, user.role);
   }
 
-  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.requestsService.findOne(id);
+  findOne(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: Request & { user?: { id: string; role: Role } }) {
+    const user = req.user;
+    if (!user) {
+      throw new UnauthorizedException('Missing authenticated user');
+    }
+    return this.requestsService.findOne(id, user.id, user.role);
   }
 
-  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get(':id/history')
-  history(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.requestsService.history(id);
+  history(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: Request & { user?: { id: string; role: Role } }) {
+    const user = req.user;
+    if (!user) {
+      throw new UnauthorizedException('Missing authenticated user');
+    }
+    return this.requestsService.history(id, user.id, user.role);
   }
 
-  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Post()
-  create(@Body() body: CreateRequestDto, @Req() req: Request & { user?: { id: string } }) {
-    const createdByUserId = req.user?.id;
-    if (!createdByUserId) {
+  create(@Body() body: CreateRequestDto, @Req() req: Request & { user?: { id: string; role: Role } }) {
+    const user = req.user;
+    if (!user) {
       throw new UnauthorizedException('Missing authenticated user id');
     }
 
-    return this.requestsService.create(body, createdByUserId);
+    return this.requestsService.create(body, user.id, user.role);
   }
 
   @Roles(Role.ADMIN, Role.OPERATOR)
