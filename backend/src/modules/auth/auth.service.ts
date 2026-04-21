@@ -109,7 +109,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async deactivateUser(userId: string, actorUserId?: string) {
+  async deactivateUser(userId: number, actorUserId?: number) {
     await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -128,7 +128,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async activateUser(userId: string, actorUserId?: string) {
+  async activateUser(userId: number, actorUserId?: number) {
     await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -142,7 +142,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async deleteUser(userId: string, actorUserId?: string) {
+  async deleteUser(userId: number, actorUserId?: number) {
     try {
       await this.prisma.user.update({
         where: { id: userId },
@@ -165,7 +165,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async resetUserPassword(userId: string, actorUserId?: string) {
+  async resetUserPassword(userId: number, actorUserId?: number) {
     const newPassword = randomBytes(6).toString('base64url');
 
     await this.prisma.user.update({
@@ -190,7 +190,7 @@ export class AuthService {
     };
   }
 
-  async updateUserRole(userId: string, payload: UpdateRoleDto, actorUserId?: string) {
+  async updateUserRole(userId: number, payload: UpdateRoleDto, actorUserId?: number) {
     const role = await this.prisma.role.findUniqueOrThrow({ where: { code: payload.role } });
     const previous = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
@@ -220,7 +220,7 @@ export class AuthService {
     };
   }
 
-  async updateProfile(actorUserId: string | undefined, payload: UpdateProfileDto) {
+  async updateProfile(actorUserId: number | undefined, payload: UpdateProfileDto) {
     if (!actorUserId) {
       throw new UnauthorizedException('Missing authenticated user id');
     }
@@ -268,7 +268,7 @@ export class AuthService {
     });
   }
 
-  async createAuditLog(actorUserId: string | undefined, targetUserId: string, action: string, details?: object) {
+  async createAuditLog(actorUserId: number | undefined, targetUserId: number, action: string, details?: object) {
     await this.prisma.adminAuditLog.create({
       data: {
         actorUserId,
@@ -279,7 +279,7 @@ export class AuthService {
     });
   }
 
-  private async storeActiveRefreshToken(userId: string, refreshToken: string) {
+  private async storeActiveRefreshToken(userId: number, refreshToken: string) {
     const tokenHash = this.hashToken(refreshToken);
 
     await this.prisma.refreshSession.updateMany({

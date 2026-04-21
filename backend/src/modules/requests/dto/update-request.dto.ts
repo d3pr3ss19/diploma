@@ -1,5 +1,5 @@
 import { RequestCategory, RequestPriority, RequestStatus } from '@prisma/client';
-import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, MaxLength, MinLength, Matches } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString, MaxLength, Min, MinLength, Matches } from 'class-validator';
 
 export class UpdateRequestDto {
   @IsOptional()
@@ -36,8 +36,9 @@ export class UpdateRequestDto {
   preferredVisitAt?: string;
 
   @IsOptional()
-  @IsUUID()
-  assignedToUserId?: string | null;
+  @IsInt()
+  @Min(1)
+  assignedToUserId?: number | null;
 
   @IsOptional()
   @IsString()

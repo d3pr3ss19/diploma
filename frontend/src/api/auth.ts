@@ -8,8 +8,8 @@ export type AuditLogItem = {
   action: string;
   createdAt: string;
   details?: Record<string, unknown>;
-  actorUser?: { id: string; email: string } | null;
-  targetUser?: { id: string; email: string } | null;
+  actorUser?: { id: number; email: string } | null;
+  targetUser?: { id: number; email: string } | null;
 };
 
 export async function login(payload: LoginRequest): Promise<LoginResponse> {
@@ -27,27 +27,27 @@ export async function logout(payload: LogoutRequest): Promise<{ success: boolean
   return data;
 }
 
-export async function deactivateUser(userId: string): Promise<{ success: boolean }> {
+export async function deactivateUser(userId: number): Promise<{ success: boolean }> {
   const { data } = await http.post<{ success: boolean }>(`/auth/users/${userId}/deactivate`);
   return data;
 }
 
-export async function activateUser(userId: string): Promise<{ success: boolean }> {
+export async function activateUser(userId: number): Promise<{ success: boolean }> {
   const { data } = await http.post<{ success: boolean }>(`/auth/users/${userId}/activate`);
   return data;
 }
 
-export async function deleteUser(userId: string): Promise<{ success: boolean }> {
+export async function deleteUser(userId: number): Promise<{ success: boolean }> {
   const { data } = await http.delete<{ success: boolean }>(`/auth/users/${userId}`);
   return data;
 }
 
-export async function resetUserPassword(userId: string): Promise<{ success: boolean; password: string }> {
+export async function resetUserPassword(userId: number): Promise<{ success: boolean; password: string }> {
   const { data } = await http.post<{ success: boolean; password: string }>(`/auth/users/${userId}/reset-password`);
   return data;
 }
 
-export async function updateUserRole(userId: string, role: UserRole): Promise<{ success: boolean }> {
+export async function updateUserRole(userId: number, role: UserRole): Promise<{ success: boolean }> {
   const { data } = await http.patch<{ success: boolean }>(`/auth/users/${userId}/role`, { role });
   return data;
 }

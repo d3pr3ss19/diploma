@@ -8,16 +8,16 @@ export type ServiceRequest = {
   priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
   contactPhone?: string | null;
   preferredVisitAt?: string | null;
-  createdByUserId: string;
+  createdByUserId: number;
   createdByUser?: {
-    id: string;
+    id: number;
     email: string;
     subscriber?: {
       id: string;
       fullName: string;
     } | null;
   };
-  assignedToUserId: string | null;
+  assignedToUserId: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -27,11 +27,11 @@ export type RequestHistoryItem = {
   requestId: string;
   oldStatus: string;
   newStatus: string;
-  changedByUserId: string;
+  changedByUserId: number;
   changedAt: string;
   comment?: string | null;
   changedByUser?: {
-    id: string;
+    id: number;
     email: string;
     fullName?: string | null;
   };

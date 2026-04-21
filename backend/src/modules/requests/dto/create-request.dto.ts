@@ -1,5 +1,5 @@
 import { RequestCategory, RequestPriority } from '@prisma/client';
-import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, MaxLength, MinLength, Matches } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString, MaxLength, Min, MinLength, Matches } from 'class-validator';
 
 export class CreateRequestDto {
   @IsUUID()
@@ -32,6 +32,7 @@ export class CreateRequestDto {
   preferredVisitAt?: string;
 
   @IsOptional()
-  @IsUUID()
-  assignedToUserId?: string;
+  @IsInt()
+  @Min(1)
+  assignedToUserId?: number;
 }

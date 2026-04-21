@@ -45,10 +45,10 @@ export function SubscribersPage() {
   const [selectedSubscriber, setSelectedSubscriber] = useState<Subscriber | null>(null);
 
   const [saving, setSaving] = useState(false);
-  const [deactivatingUserId, setDeactivatingUserId] = useState<string | null>(null);
-  const [activatingUserId, setActivatingUserId] = useState<string | null>(null);
-  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
-  const [changingRoleUserId, setChangingRoleUserId] = useState<string | null>(null);
+  const [deactivatingUserId, setDeactivatingUserId] = useState<number | null>(null);
+  const [activatingUserId, setActivatingUserId] = useState<number | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
+  const [changingRoleUserId, setChangingRoleUserId] = useState<number | null>(null);
 
   const [createForm] = Form.useForm<SubscriberForm>();
   const [profileForm] = Form.useForm<SubscriberForm>();
@@ -147,7 +147,7 @@ export function SubscribersPage() {
     setProfileOpen(true);
   }
 
-  async function handleDeactivateUser(userId: string) {
+  async function handleDeactivateUser(userId: number) {
     try {
       setDeactivatingUserId(userId);
       await deactivateUser(userId);
@@ -160,7 +160,7 @@ export function SubscribersPage() {
     }
   }
 
-  async function handleActivateUser(userId: string) {
+  async function handleActivateUser(userId: number) {
     try {
       setActivatingUserId(userId);
       await activateUser(userId);
@@ -173,7 +173,7 @@ export function SubscribersPage() {
     }
   }
 
-  async function handleArchiveUser(userId: string) {
+  async function handleArchiveUser(userId: number) {
     try {
       setDeletingUserId(userId);
       await deleteUser(userId);
@@ -187,7 +187,7 @@ export function SubscribersPage() {
   }
 
 
-  async function handleRoleChange(userId: string, role: 'ADMIN' | 'OPERATOR' | 'SUBSCRIBER') {
+  async function handleRoleChange(userId: number, role: 'ADMIN' | 'OPERATOR' | 'SUBSCRIBER') {
     try {
       setChangingRoleUserId(userId);
       await updateUserRole(userId, role);
@@ -200,7 +200,7 @@ export function SubscribersPage() {
     }
   }
 
-  async function handleResetPassword(userId: string) {
+  async function handleResetPassword(userId: number) {
     try {
       const result = await resetUserPassword(userId);
       Modal.info({
@@ -406,12 +406,12 @@ export function SubscribersPage() {
               </Descriptions.Item>
               <Descriptions.Item label="Статус">{renderUserStatus(selectedSubscriber)}</Descriptions.Item>
               <Descriptions.Item label="Роль">
-                {isAdmin && selectedSubscriber.userId ? (
+                {isAdmin && selectedSubscriber.user?.id ? (
                   <Select
                     style={{ width: 240 }}
                     value={selectedSubscriber.user?.role?.code ?? 'SUBSCRIBER'}
-                    loading={changingRoleUserId === selectedSubscriber.userId}
-                    onChange={(value) => void handleRoleChange(selectedSubscriber.userId as string, value)}
+                    loading={changingRoleUserId === selectedSubscriber.user?.id}
+                    onChange={(value) => void handleRoleChange(selectedSubscriber.user?.id as number, value)}
                     options={[
                       { value: 'SUBSCRIBER', label: 'Абонент' },
                       { value: 'OPERATOR', label: 'Оператор' },
@@ -427,26 +427,26 @@ export function SubscribersPage() {
               {canManageSubscribers && profileEditing ? <Button size="large" onClick={() => setProfileEditing(false)}>Отменить</Button> : null}
               {canManageSubscribers && profileEditing ? <Button size="large" type="primary" htmlType="submit" loading={saving}>Сохранить</Button> : null}
 
-              {canManageSubscribers && selectedSubscriber.userId && (selectedSubscriber.user?.isActual ?? true) ? (
-                <Button size="large" danger loading={deactivatingUserId === selectedSubscriber.userId} onClick={() => void handleDeactivateUser(selectedSubscriber.userId as string)}>
+              {canManageSubscribers && selectedSubscriber.user?.id && (selectedSubscriber.user?.isActual ?? true) ? (
+                <Button size="large" danger loading={deactivatingUserId === selectedSubscriber.user?.id} onClick={() => void handleDeactivateUser(selectedSubscriber.user?.id as number)}>
                   Деактивировать
                 </Button>
               ) : null}
-              {canManageSubscribers && selectedSubscriber.userId && !(selectedSubscriber.user?.isActual ?? true) ? (
-                <Button size="large" type="primary" ghost loading={activatingUserId === selectedSubscriber.userId} onClick={() => void handleActivateUser(selectedSubscriber.userId as string)}>
+              {canManageSubscribers && selectedSubscriber.user?.id && !(selectedSubscriber.user?.isActual ?? true) ? (
+                <Button size="large" type="primary" ghost loading={activatingUserId === selectedSubscriber.user?.id} onClick={() => void handleActivateUser(selectedSubscriber.user?.id as number)}>
                   Активировать
                 </Button>
               ) : null}
-              {canManageSubscribers && selectedSubscriber.userId ? <Button size="large" onClick={() => void handleResetPassword(selectedSubscriber.userId as string)}>Сбросить пароль</Button> : null}
-              {canManageSubscribers && selectedSubscriber.userId ? (
+              {canManageSubscribers && selectedSubscriber.user?.id ? <Button size="large" onClick={() => void handleResetPassword(selectedSubscriber.user?.id as number)}>Сбросить пароль</Button> : null}
+              {canManageSubscribers && selectedSubscriber.user?.id ? (
                 <Popconfirm
                   title="Архивировать пользователя?"
                   description="Пользователь будет скрыт и отключён, при необходимости его можно снова активировать."
                   okText="Архивировать"
                   cancelText="Отмена"
-                  onConfirm={() => void handleArchiveUser(selectedSubscriber.userId as string)}
+                  onConfirm={() => void handleArchiveUser(selectedSubscriber.user?.id as number)}
                 >
-                  <Button size="large" danger loading={deletingUserId === selectedSubscriber.userId}>Архивировать</Button>
+                  <Button size="large" danger loading={deletingUserId === selectedSubscriber.user?.id}>Архивировать</Button>
                 </Popconfirm>
               ) : null}
             </Space>

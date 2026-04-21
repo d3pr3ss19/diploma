@@ -39,9 +39,9 @@ type AccountOption = {
   label: string;
 };
 
-const uuidRule = {
-  pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-  message: 'Введите корректный UUID',
+const userIdRule = {
+  pattern: /^\d+$/,
+  message: 'Введите числовой ID пользователя',
 };
 
 const PAGE_SIZE = 10;
@@ -184,7 +184,16 @@ export function RequestsPage() {
 
   function openCreateModal() {
     setModalOpen(true);
-    setAccountOptions([]);
+    if (isSubscriber && subscribers[0]) {
+      setAccountOptions(
+        (subscribers[0].accounts ?? []).map((account) => ({
+          value: account.id,
+          label: `${account.accountNumber ?? account.id} (${account.id.slice(0, 8)}...)`,
+        }))
+      );
+    } else {
+      setAccountOptions([]);
+    }
     form.setFieldsValue({
       category: 'QUESTION',
       priority: 'NORMAL',
@@ -230,7 +239,7 @@ export function RequestsPage() {
         priority: values.priority,
         contactPhone: values.contactPhone || undefined,
         preferredVisitAt: values.preferredVisitAt || undefined,
-        assignedToUserId: values.assignedToUserId || undefined,
+        assignedToUserId: values.assignedToUserId ? Number(values.assignedToUserId) : undefined,
       });
       setModalOpen(false);
       form.resetFields();
@@ -274,7 +283,7 @@ export function RequestsPage() {
         priority: values.priority,
         contactPhone: values.contactPhone || undefined,
         preferredVisitAt: values.preferredVisitAt || undefined,
-        assignedToUserId: values.assignedToUserId || null,
+        assignedToUserId: values.assignedToUserId ? Number(values.assignedToUserId) : null,
         comment: values.comment || ''
       });
       messageApi.success('Заявка обновлена');
@@ -494,7 +503,7 @@ export function RequestsPage() {
             <Input type="datetime-local" />
           </Form.Item>
           {canEditRequests ? (
-            <Form.Item label="Назначить на сотрудника (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>
+            <Form.Item label="Назначить на сотрудника (ID, опционально)" name="assignedToUserId" rules={[userIdRule]}>
               <Input />
             </Form.Item>
           ) : null}
@@ -562,7 +571,7 @@ export function RequestsPage() {
             <Input type="datetime-local" />
           </Form.Item>
           {canEditRequests ? (
-            <Form.Item label="Назначить на сотрудника (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>
+            <Form.Item label="Назначить на сотрудника (ID, опционально)" name="assignedToUserId" rules={[userIdRule]}>
               <Input />
             </Form.Item>
           ) : null}

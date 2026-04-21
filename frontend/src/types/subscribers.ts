@@ -4,8 +4,9 @@ export type Subscriber = {
   phone: string | null;
   address: string;
   apartment: string | null;
-  userId: string | null;
+  userId: number | null;
   user?: {
+    id?: number;
     isActual: boolean;
     deletedAt?: string | null;
     role?: {

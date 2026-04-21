@@ -55,7 +55,7 @@ model Role {
 }
 
 model User {
-  id              String                 @id @default(uuid())
+  id              Int                    @id @default(autoincrement())
   email           String                 @unique
   fullName        String?                @map("full_name")
   passwordHash    String                 @map("password_hash")
@@ -81,8 +81,8 @@ model User {
 
 model AdminAuditLog {
   id           String   @id @default(uuid())
-  actorUserId  String?  @map("actor_user_id")
-  targetUserId String   @map("target_user_id")
+  actorUserId  Int?     @map("actor_user_id")
+  targetUserId Int      @map("target_user_id")
   action       String
   details      Json?
   createdAt    DateTime @default(now()) @map("created_at")
@@ -97,7 +97,7 @@ model AdminAuditLog {
 
 model RefreshSession {
   id        String    @id @default(uuid())
-  userId    String    @map("user_id")
+  userId    Int       @map("user_id")
   tokenHash String    @map("token_hash")
   expiresAt DateTime  @map("expires_at")
   revokedAt DateTime? @map("revoked_at")
@@ -112,7 +112,7 @@ model RefreshSession {
 
 model Subscriber {
   id        String   @id @default(uuid())
-  userId    String?  @unique @map("user_id")
+  userId    Int?     @unique @map("user_id")
   fullName  String   @map("full_name")
   phone     String
   address   String
@@ -162,7 +162,7 @@ model MeterReading {
   meterId           String   @map("meter_id")
   readingPeriod     DateTime @db.Date @map("reading_period")
   value             Decimal  @db.Decimal(12, 3)
-  submittedByUserId String   @map("submitted_by_user_id")
+  submittedByUserId Int      @map("submitted_by_user_id")
   submittedAt       DateTime @default(now()) @map("submitted_at")
 
   meter           Meter @relation(fields: [meterId], references: [id])
@@ -221,8 +221,8 @@ model Request {
   priority         RequestPriority @default(NORMAL)
   contactPhone     String?         @map("contact_phone")
   preferredVisitAt DateTime?       @map("preferred_visit_at")
-  createdByUserId  String          @map("created_by_user_id")
-  assignedToUserId String?         @map("assigned_to_user_id")
+  createdByUserId  Int             @map("created_by_user_id")
+  assignedToUserId Int?            @map("assigned_to_user_id")
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @updatedAt @map("updated_at")
 
@@ -239,7 +239,7 @@ model RequestStatusHistory {
   requestId       String        @map("request_id")
   oldStatus       RequestStatus @map("old_status")
   newStatus       RequestStatus @map("new_status")
-  changedByUserId String        @map("changed_by_user_id")
+  changedByUserId Int           @map("changed_by_user_id")
   changedAt       DateTime      @default(now()) @map("changed_at")
   comment         String?
 

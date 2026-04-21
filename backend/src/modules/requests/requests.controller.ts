@@ -16,7 +16,7 @@ export class RequestsController {
 
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get()
-  list(@Req() req: Request & { user?: { id: string; role: Role } }) {
+  list(@Req() req: Request & { user?: { id: number; role: Role } }) {
     const user = req.user;
     if (!user) {
       throw new UnauthorizedException('Missing authenticated user');
@@ -26,7 +26,7 @@ export class RequestsController {
 
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: Request & { user?: { id: string; role: Role } }) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: Request & { user?: { id: number; role: Role } }) {
     const user = req.user;
     if (!user) {
       throw new UnauthorizedException('Missing authenticated user');
@@ -36,7 +36,7 @@ export class RequestsController {
 
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get(':id/history')
-  history(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: Request & { user?: { id: string; role: Role } }) {
+  history(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: Request & { user?: { id: number; role: Role } }) {
     const user = req.user;
     if (!user) {
       throw new UnauthorizedException('Missing authenticated user');
@@ -46,7 +46,7 @@ export class RequestsController {
 
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Post()
-  create(@Body() body: CreateRequestDto, @Req() req: Request & { user?: { id: string; role: Role } }) {
+  create(@Body() body: CreateRequestDto, @Req() req: Request & { user?: { id: number; role: Role } }) {
     const user = req.user;
     if (!user) {
       throw new UnauthorizedException('Missing authenticated user id');
@@ -60,7 +60,7 @@ export class RequestsController {
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() body: UpdateRequestDto,
-    @Req() req: Request & { user?: { id: string } }
+    @Req() req: Request & { user?: { id: number } }
   ) {
     const changedByUserId = req.user?.id;
     if (!changedByUserId) {

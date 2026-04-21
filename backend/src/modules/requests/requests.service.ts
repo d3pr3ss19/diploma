@@ -10,7 +10,7 @@ import { UpdateRequestDto } from './dto/update-request.dto';
 export class RequestsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(userId: string, role: Role) {
+  async list(userId: number, role: Role) {
     if (role === Role.SUBSCRIBER) {
       const accountIds = await this.resolveAccessibleAccountIdsForSubscriber(userId);
       return this.prisma.request.findMany({
@@ -42,7 +42,7 @@ export class RequestsService {
     });
   }
 
-  async findOne(id: string, userId: string, role: Role) {
+  async findOne(id: string, userId: number, role: Role) {
     const request = await this.prisma.request.findUnique({
       where: { id },
       include: {
@@ -71,7 +71,7 @@ export class RequestsService {
     return request;
   }
 
-  async history(id: string, userId: string, role: Role) {
+  async history(id: string, userId: number, role: Role) {
     await this.findOne(id, userId, role);
 
     return this.prisma.requestStatusHistory.findMany({
@@ -89,7 +89,7 @@ export class RequestsService {
     });
   }
 
-  async update(id: string, payload: UpdateRequestDto, changedByUserId: string) {
+  async update(id: string, payload: UpdateRequestDto, changedByUserId: number) {
     const existing = await this.prisma.request.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException(`Request with id '${id}' not found`);
@@ -158,7 +158,7 @@ export class RequestsService {
     return updated;
   }
 
-  async create(payload: CreateRequestDto, createdByUserId: string, role: Role) {
+  async create(payload: CreateRequestDto, createdByUserId: number, role: Role) {
     if (role === Role.SUBSCRIBER) {
       const accountIds = await this.resolveAccessibleAccountIdsForSubscriber(createdByUserId);
       if (!accountIds.includes(payload.accountId)) {
@@ -209,7 +209,7 @@ export class RequestsService {
     return created;
   }
 
-  private async resolveAccessibleAccountIdsForSubscriber(userId: string): Promise<string[]> {
+  private async resolveAccessibleAccountIdsForSubscriber(userId: number): Promise<string[]> {
     const subscriber = await this.prisma.subscriber.findFirst({
       where: { userId },
       include: { accounts: { select: { id: true } } }

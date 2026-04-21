@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -26,7 +26,7 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 
 type AuthenticatedRequest = Request & {
   user?: {
-    id: string;
+    id: number;
     role: Role;
   };
 };
@@ -53,28 +53,28 @@ export class AuthController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post('users/:id/deactivate')
-  deactivateUser(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: AuthenticatedRequest) {
+  deactivateUser(@Param('id', new ParseIntPipe()) id: number, @Req() req: AuthenticatedRequest) {
     return this.authService.deactivateUser(id, req.user?.id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post('users/:id/activate')
-  activateUser(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: AuthenticatedRequest) {
+  activateUser(@Param('id', new ParseIntPipe()) id: number, @Req() req: AuthenticatedRequest) {
     return this.authService.activateUser(id, req.user?.id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Delete('users/:id')
-  deleteUser(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: AuthenticatedRequest) {
+  deleteUser(@Param('id', new ParseIntPipe()) id: number, @Req() req: AuthenticatedRequest) {
     return this.authService.deleteUser(id, req.user?.id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post('users/:id/reset-password')
-  resetUserPassword(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: AuthenticatedRequest) {
+  resetUserPassword(@Param('id', new ParseIntPipe()) id: number, @Req() req: AuthenticatedRequest) {
     return this.authService.resetUserPassword(id, req.user?.id);
   }
 
@@ -82,7 +82,7 @@ export class AuthController {
   @Roles(Role.ADMIN)
   @Patch('users/:id/role')
   updateUserRole(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('id', new ParseIntPipe()) id: number,
     @Body() body: UpdateRoleDto,
     @Req() req: AuthenticatedRequest
   ) {

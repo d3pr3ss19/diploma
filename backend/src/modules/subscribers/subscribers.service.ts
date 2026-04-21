@@ -45,7 +45,7 @@ export class SubscribersService {
   }
 
 
-  async findByUserId(userId?: string) {
+  async findByUserId(userId?: number) {
     if (!userId) {
       throw new NotFoundException('Subscriber profile not found');
     }
@@ -101,7 +101,7 @@ export class SubscribersService {
     return subscriber;
   }
 
-  async create(payload: CreateSubscriberDto, actorUserId?: string) {
+  async create(payload: CreateSubscriberDto, actorUserId?: number) {
     const subscriberRole = await this.prisma.role.findUniqueOrThrow({ where: { code: RoleCode.SUBSCRIBER } });
 
     const password = this.generatePassword();
@@ -162,7 +162,7 @@ export class SubscribersService {
     };
   }
 
-  async update(id: string, payload: UpdateSubscriberDto, actorUserId?: string) {
+  async update(id: string, payload: UpdateSubscriberDto, actorUserId?: number) {
     const before = await this.findOne(id);
 
     const updated = await this.prisma.subscriber.update({

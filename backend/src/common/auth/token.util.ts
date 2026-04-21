@@ -3,7 +3,7 @@ import { createHmac, randomUUID } from 'crypto';
 import { Role } from './role.enum';
 
 type AuthTokenPayload = {
-  sub: string;
+  sub: number;
   role: Role;
   type: 'access' | 'refresh';
   exp: number;

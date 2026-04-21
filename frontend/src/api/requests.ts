@@ -6,7 +6,7 @@ export type CreateRequestPayload = {
   title: string;
   description: string;
   category: 'ACCIDENT' | 'COMPLAINT' | 'QUESTION';
-  assignedToUserId?: string;
+  assignedToUserId?: number;
 };
 
 export type UpdateRequestPayload = Partial<{
@@ -14,7 +14,7 @@ export type UpdateRequestPayload = Partial<{
   description: string;
   category: 'ACCIDENT' | 'COMPLAINT' | 'QUESTION';
   status: 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED';
-  assignedToUserId: string | null;
+  assignedToUserId: number | null;
   comment: string;
 }>;
 

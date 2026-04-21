@@ -22,7 +22,7 @@ export class SubscribersController {
 
   @Roles(Role.SUBSCRIBER)
   @Get('me')
-  me(@Req() req: Request & { user?: { id: string } }) {
+  me(@Req() req: Request & { user?: { id: number } }) {
     return this.subscribersService.findByUserId(req.user?.id);
   }
 
@@ -34,7 +34,7 @@ export class SubscribersController {
 
   @Roles(Role.ADMIN)
   @Post()
-  create(@Body() body: CreateSubscriberDto, @Req() req: Request & { user?: { id: string } }) {
+  create(@Body() body: CreateSubscriberDto, @Req() req: Request & { user?: { id: number } }) {
     return this.subscribersService.create(body, req.user?.id);
   }
 
@@ -43,7 +43,7 @@ export class SubscribersController {
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() body: UpdateSubscriberDto,
-    @Req() req: Request & { user?: { id: string } }
+    @Req() req: Request & { user?: { id: number } }
   ) {
     return this.subscribersService.update(id, body, req.user?.id);
   }
