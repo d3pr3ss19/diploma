@@ -27,6 +27,12 @@ export class RequestsController {
   }
 
   @Roles(Role.ADMIN, Role.OPERATOR)
+  @Get(':id/history')
+  history(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.requestsService.history(id);
+  }
+
+  @Roles(Role.ADMIN, Role.OPERATOR)
   @Post()
   create(@Body() body: CreateRequestDto, @Req() req: Request & { user?: { id: string } }) {
     const createdByUserId = req.user?.id;

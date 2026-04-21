@@ -2,10 +2,10 @@ import { Alert, Button, Descriptions, Form, Input, List, Modal, Pagination, Sele
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { extractApiErrorMessage } from '../api/error';
-import { createRequest, getRequests, updateRequest } from '../api/requests';
+import { createRequest, getRequestHistory, getRequests, updateRequest } from '../api/requests';
 import { getSubscriberById, getSubscribers } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
-import type { ServiceRequest } from '../types/requests';
+import type { RequestHistoryItem, ServiceRequest } from '../types/requests';
 import type { Subscriber } from '../types/subscribers';
 import { filterRequests, paginate, sortRequests, type RequestSort, type RequestStatusFilter } from '../utils/list-filters';
 import { buildRequestsPresetQuery, hasActiveQuery, withUpdatedParam } from '../utils/list-query-state';
@@ -79,6 +79,10 @@ export function RequestsPage() {
   const [editingRequest, setEditingRequest] = useState<ServiceRequest | null>(null);
   const [authorModalOpen, setAuthorModalOpen] = useState(false);
   const [authorRequest, setAuthorRequest] = useState<ServiceRequest | null>(null);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyItems, setHistoryItems] = useState<RequestHistoryItem[]>([]);
+  const [historyRequest, setHistoryRequest] = useState<ServiceRequest | null>(null);
   const [form] = Form.useForm<CreateRequestForm>();
   const [editForm] = Form.useForm<EditRequestForm>();
   const [messageApi, contextHolder] = message.useMessage();
@@ -254,6 +258,23 @@ export function RequestsPage() {
     setAuthorModalOpen(true);
   }
 
+
+  async function openHistory(request: ServiceRequest) {
+    try {
+      setHistoryRequest(request);
+      setHistoryModalOpen(true);
+      setHistoryLoading(true);
+      const history = await getRequestHistory(request.id);
+      setHistoryItems(history);
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Не удалось загрузить историю заявки.'));
+      setHistoryItems([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
+
+
   return (
     <>
       {contextHolder}
@@ -339,6 +360,7 @@ export function RequestsPage() {
             </Space>
             <Space style={{ marginLeft: 'auto' }}>
               <Tag color={statusColor(item.status)} style={{ fontSize: 14, paddingInline: 10, paddingBlock: 2 }}>{statusLabel(item.status)}</Tag>
+              <Button size="large" onClick={() => void openHistory(item)}>История</Button>
               {canEditRequests ? (
                 <Button size="large" onClick={() => openEditModal(item)}>
                   Редактировать
@@ -478,6 +500,36 @@ export function RequestsPage() {
       </Modal>
 
 
+
+      <Modal
+        open={historyModalOpen}
+        title={historyRequest ? `История заявки: ${historyRequest.title}` : 'История заявки'}
+        footer={null}
+        onCancel={() => {
+          setHistoryModalOpen(false);
+          setHistoryItems([]);
+          setHistoryRequest(null);
+        }}
+      >
+        <List
+          loading={historyLoading}
+          dataSource={historyItems}
+          locale={{ emptyText: 'История изменений пока отсутствует' }}
+          renderItem={(entry) => (
+            <List.Item>
+              <Space direction="vertical" size={0}>
+                <Typography.Text strong>
+                  {statusLabel(entry.oldStatus)} → {statusLabel(entry.newStatus)}
+                </Typography.Text>
+                <Typography.Text type="secondary">
+                  {new Date(entry.changedAt).toLocaleString('ru-RU')} · {entry.changedByUser?.fullName || entry.changedByUser?.email || entry.changedByUserId}
+                </Typography.Text>
+                {entry.comment ? <Typography.Text>{entry.comment}</Typography.Text> : null}
+              </Space>
+            </List.Item>
+          )}
+        />
+      </Modal>
 
       <Modal
         open={authorModalOpen}

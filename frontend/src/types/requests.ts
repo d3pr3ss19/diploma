@@ -18,3 +18,18 @@ export type ServiceRequest = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type RequestHistoryItem = {
+  id: string;
+  requestId: string;
+  oldStatus: string;
+  newStatus: string;
+  changedByUserId: string;
+  changedAt: string;
+  comment?: string | null;
+  changedByUser?: {
+    id: string;
+    email: string;
+    fullName?: string | null;
+  };
+};

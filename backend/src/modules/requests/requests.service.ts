@@ -56,6 +56,25 @@ export class RequestsService {
     return request;
   }
 
+
+  async history(id: string) {
+    await this.findOne(id);
+
+    return this.prisma.requestStatusHistory.findMany({
+      where: { requestId: id },
+      orderBy: { changedAt: 'desc' },
+      include: {
+        changedByUser: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+          }
+        }
+      }
+    });
+  }
+
   async update(id: string, payload: UpdateRequestDto, changedByUserId: string) {
     const existing = await this.findOne(id);
 
