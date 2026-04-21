@@ -57,6 +57,8 @@ export function SubscribersPage() {
 
   const auth = readAuth();
   const isAdmin = auth?.user.role === 'ADMIN';
+  const canOpenProfiles = auth?.user.role === 'ADMIN' || auth?.user.role === 'OPERATOR';
+  const canManageSubscribers = isAdmin;
 
   const search = searchParams.get('q') ?? '';
   const sort = (searchParams.get('sort') as SubscriberSort | null) ?? 'newest';
@@ -269,7 +271,7 @@ export function SubscribersPage() {
 
       <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 16 }}>
         <Typography.Title level={3} style={{ margin: 0 }}>Абоненты</Typography.Title>
-        <Button type="primary" size="large" onClick={openCreateModal}>Добавить абонента</Button>
+        {canManageSubscribers ? <Button type="primary" size="large" onClick={openCreateModal}>Добавить абонента</Button> : null}
       </Space>
 
       <Space style={{ marginBottom: 12 }} wrap align="start">
@@ -350,7 +352,7 @@ export function SubscribersPage() {
               (subscriber.accounts ?? []).reduce((sum, account) => sum + (account._count?.requests ?? 0), 0),
           },
           { title: 'Статус', key: 'status', render: (_: unknown, subscriber: Subscriber) => renderUserStatus(subscriber) },
-          ...(isAdmin ? [{
+          ...(canOpenProfiles ? [{
             title: 'Действия',
             key: 'actions',
             render: (_: unknown, subscriber: Subscriber) => (
@@ -421,22 +423,22 @@ export function SubscribersPage() {
             </Descriptions>
 
             <Space wrap>
-              {!profileEditing ? <Button size="large" onClick={() => setProfileEditing(true)}>Изменить</Button> : null}
-              {profileEditing ? <Button size="large" onClick={() => setProfileEditing(false)}>Отменить</Button> : null}
-              {profileEditing ? <Button size="large" type="primary" htmlType="submit" loading={saving}>Сохранить</Button> : null}
+              {canManageSubscribers && !profileEditing ? <Button size="large" onClick={() => setProfileEditing(true)}>Изменить</Button> : null}
+              {canManageSubscribers && profileEditing ? <Button size="large" onClick={() => setProfileEditing(false)}>Отменить</Button> : null}
+              {canManageSubscribers && profileEditing ? <Button size="large" type="primary" htmlType="submit" loading={saving}>Сохранить</Button> : null}
 
-              {selectedSubscriber.userId && (selectedSubscriber.user?.isActual ?? true) ? (
+              {canManageSubscribers && selectedSubscriber.userId && (selectedSubscriber.user?.isActual ?? true) ? (
                 <Button size="large" danger loading={deactivatingUserId === selectedSubscriber.userId} onClick={() => void handleDeactivateUser(selectedSubscriber.userId as string)}>
                   Деактивировать
                 </Button>
               ) : null}
-              {selectedSubscriber.userId && !(selectedSubscriber.user?.isActual ?? true) ? (
+              {canManageSubscribers && selectedSubscriber.userId && !(selectedSubscriber.user?.isActual ?? true) ? (
                 <Button size="large" type="primary" ghost loading={activatingUserId === selectedSubscriber.userId} onClick={() => void handleActivateUser(selectedSubscriber.userId as string)}>
                   Активировать
                 </Button>
               ) : null}
-              {selectedSubscriber.userId ? <Button size="large" onClick={() => void handleResetPassword(selectedSubscriber.userId as string)}>Сбросить пароль</Button> : null}
-              {selectedSubscriber.userId ? (
+              {canManageSubscribers && selectedSubscriber.userId ? <Button size="large" onClick={() => void handleResetPassword(selectedSubscriber.userId as string)}>Сбросить пароль</Button> : null}
+              {canManageSubscribers && selectedSubscriber.userId ? (
                 <Popconfirm
                   title="Архивировать пользователя?"
                   description="Пользователь будет скрыт и отключён, при необходимости его можно снова активировать."

@@ -96,7 +96,7 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Roles(Role.ADMIN)
   @Get('audit-logs')
   listAuditLogs(@Query('section') section?: 'USERS' | 'SUBSCRIBERS' | 'REQUESTS') {
     return this.authService.listAuditLogs(section);

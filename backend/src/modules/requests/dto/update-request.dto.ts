@@ -25,4 +25,9 @@ export class UpdateRequestDto {
   @IsOptional()
   @IsUUID()
   assignedToUserId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  comment?: string;
 }

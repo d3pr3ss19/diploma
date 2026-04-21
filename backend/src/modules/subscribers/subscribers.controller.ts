@@ -26,7 +26,7 @@ export class SubscribersController {
     return this.subscribersService.findOne(id);
   }
 
-  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Roles(Role.ADMIN)
   @Post()
   create(@Body() body: CreateSubscriberDto, @Req() req: Request & { user?: { id: string } }) {
     return this.subscribersService.create(body, req.user?.id);

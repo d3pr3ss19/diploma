@@ -70,14 +70,14 @@ export class RequestsService {
       }
     });
 
-    if (payload.status && payload.status !== existing.status) {
+    if ((payload.status && payload.status !== existing.status) || payload.comment) {
       await this.prisma.requestStatusHistory.create({
         data: {
           requestId: id,
           oldStatus: existing.status,
-          newStatus: payload.status,
+          newStatus: payload.status ?? existing.status,
           changedByUserId,
-          comment: 'Статус обновлён оператором/админом'
+          comment: payload.comment || 'Изменение заявки оператором/админом'
         }
       });
     }
@@ -95,14 +95,16 @@ export class RequestsService {
             description: existing.description,
             category: existing.category,
             status: existing.status,
-            assignedToUserId: existing.assignedToUserId
+            assignedToUserId: existing.assignedToUserId,
+            comment: null
           },
           after: {
             title: updated.title,
             description: updated.description,
             category: updated.category,
             status: updated.status,
-            assignedToUserId: updated.assignedToUserId
+            assignedToUserId: updated.assignedToUserId,
+            comment: payload.comment ?? null
           }
         }
       }

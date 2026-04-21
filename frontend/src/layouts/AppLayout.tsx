@@ -9,20 +9,22 @@ import { readTheme } from '../app/theme';
 
 const { Header, Sider, Content, Footer } = Layout;
 
-const menuItems = [
-  { key: '/dashboard', icon: <HomeOutlined />, label: 'Панель' },
-  { key: '/subscribers', icon: <TeamOutlined />, label: 'Абоненты' },
-  { key: '/requests', icon: <ToolOutlined />, label: 'Заявки' },
-  { key: '/account', icon: <CreditCardOutlined />, label: 'Лицевой счёт' },
-  { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' },
-  { key: '/logs', icon: <FileTextOutlined />, label: 'Логи' },
-];
 
 export function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = readAuth();
   const [isDark, setIsDark] = useState(readTheme() === 'dark');
+
+
+  const menuItems = [
+    { key: '/dashboard', icon: <HomeOutlined />, label: 'Панель' },
+    { key: '/subscribers', icon: <TeamOutlined />, label: 'Абоненты' },
+    { key: '/requests', icon: <ToolOutlined />, label: 'Заявки' },
+    { key: '/account', icon: <CreditCardOutlined />, label: 'Лицевой счёт' },
+    { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' },
+    ...(auth?.user.role === 'ADMIN' ? [{ key: '/logs', icon: <FileTextOutlined />, label: 'Логи' }] : []),
+  ];
 
   useEffect(() => {
     function onThemeChange(event: Event) {

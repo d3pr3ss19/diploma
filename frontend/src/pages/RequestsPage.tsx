@@ -25,6 +25,7 @@ type EditRequestForm = {
   category: 'ACCIDENT' | 'COMPLAINT' | 'QUESTION';
   status: 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED';
   assignedToUserId?: string;
+  comment?: string;
 };
 
 type AccountOption = {
@@ -217,7 +218,8 @@ export function RequestsPage() {
       description: request.description,
       category: request.category as EditRequestForm['category'],
       status: request.status as EditRequestForm['status'],
-      assignedToUserId: request.assignedToUserId ?? undefined
+      assignedToUserId: request.assignedToUserId ?? undefined,
+      comment: ''
     });
   }
 
@@ -232,7 +234,8 @@ export function RequestsPage() {
         description: values.description,
         category: values.category,
         status: values.status,
-        assignedToUserId: values.assignedToUserId || null
+        assignedToUserId: values.assignedToUserId || null,
+        comment: values.comment || ''
       });
       messageApi.success('Заявка обновлена');
       setEditModalOpen(false);
@@ -412,8 +415,8 @@ export function RequestsPage() {
             />
           </Form.Item>
 
-          {isAdmin ? (
-            <Form.Item label="assignedToUserId (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>
+          {canEditRequests ? (
+            <Form.Item label="Назначить на сотрудника (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>
               <Input />
             </Form.Item>
           ) : null}
@@ -463,11 +466,14 @@ export function RequestsPage() {
               ]}
             />
           </Form.Item>
-          {isAdmin ? (
-            <Form.Item label="assignedToUserId (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>
+          {canEditRequests ? (
+            <Form.Item label="Назначить на сотрудника (UUID, опционально)" name="assignedToUserId" rules={[uuidRule]}>
               <Input />
             </Form.Item>
           ) : null}
+          <Form.Item label="Комментарий оператора" name="comment" rules={[{ max: 1000, message: 'До 1000 символов' }]}>
+            <Input.TextArea rows={3} placeholder="Например: направлено в бригаду №2" />
+          </Form.Item>
         </Form>
       </Modal>
 

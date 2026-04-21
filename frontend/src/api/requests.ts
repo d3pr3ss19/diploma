@@ -15,6 +15,7 @@ export type UpdateRequestPayload = Partial<{
   category: 'ACCIDENT' | 'COMPLAINT' | 'QUESTION';
   status: 'NEW' | 'IN_PROGRESS' | 'DONE' | 'REJECTED';
   assignedToUserId: string | null;
+  comment: string;
 }>;
 
 export async function getRequests(): Promise<ServiceRequest[]> {
