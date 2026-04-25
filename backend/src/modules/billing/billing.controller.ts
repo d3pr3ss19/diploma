@@ -23,8 +23,25 @@ export class BillingController {
 
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get('tariffs')
-  tariffs(@Query('region') region = 'DEFAULT') {
+  tariffs(@Query('region') region = 'Москва') {
     return this.billingService.getTariffs(region);
+  }
+
+  @Roles(Role.ADMIN)
+  @Get('admin/logs')
+  adminLogs(@Query('limit') limit?: string) {
+    return this.billingService.listBillingLogsForAdmin(limit ? Number(limit) : undefined);
+  }
+
+  @Roles(Role.SUBSCRIBER)
+  @Get('notifications/me')
+  myNotification(@Req() req: Request & { user?: { id: number } }) {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new UnauthorizedException('Missing authenticated user');
+    }
+
+    return this.billingService.getUserPaymentNotification(userId);
   }
 
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)

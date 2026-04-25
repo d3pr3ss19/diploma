@@ -1,43 +1,26 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { MeterType, PaymentMethod, Prisma } from '@prisma/client';
+import { MeterType, Prisma } from '@prisma/client';
 
 import { Role } from '../../common/auth/role.enum';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PayFromBalanceDto } from './dto/pay-from-balance.dto';
 import { SubmitReadingDto } from './dto/submit-reading.dto';
+import { ALL_RUSSIAN_REGIONS, CITY_TO_REGION, REGION_TARIFFS } from './tariffs.data';
 import { TopUpDto } from './dto/topup.dto';
-
-const REGION_TARIFFS: Record<string, Record<MeterType, number>> = {
-  MOSCOW: {
-    COLD_WATER: 42.3,
-    HOT_WATER: 205.15,
-    ELECTRICITY: 6.73,
-  },
-  KRASNOYARSK: {
-    COLD_WATER: 31.9,
-    HOT_WATER: 163.4,
-    ELECTRICITY: 4.12,
-  },
-  DEFAULT: {
-    COLD_WATER: 35.0,
-    HOT_WATER: 180.0,
-    ELECTRICITY: 5.5,
-  },
-};
 
 @Injectable()
 export class BillingService {
   constructor(private readonly prisma: PrismaService) {}
 
   listRegions() {
-    return Object.keys(REGION_TARIFFS).filter((key) => key !== 'DEFAULT');
+    return ALL_RUSSIAN_REGIONS;
   }
 
-  getTariffs(region: string) {
-    const normalized = region.trim().toUpperCase();
-    const tariffs = REGION_TARIFFS[normalized] ?? REGION_TARIFFS.DEFAULT;
+  getTariffs(regionOrCity: string) {
+    const resolvedRegion = this.resolveRegion(regionOrCity);
+    const tariffs = REGION_TARIFFS[resolvedRegion];
     return {
-      region: REGION_TARIFFS[normalized] ? normalized : 'DEFAULT',
+      region: resolvedRegion,
       tariffs,
     };
   }
@@ -74,7 +57,8 @@ export class BillingService {
   async submitReading(accountId: string, payload: SubmitReadingDto, userId: number, role: Role) {
     await this.ensureAccountAccess(accountId, userId, role);
 
-    const tariff = this.resolveTariff(payload.region, payload.meterType);
+    const resolvedRegion = this.resolveRegion(payload.region);
+    const tariff = this.resolveTariff(resolvedRegion, payload.meterType);
     const readingPeriod = new Date(payload.period);
 
     return this.prisma.$transaction(async (tx) => {
@@ -159,7 +143,7 @@ export class BillingService {
             section: 'BILLING',
             accountId,
             meterType: payload.meterType,
-            region: payload.region,
+            region: resolvedRegion,
             previous,
             current,
             consumption,
@@ -196,6 +180,21 @@ export class BillingService {
           amount: new Prisma.Decimal(amount),
           method: payload.method,
           externalRef: `MOCK_TOPUP_${Date.now()}`,
+        },
+      });
+
+      await tx.adminAuditLog.create({
+        data: {
+          actorUserId: userId,
+          targetUserId: userId,
+          action: 'BILLING_TOP_UP',
+          details: {
+            section: 'BILLING',
+            accountId,
+            amount,
+            method: payload.method,
+            paymentId: payment.id,
+          },
         },
       });
 
@@ -244,6 +243,21 @@ export class BillingService {
         },
       });
 
+      await tx.adminAuditLog.create({
+        data: {
+          actorUserId: userId,
+          targetUserId: userId,
+          action: 'BILLING_PAY_FROM_BALANCE',
+          details: {
+            section: 'BILLING',
+            accountId,
+            amount,
+            method: payload.method,
+            paymentId: payment.id,
+          },
+        },
+      });
+
       return { updated, payment };
     });
 
@@ -256,10 +270,88 @@ export class BillingService {
     };
   }
 
-  private resolveTariff(region: string, meterType: MeterType): number {
-    const normalized = region.trim().toUpperCase();
-    const regionTariffs = REGION_TARIFFS[normalized] ?? REGION_TARIFFS.DEFAULT;
-    return regionTariffs[meterType];
+  async listBillingLogsForAdmin(limit = 200) {
+    return this.prisma.adminAuditLog.findMany({
+      where: {
+        details: {
+          path: ['section'],
+          equals: 'BILLING',
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: Math.min(Math.max(limit, 1), 1000),
+      include: {
+        actorUser: { select: { id: true, email: true, fullName: true } },
+        targetUser: { select: { id: true, email: true, fullName: true } },
+      },
+    });
+  }
+
+  async getUserPaymentNotification(userId: number) {
+    const now = new Date();
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const paymentReminderDay = 10;
+    const shouldRemindByDate = now.getUTCDate() >= paymentReminderDay;
+
+    const subscriber = await this.prisma.subscriber.findFirst({
+      where: { userId },
+      include: { accounts: { select: { id: true, accountNumber: true, balance: true } } },
+    });
+
+    if (!subscriber || subscriber.accounts.length === 0) {
+      return { shouldNotify: false, dayOfMonth: paymentReminderDay, notifications: [] };
+    }
+
+    const notifications = await Promise.all(
+      subscriber.accounts.map(async (account) => {
+        const monthAccrual = await this.prisma.accrual.aggregate({
+          where: { accountId: account.id, createdAt: { gte: monthStart } },
+          _sum: { amount: true },
+        });
+
+        const monthAccrued = Number(monthAccrual._sum.amount ?? 0);
+        const balance = Number(account.balance);
+        const hasDebt = balance < 0;
+
+        return {
+          accountId: account.id,
+          accountNumber: account.accountNumber,
+          balance,
+          monthAccrued,
+          needPayment: hasDebt || monthAccrued > 0,
+          text: `До 10 числа необходимо оплатить ЖКХ по лицевому счету ${account.accountNumber}.`,
+        };
+      }),
+    );
+
+    return {
+      shouldNotify: shouldRemindByDate,
+      dayOfMonth: paymentReminderDay,
+      notifications: notifications.filter((item) => item.needPayment),
+    };
+  }
+
+  private resolveTariff(resolvedRegion: string, meterType: MeterType): number {
+    return REGION_TARIFFS[resolvedRegion][meterType];
+  }
+
+  private resolveRegion(regionOrCity: string): string {
+    const input = regionOrCity.trim();
+    if (!input) {
+      return 'Москва';
+    }
+
+    const directRegion = ALL_RUSSIAN_REGIONS.find((region) => region.toUpperCase() === input.toUpperCase());
+    if (directRegion) {
+      return directRegion;
+    }
+
+    const cityResolved = CITY_TO_REGION[input.toUpperCase()];
+    if (cityResolved) {
+      return cityResolved;
+    }
+
+    return 'Москва';
   }
 
   private async ensureAccountAccess(accountId: string, userId: number, role: Role) {

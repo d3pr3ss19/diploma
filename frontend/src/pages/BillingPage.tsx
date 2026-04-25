@@ -2,9 +2,9 @@ import { Alert, Button, Card, DatePicker, Descriptions, Form, InputNumber, Selec
 import { useEffect, useMemo, useState } from 'react';
 
 import { readAuth } from '../app/auth-storage';
-import { getBillingRegions, getBillingSummary, getTariffs, payFromBalance, submitReading, topUpBalance } from '../api/billing';
+import { getBillingAdminLogs, getBillingRegions, getBillingSummary, getMyBillingNotification, getTariffs, payFromBalance, submitReading, topUpBalance } from '../api/billing';
 import { getMySubscriber, getSubscribers } from '../api/subscribers';
-import { extractApiErrorMessage } from '../app/api-error';
+import { extractApiErrorMessage } from '../api/error';
 import type { Subscriber } from '../types/subscribers';
 import type { BillingSummary, TariffMap } from '../types/billing';
 
@@ -14,9 +14,18 @@ function meterLabel(type: 'COLD_WATER' | 'HOT_WATER' | 'ELECTRICITY') {
   return 'Электроэнергия';
 }
 
+type BillingAdminLog = {
+  id: string;
+  action: string;
+  createdAt: string;
+  details?: Record<string, unknown>;
+  actorUser?: { id: number; email: string; fullName?: string | null } | null;
+};
+
 export function BillingPage() {
   const auth = readAuth();
   const isSubscriber = auth?.user.role === 'SUBSCRIBER';
+  const isAdmin = auth?.user.role === 'ADMIN';
   const [messageApi, contextHolder] = message.useMessage();
 
   const [loading, setLoading] = useState(true);
@@ -26,8 +35,10 @@ export function BillingPage() {
 
   const [summary, setSummary] = useState<BillingSummary | null>(null);
   const [regions, setRegions] = useState<string[]>([]);
-  const [region, setRegion] = useState<string>('MOSCOW');
+  const [region, setRegion] = useState<string>('Москва');
   const [tariffs, setTariffs] = useState<TariffMap | null>(null);
+  const [adminLogs, setAdminLogs] = useState<BillingAdminLog[]>([]);
+  const [paymentNotification, setPaymentNotification] = useState<{ shouldNotify: boolean; dayOfMonth: number; notifications: Array<{ accountId: string; accountNumber: string; balance: number; monthAccrued: number; needPayment: boolean; text: string }> } | null>(null);
 
   const [readingForm] = Form.useForm();
   const [topupForm] = Form.useForm();
@@ -76,6 +87,16 @@ export function BillingPage() {
       const firstAccountId = (isSubscriber ? subscriberData[0]?.accounts : subscriberData.flatMap((item) => item.accounts ?? []))?.[0]?.id;
       if (firstAccountId) {
         setSelectedAccountId(firstAccountId);
+      }
+
+      if (isAdmin) {
+        const logs = await getBillingAdminLogs(150);
+        setAdminLogs(logs);
+      }
+
+      if (isSubscriber) {
+        const notification = await getMyBillingNotification();
+        setPaymentNotification(notification);
       }
     } catch (err) {
       setError(extractApiErrorMessage(err, 'Не удалось загрузить раздел оплаты и начислений.'));
@@ -178,11 +199,22 @@ export function BillingPage() {
           <Select
             style={{ width: 220 }}
             value={region}
-            options={regions.map((item) => ({ value: item, label: item === 'MOSCOW' ? 'Москва' : 'Красноярск' }))}
+            showSearch
+            optionFilterProp="label"
+            options={regions.map((item) => ({ value: item, label: item }))}
             onChange={setRegion}
           />
         </Space>
       </Card>
+
+      {isSubscriber && paymentNotification?.shouldNotify && paymentNotification.notifications.length > 0 ? (
+        <Alert
+          type="warning"
+          showIcon
+          message={`Напоминание: до ${paymentNotification.dayOfMonth} числа нужно оплатить начисления`}
+          description={paymentNotification.notifications.map((item) => `${item.accountNumber}: начислено ${item.monthAccrued.toFixed(2)} ₽, баланс ${item.balance.toFixed(2)} ₽`).join(' · ')}
+        />
+      ) : null}
 
       {summary ? (
         <Card>
@@ -249,7 +281,7 @@ export function BillingPage() {
         </Card>
       </Space>
 
-      <Card title={`Тарифы региона: ${region === 'MOSCOW' ? 'Москва' : region === 'KRASNOYARSK' ? 'Красноярск' : region}`}>
+      <Card title={`Тарифы региона: ${region}`}>
         <Space direction="vertical">
           <Typography.Text>Холодная вода: {tariffs?.COLD_WATER ?? '—'} ₽ / м³</Typography.Text>
           <Typography.Text>Горячая вода: {tariffs?.HOT_WATER ?? '—'} ₽ / м³</Typography.Text>
@@ -284,6 +316,22 @@ export function BillingPage() {
           ]}
         />
       </Card>
+
+      {isAdmin ? (
+        <Card title="Админ-логи по оплатам и начислениям">
+          <Table
+            rowKey="id"
+            pagination={{ pageSize: 10 }}
+            dataSource={adminLogs}
+            columns={[
+              { title: 'Когда', dataIndex: 'createdAt', render: (value: string) => new Date(value).toLocaleString('ru-RU') },
+              { title: 'Действие', dataIndex: 'action' },
+              { title: 'Кто', render: (_: unknown, row: BillingAdminLog) => row.actorUser?.fullName ?? row.actorUser?.email ?? 'Система' },
+              { title: 'Детали', render: (_: unknown, row: BillingAdminLog) => JSON.stringify(row.details ?? {}) },
+            ]}
+          />
+        </Card>
+      ) : null}
     </Space>
   );
 }

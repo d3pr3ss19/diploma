@@ -1,4 +1,4 @@
-export type BillingTariffRegion = 'MOSCOW' | 'KRASNOYARSK' | 'DEFAULT';
+export type BillingTariffRegion = string;
 
 export type TariffMap = {
   COLD_WATER: number;
