@@ -4,6 +4,7 @@ import { AccountPage } from '../pages/AccountPage';
 import { AuditLogsPage } from '../pages/AuditLogsPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { LoginPage } from '../pages/LoginPage';
+import { BillingPage } from '../pages/BillingPage';
 import { RequestsPage } from '../pages/RequestsPage';
 import { SubscribersPage } from '../pages/SubscribersPage';
 import { SettingsPage } from '../pages/SettingsPage';
@@ -26,6 +27,7 @@ export function AppRouter() {
           <Route path="/subscribers" element={<SubscribersPage />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/billing" element={<BillingPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/logs" element={<AuditLogsPage />} />
         </Route>

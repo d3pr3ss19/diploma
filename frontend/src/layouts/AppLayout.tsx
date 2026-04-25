@@ -1,4 +1,4 @@
-import { CreditCardOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, SettingOutlined, TeamOutlined, ToolOutlined } from '@ant-design/icons';
+import { CreditCardOutlined, DollarOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, SettingOutlined, TeamOutlined, ToolOutlined } from '@ant-design/icons';
 import { Button, ConfigProvider, Layout, Menu, Space, Typography, theme as antdTheme } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import { useEffect, useState } from 'react';
@@ -22,6 +22,7 @@ export function AppLayout() {
     { key: '/subscribers', icon: <TeamOutlined />, label: 'Абоненты' },
     { key: '/requests', icon: <ToolOutlined />, label: 'Заявки' },
     { key: '/account', icon: <CreditCardOutlined />, label: 'Лицевой счёт' },
+    { key: '/billing', icon: <DollarOutlined />, label: 'Оплата ЖКХ' },
     { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' },
     ...(auth?.user.role === 'ADMIN' ? [{ key: '/logs', icon: <FileTextOutlined />, label: 'Логи' }] : []),
   ];

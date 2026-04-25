@@ -1,7 +1,7 @@
 import { http } from './http';
 import type { LoginRequest, LoginResponse, LogoutRequest, RefreshRequest, RefreshResponse, UserRole } from '../types/auth';
 
-export type AuditLogSection = 'USERS' | 'SUBSCRIBERS' | 'REQUESTS';
+export type AuditLogSection = 'USERS' | 'SUBSCRIBERS' | 'REQUESTS' | 'BILLING';
 
 export type AuditLogItem = {
   id: string;

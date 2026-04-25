@@ -249,7 +249,7 @@ export class AuthService {
     };
   }
 
-  async listAuditLogs(section?: 'USERS' | 'SUBSCRIBERS' | 'REQUESTS') {
+  async listAuditLogs(section?: 'USERS' | 'SUBSCRIBERS' | 'REQUESTS' | 'BILLING') {
     return this.prisma.adminAuditLog.findMany({
       where: section
         ? {
