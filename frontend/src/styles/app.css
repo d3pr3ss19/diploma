@@ -8,7 +8,7 @@
   --app-accent: #3d73ff;
   --app-accent-strong: #2557d6;
   --app-shadow: 0 14px 36px rgba(23, 32, 51, 0.1);
-  --app-sidebar-bg: linear-gradient(180deg, #1c2640 0%, #11192f 100%);
+  --app-sidebar-bg: linear-gradient(180deg, #ffffff 0%, #f3f7ff 100%);
 }
 
 html[data-theme='dark'] {
@@ -21,7 +21,7 @@ html[data-theme='dark'] {
   --app-accent: #7a9dff;
   --app-accent-strong: #8eacff;
   --app-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
-  --app-sidebar-bg: linear-gradient(180deg, #121b33 0%, #0a1224 100%);
+  --app-sidebar-bg: linear-gradient(180deg, #111a2f 0%, #0a1224 100%);
 }
 
 body {
@@ -60,12 +60,12 @@ body {
 
 .app-shell {
   min-height: 100vh;
-  padding: 20px;
+  padding: 14px;
 }
 
 .app-shell__frame {
-  width: min(94vw, 1760px);
-  min-height: calc(100vh - 44px);
+  width: min(98vw, 1920px);
+  min-height: calc(100vh - 28px);
   border: 1px solid var(--app-border);
   border-radius: 24px;
   overflow: hidden;
@@ -77,9 +77,9 @@ body {
   margin: 16px 14px 10px;
   padding: 16px;
   border-radius: 16px;
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
-  color: #e8f0ff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(140deg, rgba(61, 115, 255, 0.12), rgba(61, 115, 255, 0.03));
+  color: #2e5edf;
+  border: 1px solid rgba(61, 115, 255, 0.18);
 }
 
 .app-page {
@@ -118,17 +118,32 @@ body {
   line-height: 42px;
   border-radius: 10px;
   margin-block: 6px;
-  color: rgba(236, 242, 255, 0.85) !important;
+  color: #1d2942 !important;
+  font-weight: 500;
 }
 
 .app-menu .ant-menu-item-selected {
-  background: linear-gradient(90deg, rgba(61, 115, 255, 0.25), rgba(61, 115, 255, 0.08)) !important;
-  border: 1px solid rgba(109, 156, 255, 0.5);
-  color: #fff !important;
+  background: linear-gradient(90deg, rgba(61, 115, 255, 0.18), rgba(61, 115, 255, 0.05)) !important;
+  border: 1px solid rgba(109, 156, 255, 0.32);
+  color: #1a3f9d !important;
 }
 
 .app-sider {
   background: var(--app-sidebar-bg) !important;
+}
+
+.dashboard-kpi {
+  background: linear-gradient(135deg, #ffffff, #f4f8ff) !important;
+  border: 1px solid #dfe9f9 !important;
+}
+
+html[data-theme='dark'] .app-menu .ant-menu-item {
+  color: rgba(236, 242, 255, 0.85) !important;
+}
+
+html[data-theme='dark'] .app-menu .ant-menu-item-selected {
+  color: #fff !important;
+  border-color: rgba(109, 156, 255, 0.5);
 }
 
 .auth-shell {

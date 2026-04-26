@@ -1,4 +1,5 @@
 import { Alert, Card, Col, Row, Skeleton, Space, Statistic, Typography } from 'antd';
+import { CreditCardOutlined, TeamOutlined, ToolOutlined } from '@ant-design/icons';
 import { useEffect, useMemo, useState } from 'react';
 import { extractApiErrorMessage } from '../api/error';
 import { getRequests } from '../api/requests';
@@ -63,17 +64,29 @@ export function DashboardPage() {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={8}>
-          <Card className="app-card-soft" style={{ minHeight: 136 }}>
+          <Card className="dashboard-kpi" style={{ minHeight: 140 }}>
+            <Space size={10} style={{ marginBottom: 8 }}>
+              <TeamOutlined style={{ color: '#2f6bff', fontSize: 18 }} />
+              <Typography.Text strong>Абоненты</Typography.Text>
+            </Space>
             {loading ? <Skeleton active paragraph={false} /> : <Statistic title="Активные абоненты" value={stats.activeSubscribers} />}
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card className="app-card-soft" style={{ minHeight: 136 }}>
+          <Card className="dashboard-kpi" style={{ minHeight: 140 }}>
+            <Space size={10} style={{ marginBottom: 8 }}>
+              <ToolOutlined style={{ color: '#2f6bff', fontSize: 18 }} />
+              <Typography.Text strong>Сервис</Typography.Text>
+            </Space>
             {loading ? <Skeleton active paragraph={false} /> : <Statistic title="Открытые заявки" value={stats.openRequests} />}
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card className="app-card-soft" style={{ minHeight: 136 }}>
+          <Card className="dashboard-kpi" style={{ minHeight: 140 }}>
+            <Space size={10} style={{ marginBottom: 8 }}>
+              <CreditCardOutlined style={{ color: '#2f6bff', fontSize: 18 }} />
+              <Typography.Text strong>Финансы</Typography.Text>
+            </Space>
             {loading ? (
               <Skeleton active paragraph={false} />
             ) : (

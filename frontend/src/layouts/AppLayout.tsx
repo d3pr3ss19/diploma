@@ -64,14 +64,14 @@ export function AppLayout() {
     >
     <Layout className="app-shell" style={{ alignItems: 'center' }}>
       <Layout className="app-shell__frame" style={{ margin: '0 auto' }}>
-        <Sider width={276} theme={isDark ? 'dark' : 'light'} className="app-sider" style={{ borderRight: '1px solid rgba(255,255,255,0.08)' }}>
+        <Sider width={276} theme="light" className="app-sider" style={{ borderRight: '1px solid var(--app-border)' }}>
           <div className="app-sidebar-brand">
             <Typography.Text strong style={{ fontSize: 30, lineHeight: 1, color: 'inherit' }}>КП ИС</Typography.Text>
             <div style={{ marginTop: 8, fontSize: 14, opacity: 0.92 }}>Цифровой кабинет коммунального предприятия</div>
           </div>
           <Menu
             className="app-menu"
-            theme="dark"
+            theme="light"
             mode="inline"
             selectedKeys={[location.pathname]}
             style={{ fontSize: 16, borderInlineEnd: 'none', paddingInline: 10, background: 'transparent' }}
@@ -82,10 +82,10 @@ export function AppLayout() {
         <Layout className="app-page">
           <Header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <Space direction="vertical" size={1} style={{ minWidth: 0, flex: 1 }}>
-              <Typography.Text strong style={{ fontSize: 22, lineHeight: 1.2 }}>
+              <Typography.Text strong style={{ fontSize: 24, lineHeight: 1.2 }}>
                 Веб-ориентированная ИС коммунального предприятия
               </Typography.Text>
-              <Typography.Text type="secondary" style={{ fontSize: 13, whiteSpace: 'normal', lineHeight: 1.4 }}>
+              <Typography.Text type="secondary" style={{ fontSize: 14, whiteSpace: 'normal', lineHeight: 1.4 }}>
                 Единая панель для абонентов, операторов и администраторов
               </Typography.Text>
             </Space>
