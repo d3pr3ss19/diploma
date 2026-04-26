@@ -1,8 +1,10 @@
 import { Button, Card, Empty, Space, Table, Tag, Typography } from 'antd';
 import type { ServiceRequest } from '../../types/requests';
 
+type DashboardTicketRow = ServiceRequest & { displayNumber?: string };
+
 type Props = {
-  rows: ServiceRequest[];
+  rows: DashboardTicketRow[];
   loading?: boolean;
   onOpenAll: () => void;
   onCreate: () => void;
@@ -36,7 +38,13 @@ export function RecentTicketsTable({ rows, loading, onOpenAll, onCreate, onOpenR
         loading={loading}
         style={{ display: rows.length ? 'block' : 'none' }}
         columns={[
-          { title: '№', dataIndex: 'id', render: (value: string) => <Typography.Link onClick={() => onOpenRow(value)}>#{value.slice(0, 4)}</Typography.Link> },
+          {
+            title: '№',
+            dataIndex: 'id',
+            render: (value: string, row: DashboardTicketRow) => (
+              <Typography.Link onClick={() => onOpenRow(value)}>#{row.displayNumber ?? value.slice(0, 4)}</Typography.Link>
+            ),
+          },
           {
             title: 'Абонент',
             render: (_: unknown, row: ServiceRequest) => (

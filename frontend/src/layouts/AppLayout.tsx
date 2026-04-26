@@ -55,6 +55,7 @@ export function AppLayout() {
     .join('')
     .slice(0, 2)
     .toUpperCase();
+  const currentYear = new Date().getFullYear();
 
   return (
     <ConfigProvider
@@ -165,7 +166,7 @@ export function AppLayout() {
           </Content>
           <Footer className="app-footer" style={{ padding: '0 24px' }}>
             <Space style={{ width: '100%', justifyContent: 'space-between' }} wrap>
-              <Typography.Text type="secondary">© 2025 КП ИС | Версия 1.4.2</Typography.Text>
+              <Typography.Text type="secondary">© {currentYear} КП ИС | Версия 1.4.2</Typography.Text>
               <Space>
                 <span style={{ color: '#16a34a' }}>●</span>
                 <Typography.Text type="secondary">Система работает штатно</Typography.Text>

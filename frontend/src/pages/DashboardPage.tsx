@@ -7,7 +7,7 @@ import {
   ToolOutlined,
   UserAddOutlined,
 } from '@ant-design/icons';
-import { Alert, Button, Form, Input, Modal, Select, Space, Typography, message } from 'antd';
+import { Alert, Button, Form, Input, Modal, Segmented, Select, Space, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DebtStatusCard } from '../components/dashboard/DebtStatusCard';
@@ -36,6 +36,8 @@ const referenceTicket: ServiceRequest = {
   createdByUserId: 0,
 } as ServiceRequest;
 
+type DashboardTicket = ServiceRequest & { displayNumber: string };
+
 function formatDate(value: string) {
   return new Date(value).toLocaleString('ru-RU');
 }
@@ -61,7 +63,7 @@ export function DashboardPage() {
   const [subscriberSaving, setSubscriberSaving] = useState(false);
   const [localRequests, setLocalRequests] = useState<ServiceRequest[]>([]);
   const [localSubscribers, setLocalSubscribers] = useState(0);
-  const [ticketModal, setTicketModal] = useState<ServiceRequest | null>(null);
+  const [ticketModal, setTicketModal] = useState<DashboardTicket | null>(null);
   const [activityFeed, setActivityFeed] = useState<Array<{ key: string; title: string; subtitle: string; date: string }>>([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [ticketForm] = Form.useForm();
@@ -87,9 +89,43 @@ export function DashboardPage() {
     void loadStats();
   }, []);
 
+  const sourceTickets = useMemo(() => {
+    const merged = [...localRequests, ...requests];
+    if (merged.length === 0) {
+      return [referenceTicket];
+    }
+    const deduplicated = new Map<string, ServiceRequest>();
+    merged
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+      .forEach((ticket) => {
+        if (!deduplicated.has(ticket.id)) {
+          deduplicated.set(ticket.id, ticket);
+        }
+      });
+    return [...deduplicated.values()];
+  }, [localRequests, requests]);
+
+  const ticketsWithDisplay = useMemo<DashboardTicket[]>(() => {
+    let sequence = 311;
+    return [...sourceTickets]
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+      .map((ticket) => {
+        if (ticket.id === referenceTicket.id) {
+          return { ...ticket, displayNumber: 'c310' };
+        }
+        const displayNumber = `c${sequence}`;
+        sequence += 1;
+        return { ...ticket, displayNumber };
+      });
+  }, [sourceTickets]);
+
+  const openTicketsCount = useMemo(
+    () => ticketsWithDisplay.filter((item) => item.status === 'NEW' || item.status === 'IN_PROGRESS').length,
+    [ticketsWithDisplay],
+  );
+
   const mockData = useMemo<DashboardMockData>(() => {
     const activeSubscribers = subscribers.filter((item) => item.user?.isActual ?? true).length;
-    const openTickets = requests.filter((item) => item.status === 'NEW' || item.status === 'IN_PROGRESS').length;
     const totalDebt = subscribers.reduce((sum, subscriber) => {
       const subscriberDebt = (subscriber.accounts ?? []).reduce((accountSum, account) => {
         const balance = Number(account.balance);
@@ -100,20 +136,16 @@ export function DashboardPage() {
 
     return {
       activeSubscribers: activeSubscribers + localSubscribers,
-      openTickets: openTickets + localRequests.length,
+      openTickets: openTicketsCount,
       totalDebt,
       monthlyPayments: 0,
       overdueTickets: 0,
       debtorsCount: 0,
       lastUpdated: '20.05.2025 14:36',
     };
-  }, [requests, subscribers, localRequests.length, localSubscribers]);
+  }, [subscribers, localSubscribers, openTicketsCount]);
 
-  const recentRequests = useMemo(() => {
-    const combined = [...localRequests, ...requests];
-    const withReference = combined.some((item) => item.id === referenceTicket.id) ? combined : [referenceTicket, ...combined];
-    return withReference.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 5);
-  }, [localRequests, requests]);
+  const recentRequests = useMemo(() => ticketsWithDisplay.slice(0, 5), [ticketsWithDisplay]);
 
   const chartData = useMemo<ChartPoint[]>(() => [], []);
 
@@ -123,7 +155,7 @@ export function DashboardPage() {
         ...activityFeed,
         ...recentRequests.map((item) => ({
           key: item.id,
-          title: `Создана заявка #${item.id}`,
+          title: `Создана заявка #${item.displayNumber}`,
           subtitle: item.createdByUser?.email ?? `Пользователь ${item.createdByUserId}`,
           date: formatDate(item.createdAt),
         })),
@@ -181,7 +213,10 @@ export function DashboardPage() {
     }
   }
 
-  const modalTicket = ticketModal ?? referenceTicket;
+  const modalTicket = (ticketModal ? ({ ...ticketModal, displayNumber: ticketModal.displayNumber ?? 'c310' } as DashboardTicket) : recentRequests[0]) ?? {
+    ...referenceTicket,
+    displayNumber: 'c310',
+  };
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
@@ -198,7 +233,7 @@ export function DashboardPage() {
             </span>
             <span>•</span>
             <span>
-              <span className="status-dot status-dot--red" />1 заявка требует обработки
+              <span className="status-dot status-dot--red" />{openTicketsCount} {openTicketsCount === 1 ? 'заявка требует обработки' : 'заявки требуют обработки'}
             </span>
             <span>•</span>
             <span>
@@ -207,17 +242,17 @@ export function DashboardPage() {
           </div>
         </div>
         <div className="dashboard-summary__actions">
-          <Select
+          <Segmented
+            className="dashboard-period-segmented"
             value={period}
-            style={{ width: 160 }}
             options={[
               { value: '1', label: 'Сегодня' },
               { value: '7', label: 'Неделя' },
               { value: '30', label: 'Месяц' },
             ]}
-            onChange={setPeriod}
+            onChange={(value) => setPeriod(String(value))}
           />
-          <Space>
+          <Space size={10}>
             <Button type="primary" size="large" icon={<ToolOutlined />} onClick={() => setCreateTicketOpen(true)}>
               Создать заявку
             </Button>
@@ -281,7 +316,7 @@ export function DashboardPage() {
               onOpenAll={() => navigate('/tickets')}
               onCreate={() => setCreateTicketOpen(true)}
               onOpenRow={(id) => {
-                const item = recentRequests.find((request) => request.id === id) ?? referenceTicket;
+                const item = recentRequests.find((request) => request.id === id) ?? { ...referenceTicket, displayNumber: 'c310' };
                 setTicketModal(item);
               }}
             />
@@ -440,10 +475,10 @@ export function DashboardPage() {
         <div className="ticket-detail-modal__header">
           <div>
             <div className="ticket-detail-modal__title-row">
-              <Typography.Title level={3}>Заявка #{modalTicket.id}</Typography.Title>
+              <Typography.Title level={3}>Заявка #{modalTicket.displayNumber}</Typography.Title>
               <span className="status-chip">Открыта</span>
             </div>
-            <Typography.Text>Создана {formatDate(modalTicket.createdAt)}</Typography.Text>
+            <Typography.Text className="ticket-detail-modal__subtitle">Создана {formatDate(modalTicket.createdAt)}</Typography.Text>
           </div>
         </div>
 
