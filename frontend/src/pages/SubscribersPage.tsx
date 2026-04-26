@@ -131,12 +131,51 @@ function deriveAccountNumber(subscriber: Subscriber, meta?: SubscriberMeta): str
   return meta?.accountNumber ?? subscriber.accounts?.[0]?.accountNumber ?? subscriber.id.slice(0, 6).padStart(6, '0');
 }
 
+function normalizeAccountNumber(value: string, fallbackIndex: number): string {
+  const numeric = value.replace(/\D/g, '');
+  if (numeric.length > 0) {
+    return numeric.slice(-6).padStart(6, '0');
+  }
+  return String(123 + fallbackIndex).padStart(6, '0');
+}
+
 function toCsvValue(value: string | number): string {
   const text = String(value ?? '');
   if (text.includes(',') || text.includes('"') || text.includes('\n')) {
     return `"${text.replace(/"/g, '""')}"`;
   }
   return text;
+}
+
+function downloadExcelCompatibleFile(filename: string, rows: SubscriberView[]) {
+  const headers = ['ФИО', 'Телефон', 'Email', 'Адрес', 'Лицевой счёт', 'Роль', 'Статус', 'Заявок создано', 'Задолженность'];
+  const tableRows = rows
+    .map(
+      (row) => `<tr>${[
+        row.fullName,
+        row.phone,
+        row.email,
+        row.address,
+        row.accountNumber,
+        roleLabel(row.role),
+        statusLabel(row.status),
+        row.ticketsCount,
+        `${row.debtAmount} ₽`,
+      ]
+        .map((cell) => `<td>${String(cell ?? '')}</td>`)
+        .join('')}</tr>`,
+    )
+    .join('');
+
+  const content = `<html><head><meta charset=\"utf-8\" /></head><body><table><thead><tr>${headers.map((header) => `<th>${header}</th>`).join('')}</tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
+  const blob = new Blob([content], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
 }
 
 function downloadCsv(filename: string, rows: SubscriberView[]) {
@@ -217,7 +256,7 @@ export function SubscribersPage() {
   }, []);
 
   const subscribers = useMemo<SubscriberView[]>(() => {
-    return items.map((subscriber) => {
+    return items.map((subscriber, index) => {
       const meta = metaById[subscriber.id];
       const ticketsCount = (subscriber.accounts ?? []).reduce((sum, account) => sum + (account._count?.requests ?? 0), 0);
       const debtAmount = (subscriber.accounts ?? []).reduce((sum, account) => {
@@ -233,7 +272,7 @@ export function SubscribersPage() {
         phone: subscriber.phone ?? '—',
         email: deriveEmail(subscriber, meta),
         address: subscriber.address,
-        accountNumber: deriveAccountNumber(subscriber, meta),
+        accountNumber: normalizeAccountNumber(deriveAccountNumber(subscriber, meta), index),
         role: meta?.role ?? normalizeRole(subscriber.user?.role?.code),
         status: resolveStatus(subscriber, meta),
         createdAt: subscriber.createdAt,
@@ -407,23 +446,24 @@ export function SubscribersPage() {
     }
   }
 
-  function handleExportAllCsv() {
-    downloadCsv(`subscribers-${new Date().getFullYear()}.csv`, subscribers);
+  function handleExportCsv() {
+    downloadCsv(`subscribers-${new Date().getFullYear()}.csv`, filteredSubscribers);
     messageApi.success('Экспорт CSV выполнен');
   }
 
+  function handleExportExcel() {
+    downloadExcelCompatibleFile(`subscribers-${new Date().getFullYear()}.xls`, filteredSubscribers);
+    messageApi.success('Экспорт в Excel выполнен');
+  }
+
   function handleExportFilteredCsv() {
-    downloadCsv(`subscribers-filtered-${new Date().getFullYear()}.csv`, filteredSubscribers);
+    downloadCsv(`subscribers-${new Date().getFullYear()}-filtered.csv`, filteredSubscribers);
     messageApi.success('Экспорт текущей выборки выполнен');
   }
 
   const exportMenuItems: MenuProps['items'] = [
-    { key: 'csv', label: 'Экспорт в CSV', onClick: handleExportAllCsv },
-    {
-      key: 'xlsx',
-      label: 'Экспорт в XLSX',
-      onClick: () => messageApi.info('Экспорт в XLSX будет доступен после подключения модуля отчётов'),
-    },
+    { key: 'csv', label: 'Экспорт в CSV', onClick: handleExportCsv },
+    { key: 'xlsx', label: 'Экспорт в Excel', onClick: handleExportExcel },
     { key: 'filtered', label: 'Экспорт текущей выборки', onClick: handleExportFilteredCsv },
   ];
 
@@ -446,11 +486,7 @@ export function SubscribersPage() {
       {contextHolder}
 
       <div className="subscribers-page__header">
-        <div>
-          <Typography.Title level={1} className="subscribers-page__title">Абоненты</Typography.Title>
-          <Typography.Text className="subscribers-page__subtitle">Управление абонентской базой, лицевыми счетами и обращениями</Typography.Text>
-        </div>
-
+        <Typography.Text className="subscribers-page__section-label">Действия</Typography.Text>
         <Space size={10}>
           <Dropdown menu={{ items: exportMenuItems }} trigger={['click']}>
             <Button className="subscribers-btn subscribers-btn--secondary" icon={<DownloadOutlined />}>
@@ -650,10 +686,10 @@ export function SubscribersPage() {
                   title: 'Действия',
                   key: 'actions',
                   render: (_: unknown, row: SubscriberView) => (
-                    <Space>
-                      <Button size="small" onClick={(event) => { event.stopPropagation(); openSubscriber(row); }}>Открыть</Button>
+                    <Space className="subscribers-actions-cell">
+                      <Button className="subscribers-open-btn" onClick={(event) => { event.stopPropagation(); openSubscriber(row); }}>Открыть</Button>
                       <Dropdown menu={{ items: rowMenu(row) }} trigger={['click']}>
-                        <Button size="small" icon={<MoreOutlined />} onClick={(event) => event.stopPropagation()} aria-label="Меню действий" />
+                        <Button className="subscribers-kebab-btn" icon={<MoreOutlined />} onClick={(event) => event.stopPropagation()} aria-label="Меню действий" />
                       </Dropdown>
                     </Space>
                   ),

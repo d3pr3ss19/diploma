@@ -10,6 +10,39 @@ import { readTheme } from '../app/theme';
 
 const { Header, Sider, Content, Footer } = Layout;
 
+const PAGE_META: Array<{ match: (pathname: string) => boolean; title: string; subtitle: string }> = [
+  {
+    match: (pathname) => pathname.startsWith('/subscribers'),
+    title: 'Абоненты',
+    subtitle: 'Управление абонентской базой, лицевыми счетами и обращениями',
+  },
+  {
+    match: (pathname) => pathname.startsWith('/tickets') || pathname.startsWith('/requests'),
+    title: 'Заявки',
+    subtitle: 'Обработка обращений абонентов и контроль статусов',
+  },
+  {
+    match: (pathname) => pathname.startsWith('/account'),
+    title: 'Лицевые счета',
+    subtitle: 'Управление лицевыми счетами, начислениями и задолженностью',
+  },
+  {
+    match: (pathname) => pathname.startsWith('/billing'),
+    title: 'Оплата ЖКХ',
+    subtitle: 'Приём и контроль платежей по коммунальным услугам',
+  },
+  {
+    match: (pathname) => pathname.startsWith('/logs'),
+    title: 'Логи',
+    subtitle: 'Журнал действий пользователей и системных событий',
+  },
+  {
+    match: () => true,
+    title: 'ИС коммунального предприятия',
+    subtitle: 'Единая панель управления абонентами, заявками и платежами',
+  },
+];
+
 
 export function AppLayout() {
   const navigate = useNavigate();
@@ -55,6 +88,7 @@ export function AppLayout() {
     .join('')
     .slice(0, 2)
     .toUpperCase();
+  const pageMeta = PAGE_META.find((entry) => entry.match(location.pathname)) ?? PAGE_META[PAGE_META.length - 1];
 
   return (
     <ConfigProvider
@@ -91,11 +125,11 @@ export function AppLayout() {
         <Layout className="app-page">
           <Header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <Space direction="vertical" size={1} style={{ minWidth: 0, flex: 1 }}>
-              <Typography.Text strong style={{ fontSize: 24, lineHeight: 1.2 }}>
-                ИС коммунального предприятия
+              <Typography.Text strong className="app-header__title">
+                {pageMeta.title}
               </Typography.Text>
-              <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: 'normal', lineHeight: 1.4 }}>
-                Единая панель для абонентов, операторов и администраторов
+              <Typography.Text type="secondary" className="app-header__subtitle">
+                {pageMeta.subtitle}
               </Typography.Text>
             </Space>
             <Space style={{ flexShrink: 0 }}>
