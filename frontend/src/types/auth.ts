@@ -9,8 +9,10 @@ export type LoginResponse = {
   accessToken: string;
   refreshToken: string;
   user: {
-    id: string;
+    id: number;
     email: string;
+    fullName?: string | null;
+    region?: string | null;
     role: UserRole;
   };
 };

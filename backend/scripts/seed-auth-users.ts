@@ -27,20 +27,20 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: 'admin@kp.local' },
-    update: { passwordHash, roleId: adminRole.id, isActive: true },
-    create: { email: 'admin@kp.local', passwordHash, roleId: adminRole.id, isActive: true }
+    update: { passwordHash, roleId: adminRole.id, isActual: true },
+    create: { email: 'admin@kp.local', passwordHash, roleId: adminRole.id, isActual: true }
   });
 
   await prisma.user.upsert({
     where: { email: 'operator@kp.local' },
-    update: { passwordHash, roleId: operatorRole.id, isActive: true },
-    create: { email: 'operator@kp.local', passwordHash, roleId: operatorRole.id, isActive: true }
+    update: { passwordHash, roleId: operatorRole.id, isActual: true },
+    create: { email: 'operator@kp.local', passwordHash, roleId: operatorRole.id, isActual: true }
   });
 
   await prisma.user.upsert({
     where: { email: 'subscriber@kp.local' },
-    update: { passwordHash, roleId: subscriberRole.id, isActive: true },
-    create: { email: 'subscriber@kp.local', passwordHash, roleId: subscriberRole.id, isActive: true }
+    update: { passwordHash, roleId: subscriberRole.id, isActual: true },
+    create: { email: 'subscriber@kp.local', passwordHash, roleId: subscriberRole.id, isActual: true }
   });
 
   console.log('Seeded auth users: admin/operator/subscriber (password: password123)');

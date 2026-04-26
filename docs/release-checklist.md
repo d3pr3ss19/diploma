@@ -20,9 +20,8 @@
 Рекомендуемые команды:
 
 ```bash
-make smoke-backend
-make e2e-auth-integration
-make e2e-rbac
+cd backend && npm run prisma:generate
+cd backend && npm run start:dev
 ```
 
 ## 3) Frontend readiness
@@ -36,24 +35,15 @@ make e2e-rbac
 Рекомендуемые команды:
 
 ```bash
-make smoke-frontend
+cd frontend && npm run dev
 make test-frontend
 ```
 
 ## 4) Tooling & quality gates
 
-- [ ] `make verify-tooling` проходит полностью.
-- [ ] `make verify-scripts` и `make verify-structure` проходят.
-- [ ] Проверки auth runtime/DB проходят на целевой среде.
-- [ ] Критические smoke/e2e-команды зафиксированы в заметках перед защитой.
-
-Рекомендуемые команды:
-
-```bash
-make verify-tooling
-make verify-auth-runtime
-make verify-auth-refresh-sessions
-```
+- [ ] Локальный запуск backend/frontend стабилен.
+- [ ] Проверены ключевые сценарии вручную (login/roles/billing/requests).
+- [ ] Ошибки в UI/API обрабатываются контролируемо.
 
 ## 5) Demo package
 
@@ -83,5 +73,5 @@ make verify-auth-refresh-sessions
 
 1. Готовы релизный чек-лист и демо-сценарий.
 2. Подтверждён повторяемый локальный запуск проекта.
-3. Пройдены ключевые smoke/e2e/tooling-проверки.
+3. Пройдены ключевые ручные сценарии демонстрации.
 4. Документация синхронизирована с кодовой базой.

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 
 import { AuthGuard } from '../../common/auth/auth.guard';
 import { Role } from '../../common/auth/role.enum';
@@ -19,21 +20,31 @@ export class SubscribersController {
     return this.subscribersService.list();
   }
 
-  @Roles(Role.ADMIN, Role.OPERATOR)
-  @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.subscribersService.findOne(id);
+  @Roles(Role.SUBSCRIBER)
+  @Get('me')
+  me(@Req() req: Request & { user?: { id: number } }) {
+    return this.subscribersService.findByUserId(req.user?.id);
   }
 
   @Roles(Role.ADMIN, Role.OPERATOR)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.subscribersService.findOne(id);
+  }
+
+  @Roles(Role.ADMIN)
   @Post()
-  create(@Body() body: CreateSubscriberDto) {
-    return this.subscribersService.create(body);
+  create(@Body() body: CreateSubscriberDto, @Req() req: Request & { user?: { id: number } }) {
+    return this.subscribersService.create(body, req.user?.id);
   }
 
   @Roles(Role.ADMIN)
   @Patch(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() body: UpdateSubscriberDto) {
-    return this.subscribersService.update(id, body);
+  update(
+    @Param('id') id: string,
+    @Body() body: UpdateSubscriberDto,
+    @Req() req: Request & { user?: { id: number } }
+  ) {
+    return this.subscribersService.update(id, body, req.user?.id);
   }
 }

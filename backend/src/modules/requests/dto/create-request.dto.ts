@@ -1,8 +1,8 @@
-import { RequestCategory } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { RequestCategory, RequestPriority } from '@prisma/client';
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString, MaxLength, Min, MinLength, Matches } from 'class-validator';
 
 export class CreateRequestDto {
-  @IsUUID()
+  @IsString()
   accountId!: string;
 
   @IsString()
@@ -19,6 +19,20 @@ export class CreateRequestDto {
   category!: RequestCategory;
 
   @IsOptional()
-  @IsUUID()
-  assignedToUserId?: string;
+  @IsEnum(RequestPriority)
+  priority?: RequestPriority;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\+7\d{10}$/, { message: 'Формат телефона: +7XXXXXXXXXX' })
+  contactPhone?: string;
+
+  @IsOptional()
+  @IsDateString()
+  preferredVisitAt?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  assignedToUserId?: number;
 }

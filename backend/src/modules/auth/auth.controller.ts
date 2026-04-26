@@ -1,13 +1,37 @@
-import { Body, Controller, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards
+} from '@nestjs/common';
+import { Request } from 'express';
 
 import { AuthGuard } from '../../common/auth/auth.guard';
 import { Role } from '../../common/auth/role.enum';
 import { Roles } from '../../common/auth/roles.decorator';
 import { RolesGuard } from '../../common/auth/roles.guard';
 import { AuthService } from './auth.service';
+import { CreateSignupRequestDto } from './dto/create-signup-request.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { ReviewSignupRequestDto } from './dto/review-signup-request.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
+
+type AuthenticatedRequest = Request & {
+  user?: {
+    id: number;
+    role: Role;
+  };
+};
 
 @Controller('auth')
 export class AuthController {
@@ -28,10 +52,89 @@ export class AuthController {
     return this.authService.logout(body.refreshToken);
   }
 
+  @Post('signup-requests')
+  createSignupRequest(@Body() body: CreateSignupRequestDto) {
+    return this.authService.createSignupRequest(body);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Get('signup-requests')
+  listSignupRequests(@Query('status') status?: 'PENDING' | 'APPROVED' | 'REJECTED') {
+    return this.authService.listSignupRequests(status);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Post('signup-requests/:id/approve')
+  approveSignupRequest(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() body: ReviewSignupRequestDto,
+    @Req() req: AuthenticatedRequest
+  ) {
+    return this.authService.approveSignupRequest(id, req.user?.id as number, body);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Post('signup-requests/:id/reject')
+  rejectSignupRequest(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() body: ReviewSignupRequestDto,
+    @Req() req: AuthenticatedRequest
+  ) {
+    return this.authService.rejectSignupRequest(id, req.user?.id as number, body);
+  }
+
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post('users/:id/deactivate')
-  deactivateUser(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.authService.deactivateUser(id);
+  deactivateUser(@Param('id', new ParseIntPipe()) id: number, @Req() req: AuthenticatedRequest) {
+    return this.authService.deactivateUser(id, req.user?.id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Post('users/:id/activate')
+  activateUser(@Param('id', new ParseIntPipe()) id: number, @Req() req: AuthenticatedRequest) {
+    return this.authService.activateUser(id, req.user?.id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Delete('users/:id')
+  deleteUser(@Param('id', new ParseIntPipe()) id: number, @Req() req: AuthenticatedRequest) {
+    return this.authService.deleteUser(id, req.user?.id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Post('users/:id/reset-password')
+  resetUserPassword(@Param('id', new ParseIntPipe()) id: number, @Req() req: AuthenticatedRequest) {
+    return this.authService.resetUserPassword(id, req.user?.id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Patch('users/:id/role')
+  updateUserRole(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() body: UpdateRoleDto,
+    @Req() req: AuthenticatedRequest
+  ) {
+    return this.authService.updateUserRole(id, body, req.user?.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('me')
+  updateMyProfile(@Body() body: UpdateProfileDto, @Req() req: AuthenticatedRequest) {
+    return this.authService.updateProfile(req.user?.id, body);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('audit-logs')
+  listAuditLogs(@Query('section') section?: 'USERS' | 'SUBSCRIBERS' | 'REQUESTS' | 'BILLING') {
+    return this.authService.listAuditLogs(section);
   }
 }

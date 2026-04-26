@@ -6,7 +6,7 @@ import { Role } from './role.enum';
 
 type AuthenticatedRequest = Request & {
   user?: {
-    id: string;
+    id: number;
     role: Role;
   };
 };

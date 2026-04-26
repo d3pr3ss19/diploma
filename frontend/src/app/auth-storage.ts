@@ -37,3 +37,17 @@ export function updateAccessToken(accessToken: string): boolean {
 export function clearAuth(): void {
   localStorage.removeItem(AUTH_STORAGE_KEY);
 }
+
+export function updateStoredUser(user: LoginResponse['user']): boolean {
+  const current = readAuth();
+  if (!current) {
+    return false;
+  }
+
+  writeAuth({
+    ...current,
+    user,
+  });
+
+  return true;
+}

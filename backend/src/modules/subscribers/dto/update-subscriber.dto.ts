@@ -1,4 +1,4 @@
-import { IsOptional, IsPhoneNumber, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsPhoneNumber, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateSubscriberDto {
   @IsOptional()
@@ -21,8 +21,4 @@ export class UpdateSubscriberDto {
   @IsString()
   @MaxLength(20)
   apartment?: string;
-
-  @IsOptional()
-  @IsUUID()
-  userId?: string;
 }
