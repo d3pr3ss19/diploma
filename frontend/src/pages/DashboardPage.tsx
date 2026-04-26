@@ -1,6 +1,7 @@
 import { CreditCardOutlined, DollarCircleOutlined, TeamOutlined, ToolOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Alert, Button, Col, Row, Segmented, Space, Typography } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DebtStatusCard } from '../components/dashboard/DebtStatusCard';
 import { KpiCard } from '../components/dashboard/KpiCard';
 import { PaymentsChart } from '../components/dashboard/PaymentsChart';
@@ -13,19 +14,13 @@ import { getSubscribers } from '../api/subscribers';
 import type { ServiceRequest } from '../types/requests';
 import type { Subscriber } from '../types/subscribers';
 
-const CHART_DATA: ChartPoint[] = [
-  { label: '21 апр', accruals: 8000, payments: 5000 },
-  { label: '28 апр', accruals: 12000, payments: 14000 },
-  { label: '5 мая', accruals: 15000, payments: 12000 },
-  { label: '12 мая', accruals: 5000, payments: 2500 },
-  { label: '19 мая', accruals: 20000, payments: 6000 },
-];
-
 export function DashboardPage() {
+  const navigate = useNavigate();
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [period, setPeriod] = useState('30');
 
   useEffect(() => {
     async function loadStats() {
@@ -68,6 +63,16 @@ export function DashboardPage() {
   }, [requests, subscribers]);
 
   const recentRequests = useMemo(() => [...requests].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 1), [requests]);
+  const chartData = useMemo<ChartPoint[]>(() => [], []);
+  const recentActivities = useMemo(
+    () => recentRequests.map((item) => ({
+      key: item.id,
+      title: `Создана заявка #${item.id.slice(0, 4)}`,
+      subtitle: item.createdByUser?.email ?? `Пользователь ${item.createdByUserId}`,
+      date: new Date(item.createdAt).toLocaleString('ru-RU'),
+    })),
+    [recentRequests],
+  );
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
@@ -86,8 +91,8 @@ export function DashboardPage() {
         <div className="dashboard-summary__actions">
           <Segmented options={['Сегодня', 'Неделя', 'Месяц']} defaultValue="Сегодня" />
           <Space>
-            <Button type="primary" size="large" icon={<ToolOutlined />}>Создать заявку</Button>
-            <Button size="large" icon={<UserAddOutlined />}>Добавить абонента</Button>
+            <Button type="primary" size="large" icon={<ToolOutlined />} onClick={() => navigate('/requests')}>Создать заявку</Button>
+            <Button size="large" icon={<UserAddOutlined />} onClick={() => navigate('/subscribers')}>Добавить абонента</Button>
           </Space>
         </div>
       </div>
@@ -95,20 +100,20 @@ export function DashboardPage() {
       {error ? <Alert type="error" showIcon message={error} /> : null}
 
       <div className="kpi-grid">
-        <KpiCard icon={<TeamOutlined />} colorClass="kpi-icon--blue" title="Абоненты" value={mockData.activeSubscribers} label="активных" status="+0 за неделю" />
-        <KpiCard icon={<ToolOutlined />} colorClass="kpi-icon--amber" title="Заявки" value={mockData.openTickets} label="открытая" status="0 просроченных" />
-        <KpiCard icon={<DollarCircleOutlined />} colorClass="kpi-icon--green" title="Финансы" value={`${mockData.totalDebt.toLocaleString('ru-RU')} ₽`} label="задолженность" status="Нет просрочек" />
-        <KpiCard icon={<CreditCardOutlined />} colorClass="kpi-icon--purple" title="Оплаты" value={`${mockData.monthlyPayments.toLocaleString('ru-RU')} ₽`} label="за месяц" status="0 платежей" />
+        <KpiCard icon={<TeamOutlined />} colorClass="kpi-icon--blue" title="Абоненты" value={mockData.activeSubscribers} label="активных" status="+0 за неделю" onOpen={() => navigate('/subscribers')} />
+        <KpiCard icon={<ToolOutlined />} colorClass="kpi-icon--amber" title="Заявки" value={mockData.openTickets} label="открытая" status="0 просроченных" onOpen={() => navigate('/requests')} />
+        <KpiCard icon={<DollarCircleOutlined />} colorClass="kpi-icon--green" title="Финансы" value={`${mockData.totalDebt.toLocaleString('ru-RU')} ₽`} label="задолженность" status="Нет просрочек" onOpen={() => navigate('/account')} />
+        <KpiCard icon={<CreditCardOutlined />} colorClass="kpi-icon--purple" title="Оплаты" value={`${mockData.monthlyPayments.toLocaleString('ru-RU')} ₽`} label="за месяц" status="0 платежей" onOpen={() => navigate('/billing')} />
       </div>
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} xl={15}><PaymentsChart points={CHART_DATA} /></Col>
+        <Col xs={24} xl={15}><PaymentsChart points={chartData} loading={loading} period={period} onPeriodChange={setPeriod} onOpenBilling={() => navigate('/billing')} /></Col>
         <Col xs={24} xl={9}><DebtStatusCard totalDebt={mockData.totalDebt} debtorsCount={mockData.debtorsCount} /></Col>
       </Row>
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} xl={15}><RecentTicketsTable rows={recentRequests} /></Col>
-        <Col xs={24} xl={9}><RecentActivityList /></Col>
+        <Col xs={24} xl={15}><RecentTicketsTable rows={recentRequests} loading={loading} onOpenAll={() => navigate('/requests')} onCreate={() => navigate('/requests')} onOpenRow={() => navigate('/requests')} /></Col>
+        <Col xs={24} xl={9}><RecentActivityList items={recentActivities} loading={loading} onOpenAll={() => navigate('/logs')} /></Col>
       </Row>
 
       {loading ? <Typography.Text type="secondary">Загрузка данных...</Typography.Text> : null}

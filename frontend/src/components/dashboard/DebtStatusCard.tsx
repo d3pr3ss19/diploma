@@ -17,7 +17,20 @@ export function DebtStatusCard({ totalDebt, debtorsCount }: Props) {
           </Space>
         </Col>
         <Col span={12} style={{ display: 'flex', justifyContent: 'center' }}>
-          <Progress type="circle" percent={0} strokeColor="#16A34A" format={() => '0%\nпросрочено'} />
+          <div className="debt-circle-wrap">
+            <Progress
+              type="circle"
+              percent={0}
+              width={112}
+              strokeColor="#16A34A"
+              format={(percent) => (
+                <div className="debt-circle-text">
+                  <div>{percent}%</div>
+                  <span>просрочено</span>
+                </div>
+              )}
+            />
+          </div>
         </Col>
       </Row>
       <div className="debt-status__footer">

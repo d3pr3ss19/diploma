@@ -176,6 +176,31 @@ body {
   height: 38px;
 }
 
+.icon-button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #E0E6F0;
+  border-radius: 10px;
+}
+
+.user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 6px 8px !important;
+}
+
+.user-trigger:hover {
+  background: #F8FAFC !important;
+}
+
+.user-role {
+  font-size: 11px !important;
+  color: #667085 !important;
+  line-height: 1.1;
+}
+
 .fake-chart {
   height: 240px;
   display: flex;
@@ -353,6 +378,29 @@ html[data-theme='dark'] .app-menu .ant-menu-item-selected {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.debt-circle-wrap {
+  min-width: 112px;
+  display: flex;
+  justify-content: center;
+}
+
+.debt-circle-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.debt-circle-text div {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.debt-circle-text span {
+  font-size: 11px;
+  color: #667085;
 }
 
 .recent-table .ant-table-thead > tr > th {

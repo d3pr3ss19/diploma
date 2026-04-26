@@ -9,11 +9,12 @@ type Props = {
   value: string | number;
   label: string;
   status: string;
+  onOpen: () => void;
 };
 
-export function KpiCard({ icon, colorClass, title, value, label, status }: Props) {
+export function KpiCard({ icon, colorClass, title, value, label, status, onOpen }: Props) {
   return (
-    <Card className="kpi-card">
+    <Card className="kpi-card" onClick={onOpen} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') onOpen(); }}>
       <div className="kpi-card__top">
         <div className={`kpi-card__icon ${colorClass}`}>{icon}</div>
         <div className="kpi-card__meta">
@@ -24,7 +25,7 @@ export function KpiCard({ icon, colorClass, title, value, label, status }: Props
         </div>
         <RightOutlined className="kpi-card__chevron" />
       </div>
-      <Typography.Link className="kpi-card__link">Открыть →</Typography.Link>
+      <Typography.Link className="kpi-card__link" onClick={(event) => { event.preventDefault(); onOpen(); }}>Открыть →</Typography.Link>
     </Card>
   );
 }

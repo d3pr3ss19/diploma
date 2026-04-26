@@ -1,11 +1,15 @@
-import { Card, Select, Space, Typography } from 'antd';
+import { Button, Card, Empty, Select, Space, Typography } from 'antd';
 import type { ChartPoint } from './types';
 
 type Props = {
   points: ChartPoint[];
+  loading?: boolean;
+  period: string;
+  onPeriodChange: (value: string) => void;
+  onOpenBilling: () => void;
 };
 
-export function PaymentsChart({ points }: Props) {
+export function PaymentsChart({ points, loading, period, onPeriodChange, onOpenBilling }: Props) {
   const maxValue = 20000;
   const chartHeight = 200;
   const chartWidth = 680;
@@ -16,8 +20,24 @@ export function PaymentsChart({ points }: Props) {
   return (
     <Card
       title="Оплаты и начисления"
-      extra={<Select defaultValue="30" options={[{ value: '30', label: 'За 30 дней' }]} style={{ width: 130 }} />}
+      extra={<Select value={period} options={[{ value: '7', label: 'За 7 дней' }, { value: '30', label: 'За 30 дней' }, { value: 'month', label: 'За месяц' }, { value: 'year', label: 'За год' }]} style={{ width: 130 }} onChange={onPeriodChange} />}
     >
+      {loading ? <Typography.Text type="secondary">Загрузка графика...</Typography.Text> : null}
+      {!loading && points.length === 0 ? (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={
+            <Space direction="vertical" size={0}>
+              <Typography.Text strong>Нет данных за выбранный период</Typography.Text>
+              <Typography.Text type="secondary">Начисления и оплаты появятся здесь после проведения операций.</Typography.Text>
+            </Space>
+          }
+        >
+          <Button onClick={onOpenBilling}>Открыть оплату ЖКХ</Button>
+        </Empty>
+      ) : null}
+      {!loading && points.length > 0 ? (
+        <>
       <Space size={16} style={{ marginBottom: 8 }}>
         <Space><span className="legend-dot legend-dot--blue" />Начисления</Space>
         <Space><span className="legend-dot legend-dot--green" />Оплаты</Space>
@@ -45,9 +65,8 @@ export function PaymentsChart({ points }: Props) {
           );
         })}
       </svg>
-      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-        Данные демонстрационные, структура готова для подстановки API значений.
-      </Typography.Text>
+        </>
+      ) : null}
     </Card>
   );
 }

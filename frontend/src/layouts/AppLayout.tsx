@@ -1,10 +1,11 @@
 import { BellOutlined, CreditCardOutlined, DollarOutlined, DownOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, QuestionCircleOutlined, ReloadOutlined, SearchOutlined, SettingOutlined, TeamOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Avatar, Badge, ConfigProvider, Dropdown, Input, Layout, Menu, Space, Tag, Typography, theme as antdTheme } from 'antd';
+import { Avatar, Badge, Button, ConfigProvider, Dropdown, Empty, Input, Layout, Menu, Popover, Space, Typography, theme as antdTheme } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { clearAuth, readAuth } from '../app/auth-storage';
+import { useNotifications } from '../app/notifications';
 import { readTheme } from '../app/theme';
 
 const { Header, Sider, Content, Footer } = Layout;
@@ -15,6 +16,7 @@ export function AppLayout() {
   const location = useLocation();
   const auth = readAuth();
   const [isDark, setIsDark] = useState(readTheme() === 'dark');
+  const notifications = useNotifications();
 
 
   const menuItems = [
@@ -98,9 +100,46 @@ export function AppLayout() {
             </Space>
             <Space style={{ flexShrink: 0 }}>
               <Input placeholder="Поиск..." prefix={<SearchOutlined />} className="app-search" />
-              <Badge count={1} size="small">
-                <BellOutlined style={{ fontSize: 20, color: '#5b667a' }} />
-              </Badge>
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                content={(
+                  <div style={{ width: 300 }}>
+                    <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <Typography.Text strong>Уведомления</Typography.Text>
+                      {notifications.unreadCount > 0 ? <Button type="link" size="small" onClick={notifications.markAllAsRead}>Отметить все как прочитанные</Button> : null}
+                    </Space>
+                    {notifications.items.length ? notifications.items.map((item) => (
+                      <Button
+                        key={item.id}
+                        type="text"
+                        style={{ width: '100%', textAlign: 'left', height: 'auto', padding: 8 }}
+                        onClick={() => {
+                          notifications.markAsRead(item.id);
+                          if (item.link) navigate(item.link);
+                        }}
+                      >
+                        <Space direction="vertical" size={0}>
+                          <Typography.Text strong>{item.title}</Typography.Text>
+                          <Typography.Text type="secondary">{item.description}</Typography.Text>
+                        </Space>
+                      </Button>
+                    )) : (
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description={
+                          <Space direction="vertical" size={0}>
+                            <Typography.Text strong>Нет новых уведомлений</Typography.Text>
+                            <Typography.Text type="secondary">Здесь появятся системные события и важные сообщения.</Typography.Text>
+                          </Space>
+                        }
+                      />
+                    )}
+                  </div>
+                )}
+              >
+                <Button aria-label="Уведомления" className="icon-button" shape="circle" icon={notifications.unreadCount > 0 ? <Badge count={notifications.unreadCount} size="small"><BellOutlined /></Badge> : <BellOutlined />} />
+              </Popover>
               <Avatar style={{ background: 'linear-gradient(135deg, var(--app-accent), var(--app-accent-strong))' }}>{userInitials}</Avatar>
               <Dropdown
                 trigger={['click']}
@@ -114,14 +153,14 @@ export function AppLayout() {
                   ],
                 }}
               >
-                <Space direction="vertical" size={0} style={{ cursor: 'pointer' }}>
-                  <Typography.Text>{auth?.user.fullName || auth?.user.email}</Typography.Text>
-                  <Tag bordered={false} color={isDark ? 'processing' : 'blue'} style={{ marginInlineEnd: 0, width: 'fit-content' }}>
-                    {auth?.user.role}
-                  </Tag>
-                </Space>
+                <Button type="text" className="user-trigger">
+                  <Space direction="vertical" size={0} style={{ alignItems: 'flex-start' }}>
+                    <Typography.Text>{auth?.user.fullName || auth?.user.email}</Typography.Text>
+                    <Typography.Text className="user-role">{auth?.user.role}</Typography.Text>
+                  </Space>
+                  <DownOutlined style={{ color: '#8a94a6' }} />
+                </Button>
               </Dropdown>
-              <DownOutlined style={{ color: '#8a94a6' }} />
             </Space>
           </Header>
           <Content className="app-content">
