@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import ruRU from 'antd/locale/ru_RU';
 import 'antd/dist/reset.css';
+import './styles/app.css';
 
 import { applyAccessibilityPrefs, readAccessibilityPrefs } from './app/accessibility';
 import { readTheme, writeTheme } from './app/theme';

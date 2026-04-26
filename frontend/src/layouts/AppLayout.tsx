@@ -1,5 +1,5 @@
 import { CreditCardOutlined, DollarOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, SettingOutlined, TeamOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, ConfigProvider, Layout, Menu, Space, Typography, theme as antdTheme } from 'antd';
+import { Avatar, Button, ConfigProvider, Layout, Menu, Space, Tag, Typography, theme as antdTheme } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -43,56 +43,68 @@ export function AppLayout() {
     navigate('/login', { replace: true });
   }
 
-  const bgMain = isDark ? '#0b1220' : '#f5f7fb';
-  const bgCard = isDark ? '#111827' : '#fff';
-  const borderColor = isDark ? '#334155' : '#f0f0f0';
+  const userInitials = (auth?.user.fullName ?? auth?.user.email ?? 'П')
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
-    <ConfigProvider locale={ruRU} theme={{ algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm, token: { fontSize: 17 } }}>
-    <Layout style={{ minHeight: '100vh', background: bgMain, alignItems: 'center' }}>
-      <Layout
-        style={{
-          width: 'min(92vw, 1800px)',
-          minWidth: 1160,
-          boxShadow: '0 0 24px rgba(15, 23, 42, 0.16)',
-          margin: '0 auto',
-        }}
-      >
-        <Sider width={280} theme={isDark ? 'dark' : 'light'} style={{ borderRight: `1px solid ${borderColor}` }}>
-          <div style={{ padding: 20, color: '#1677ff', fontWeight: 700, fontSize: 22 }}>КП ИС</div>
+    <ConfigProvider
+      locale={ruRU}
+      theme={{
+        algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+        token: {
+          fontSize: 16,
+          borderRadius: 12,
+          colorPrimary: isDark ? '#6d95ff' : '#2f6bff',
+        },
+      }}
+    >
+    <Layout className="app-shell" style={{ alignItems: 'center' }}>
+      <Layout className="app-shell__frame" style={{ margin: '0 auto' }}>
+        <Sider width={276} theme={isDark ? 'dark' : 'light'} style={{ borderRight: '1px solid var(--app-border)' }}>
+          <div className="app-sidebar-brand">
+            <Typography.Text strong style={{ fontSize: 20 }}>КП ИС</Typography.Text>
+            <div style={{ marginTop: 4, fontSize: 13, opacity: 0.85 }}>Цифровой кабинет коммунального предприятия</div>
+          </div>
           <Menu
             theme={isDark ? 'dark' : 'light'}
             mode="inline"
             selectedKeys={[location.pathname]}
-            style={{ fontSize: 18 }}
+            style={{ fontSize: 16, borderInlineEnd: 'none', paddingInline: 10 }}
             items={menuItems}
             onClick={({ key }) => navigate(key)}
           />
         </Sider>
-        <Layout style={{ background: bgMain }}>
-          <Header
-            style={{
-              background: bgCard,
-              borderBottom: `1px solid ${borderColor}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Typography.Title level={5} style={{ margin: 0 }}>
-              Веб-ориентированная ИС коммунального предприятия
-            </Typography.Title>
+        <Layout className="app-page">
+          <Header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Space direction="vertical" size={1}>
+              <Typography.Title level={5} style={{ margin: 0 }}>
+                Веб-ориентированная ИС коммунального предприятия
+              </Typography.Title>
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                Единая панель для абонентов, операторов и администраторов
+              </Typography.Text>
+            </Space>
             <Space>
-              <Typography.Text>{auth?.user.fullName || auth?.user.email}</Typography.Text>
-              <Button icon={<LogoutOutlined />} onClick={handleLogout}>
+              <Avatar style={{ background: 'var(--app-accent)' }}>{userInitials}</Avatar>
+              <Space direction="vertical" size={0}>
+                <Typography.Text>{auth?.user.fullName || auth?.user.email}</Typography.Text>
+                <Tag bordered={false} color={isDark ? 'processing' : 'blue'} style={{ marginInlineEnd: 0, width: 'fit-content' }}>
+                  {auth?.user.role}
+                </Tag>
+              </Space>
+              <Button icon={<LogoutOutlined />} onClick={handleLogout} className="app-card-soft">
                 Выход
               </Button>
             </Space>
           </Header>
-          <Content style={{ padding: 24, background: bgMain }}>
+          <Content className="app-content">
             <Outlet />
           </Content>
-          <Footer style={{ textAlign: 'center', background: bgCard, borderTop: `1px solid ${borderColor}` }}>
+          <Footer className="app-footer" style={{ textAlign: 'center' }}>
             Дипломная работа. БИА22-02, Гуров Станислав Вячеславович, 2026
           </Footer>
         </Layout>

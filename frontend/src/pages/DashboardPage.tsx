@@ -1,4 +1,4 @@
-import { Alert, Card, Col, Row, Skeleton, Statistic, Typography } from 'antd';
+import { Alert, Card, Col, Row, Skeleton, Space, Statistic, Typography } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { extractApiErrorMessage } from '../api/error';
 import { getRequests } from '../api/requests';
@@ -51,23 +51,29 @@ export function DashboardPage() {
   }, [requests, subscribers]);
 
   return (
-    <>
-      <Typography.Title level={3}>Панель мониторинга</Typography.Title>
-      <Typography.Paragraph type="secondary" style={{ marginTop: -8 }}>
-        «Суммарная задолженность» теперь рассчитывается из фактических балансов лицевых счетов в БД.
-      </Typography.Paragraph>
+    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      <Card className="app-card-soft">
+        <Typography.Title level={3} style={{ marginBottom: 8 }}>Панель мониторинга</Typography.Title>
+        <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
+          Ключевые показатели собраны в одном месте, чтобы быстро оценить текущую нагрузку и состояние расчётов.
+        </Typography.Paragraph>
+      </Card>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
 
-      <Row gutter={16}>
-        <Col span={8}>
-          <Card>{loading ? <Skeleton active paragraph={false} /> : <Statistic title="Активные абоненты" value={stats.activeSubscribers} />}</Card>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={8}>
+          <Card className="app-card-soft">
+            {loading ? <Skeleton active paragraph={false} /> : <Statistic title="Активные абоненты" value={stats.activeSubscribers} />}
+          </Card>
         </Col>
-        <Col span={8}>
-          <Card>{loading ? <Skeleton active paragraph={false} /> : <Statistic title="Открытые заявки" value={stats.openRequests} />}</Card>
+        <Col xs={24} md={8}>
+          <Card className="app-card-soft">
+            {loading ? <Skeleton active paragraph={false} /> : <Statistic title="Открытые заявки" value={stats.openRequests} />}
+          </Card>
         </Col>
-        <Col span={8}>
-          <Card>
+        <Col xs={24} md={8}>
+          <Card className="app-card-soft">
             {loading ? (
               <Skeleton active paragraph={false} />
             ) : (
@@ -80,6 +86,6 @@ export function DashboardPage() {
           </Card>
         </Col>
       </Row>
-    </>
+    </Space>
   );
 }

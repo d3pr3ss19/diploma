@@ -57,36 +57,52 @@ export function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24 }}>
+    <div className="auth-shell">
       {contextHolder}
-      <Card style={{ width: 420 }}>
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          <Typography.Title level={4} style={{ margin: 0 }}>
-            Вход в систему
+      <div className="auth-panel">
+        <div className="auth-panel__hero">
+          <Typography.Title level={2} style={{ color: '#fff', marginTop: 0 }}>
+            Добро пожаловать в цифровой кабинет
           </Typography.Title>
+          <Typography.Paragraph style={{ color: 'rgba(255,255,255,0.92)', fontSize: 16 }}>
+            Управляйте заявками, лицевыми счетами и оплатой услуг в одном интерфейсе.
+            Всё важное — на расстоянии одного клика.
+          </Typography.Paragraph>
+          <Card size="small" style={{ borderRadius: 12, border: 'none', background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+            <Typography.Text style={{ color: '#fff' }}>
+              Новый пользователь? Отправьте заявку на регистрацию — оператор подключит кабинет.
+            </Typography.Text>
+          </Card>
+        </div>
+        <div className="auth-panel__form">
+          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Typography.Title level={4} style={{ margin: 0 }}>
+              Вход в систему
+            </Typography.Title>
 
-          {error ? <Alert type="error" showIcon message={error} /> : null}
+            {error ? <Alert type="error" showIcon message={error} /> : null}
 
-          <Form layout="vertical" onFinish={handleSubmit}>
-            <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Введите email' }]}>
-              <Input placeholder="name@example.com" />
-            </Form.Item>
-            <Form.Item
-              label="Пароль"
-              name="password"
-              rules={[{ required: true, message: 'Введите пароль' }]}
-            >
-              <Input.Password placeholder="••••••••" />
-            </Form.Item>
-            <Button type="primary" block htmlType="submit" loading={loading}>
-              Войти
-            </Button>
-            <Button style={{ marginTop: 8 }} block onClick={() => setSignupOpen(true)}>
-              Зарегистрироваться
-            </Button>
-          </Form>
-        </Space>
-      </Card>
+            <Form layout="vertical" onFinish={handleSubmit}>
+              <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Введите email' }]}>
+                <Input placeholder="name@example.com" size="large" />
+              </Form.Item>
+              <Form.Item
+                label="Пароль"
+                name="password"
+                rules={[{ required: true, message: 'Введите пароль' }]}
+              >
+                <Input.Password placeholder="••••••••" size="large" />
+              </Form.Item>
+              <Button type="primary" block htmlType="submit" loading={loading} size="large">
+                Войти
+              </Button>
+              <Button style={{ marginTop: 8 }} block onClick={() => setSignupOpen(true)} size="large">
+                Зарегистрироваться
+              </Button>
+            </Form>
+          </Space>
+        </div>
+      </div>
 
       <Modal
         open={signupOpen}
