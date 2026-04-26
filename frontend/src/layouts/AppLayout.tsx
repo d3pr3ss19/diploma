@@ -1,4 +1,4 @@
-import { BellOutlined, CreditCardOutlined, DollarOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, SearchOutlined, SettingOutlined, TeamOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
+import { BellOutlined, CreditCardOutlined, DollarOutlined, DownOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, QuestionCircleOutlined, ReloadOutlined, SearchOutlined, SettingOutlined, TeamOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Badge, ConfigProvider, Dropdown, Input, Layout, Menu, Space, Tag, Typography, theme as antdTheme } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import { useEffect, useState } from 'react';
@@ -28,8 +28,6 @@ export function AppLayout() {
       { key: '/billing', icon: <DollarOutlined />, label: 'Оплата ЖКХ' },
     ] },
     { type: 'group' as const, label: 'СИСТЕМА', children: [
-      { key: '/profile', icon: <UserOutlined />, label: 'Профиль' },
-      { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' },
       ...(auth?.user.role === 'ADMIN' ? [{ key: '/logs', icon: <FileTextOutlined />, label: 'Логи' }] : []),
     ] },
   ];
@@ -70,9 +68,9 @@ export function AppLayout() {
     >
     <Layout className="app-shell" style={{ alignItems: 'center' }}>
       <Layout className="app-shell__frame" style={{ margin: '0 auto' }}>
-        <Sider width={276} theme="light" className="app-sider" style={{ borderRight: '1px solid var(--app-border)' }}>
+        <Sider width={248} theme="light" className="app-sider" style={{ borderRight: '1px solid var(--app-border)', padding: '24px 16px 0' }}>
           <div className="app-sidebar-brand">
-            <Typography.Text strong style={{ fontSize: 44, lineHeight: 0.9, color: 'inherit' }}>КП ИС</Typography.Text>
+            <Typography.Text strong style={{ fontSize: 36, lineHeight: 0.9, color: 'inherit' }}>КП ИС</Typography.Text>
             <div style={{ marginTop: 8, fontSize: 13, opacity: 0.92 }}>Коммунальное предприятие</div>
           </div>
           <Menu
@@ -80,16 +78,19 @@ export function AppLayout() {
             theme="light"
             mode="inline"
             selectedKeys={[location.pathname]}
-            style={{ fontSize: 16, borderInlineEnd: 'none', paddingInline: 10, background: 'transparent' }}
+            style={{ fontSize: 14, borderInlineEnd: 'none', background: 'transparent' }}
             items={menuItems}
             onClick={({ key }) => navigate(key)}
           />
+          <div style={{ marginTop: 'auto', borderTop: '1px solid #EEF2F7', paddingTop: 12, color: '#8A94A6' }}>
+            <Typography.Text type="secondary">◀ Свернуть</Typography.Text>
+          </div>
         </Sider>
         <Layout className="app-page">
           <Header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <Space direction="vertical" size={1} style={{ minWidth: 0, flex: 1 }}>
-              <Typography.Text strong style={{ fontSize: 18, lineHeight: 1.2 }}>
-                Веб-ориентированная ИС коммунального предприятия
+              <Typography.Text strong style={{ fontSize: 24, lineHeight: 1.2 }}>
+                ИС коммунального предприятия
               </Typography.Text>
               <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: 'normal', lineHeight: 1.4 }}>
                 Единая панель для абонентов, операторов и администраторов
@@ -106,7 +107,8 @@ export function AppLayout() {
                 menu={{
                   items: [
                     { key: 'profile', icon: <UserOutlined />, label: 'Профиль', onClick: () => navigate('/profile') },
-                    { key: 'settings', icon: <SettingOutlined />, label: 'Настройки', onClick: () => navigate('/settings') },
+                    { key: 'settings', icon: <SettingOutlined />, label: 'Настройки аккаунта', onClick: () => navigate('/settings') },
+                    { key: 'help', icon: <QuestionCircleOutlined />, label: 'Справка' },
                     { type: 'divider' },
                     { key: 'logout', icon: <LogoutOutlined />, danger: true, label: 'Выход', onClick: handleLogout },
                   ],
@@ -119,13 +121,22 @@ export function AppLayout() {
                   </Tag>
                 </Space>
               </Dropdown>
+              <DownOutlined style={{ color: '#8a94a6' }} />
             </Space>
           </Header>
           <Content className="app-content">
             <Outlet />
           </Content>
-          <Footer className="app-footer" style={{ textAlign: 'center' }}>
-            Дипломная работа. БИА22-02, Гуров Станислав Вячеславович, 2026
+          <Footer className="app-footer" style={{ padding: '0 24px' }}>
+            <Space style={{ width: '100%', justifyContent: 'space-between' }} wrap>
+              <Typography.Text type="secondary">© 2025 КП ИС | Версия 1.4.2</Typography.Text>
+              <Space>
+                <span style={{ color: '#16a34a' }}>●</span>
+                <Typography.Text type="secondary">Система работает штатно</Typography.Text>
+                <Typography.Text type="secondary">Обновлено: 20.05.2025 14:36</Typography.Text>
+                <ReloadOutlined style={{ color: '#8a94a6' }} />
+              </Space>
+            </Space>
           </Footer>
         </Layout>
       </Layout>

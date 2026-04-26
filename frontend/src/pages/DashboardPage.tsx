@@ -1,17 +1,25 @@
-import { Alert, Card, Col, Progress, Row, Segmented, Skeleton, Space, Statistic, Table, Tag, Typography } from 'antd';
-import { CreditCardOutlined, TeamOutlined, ToolOutlined } from '@ant-design/icons';
+import { CreditCardOutlined, DollarCircleOutlined, TeamOutlined, ToolOutlined, UserAddOutlined } from '@ant-design/icons';
+import { Alert, Button, Col, Row, Segmented, Space, Typography } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import { DebtStatusCard } from '../components/dashboard/DebtStatusCard';
+import { KpiCard } from '../components/dashboard/KpiCard';
+import { PaymentsChart } from '../components/dashboard/PaymentsChart';
+import { RecentActivityList } from '../components/dashboard/RecentActivityList';
+import { RecentTicketsTable } from '../components/dashboard/RecentTicketsTable';
+import type { ChartPoint, DashboardMockData } from '../components/dashboard/types';
 import { extractApiErrorMessage } from '../api/error';
 import { getRequests } from '../api/requests';
 import { getSubscribers } from '../api/subscribers';
 import type { ServiceRequest } from '../types/requests';
 import type { Subscriber } from '../types/subscribers';
 
-const RUB_FORMATTER = new Intl.NumberFormat('ru-RU', {
-  style: 'currency',
-  currency: 'RUB',
-  maximumFractionDigits: 2,
-});
+const CHART_DATA: ChartPoint[] = [
+  { label: '21 апр', accruals: 8000, payments: 5000 },
+  { label: '28 апр', accruals: 12000, payments: 14000 },
+  { label: '5 мая', accruals: 15000, payments: 12000 },
+  { label: '12 мая', accruals: 5000, payments: 2500 },
+  { label: '19 мая', accruals: 20000, payments: 6000 },
+];
 
 export function DashboardPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -37,9 +45,9 @@ export function DashboardPage() {
     void loadStats();
   }, []);
 
-  const stats = useMemo(() => {
+  const mockData = useMemo<DashboardMockData>(() => {
     const activeSubscribers = subscribers.filter((item) => item.user?.isActual ?? true).length;
-    const openRequests = requests.filter((item) => item.status === 'NEW' || item.status === 'IN_PROGRESS').length;
+    const openTickets = requests.filter((item) => item.status === 'NEW' || item.status === 'IN_PROGRESS').length;
     const totalDebt = subscribers.reduce((sum, subscriber) => {
       const subscriberDebt = (subscriber.accounts ?? []).reduce((accountSum, account) => {
         const balance = Number(account.balance);
@@ -48,157 +56,62 @@ export function DashboardPage() {
       return sum + subscriberDebt;
     }, 0);
 
-    return { activeSubscribers, openRequests, totalDebt };
+    return {
+      activeSubscribers,
+      openTickets,
+      totalDebt,
+      monthlyPayments: 0,
+      overdueTickets: 0,
+      debtorsCount: 0,
+      lastUpdated: '20.05.2025 14:36',
+    };
   }, [requests, subscribers]);
 
-  const recentRequests = useMemo(
-    () => [...requests].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 5),
-    [requests],
-  );
-
-  const activityItems = useMemo(
-    () => recentRequests.map((item) => ({
-      id: item.id,
-      title: item.title,
-      createdAt: item.createdAt,
-      status: item.status,
-      author: item.createdByUser?.email ?? `ID ${item.createdByUserId}`,
-    })),
-    [recentRequests],
-  );
-
-  const fakeBars = [8, 12, 16, 10, 5, 14, 18, 9, 6, 20, 7, 12];
+  const recentRequests = useMemo(() => [...requests].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 1), [requests]);
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
-      <Card className="page-intro">
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} xl={14}>
-            <Typography.Title level={2} style={{ marginBottom: 6, marginTop: 0 }}>Панель мониторинга</Typography.Title>
-            <Typography.Paragraph type="secondary" style={{ marginBottom: 10 }}>
-              Сводка по абонентам, заявкам, оплатам и задолженности.
-            </Typography.Paragraph>
-            <Space wrap>
-              <Tag color="success">Система работает штатно</Tag>
-              <Tag color={stats.openRequests > 0 ? 'error' : 'success'}>{stats.openRequests} заявка требует обработки</Tag>
-              <Tag color="processing">Задолженность: {RUB_FORMATTER.format(stats.totalDebt)}</Tag>
-            </Space>
-          </Col>
-          <Col xs={24} xl={10}>
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Segmented block options={['Сегодня', 'Неделя', 'Месяц']} defaultValue="Сегодня" />
-              <Space style={{ justifyContent: 'flex-end', width: '100%' }} wrap>
-                <Tag color="blue" style={{ padding: '8px 12px', borderRadius: 10 }}>+ Создать заявку</Tag>
-                <Tag color="geekblue" style={{ padding: '8px 12px', borderRadius: 10 }}>+ Добавить абонента</Tag>
-              </Space>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
+      <div className="dashboard-summary">
+        <div>
+          <Typography.Title level={1} className="dashboard-summary__title">Панель мониторинга</Typography.Title>
+          <Typography.Text className="dashboard-summary__subtitle">Сводка по абонентам, заявкам, оплатам и задолженности</Typography.Text>
+          <div className="dashboard-summary__status">
+            <span><span className="status-dot status-dot--green" />Система работает штатно</span>
+            <span>•</span>
+            <span><span className="status-dot status-dot--red" />1 заявка требует обработки</span>
+            <span>•</span>
+            <span>задолженность <strong style={{ color: '#16A34A' }}>{mockData.totalDebt.toLocaleString('ru-RU')} ₽</strong></span>
+          </div>
+        </div>
+        <div className="dashboard-summary__actions">
+          <Segmented options={['Сегодня', 'Неделя', 'Месяц']} defaultValue="Сегодня" />
+          <Space>
+            <Button type="primary" size="large" icon={<ToolOutlined />}>Создать заявку</Button>
+            <Button size="large" icon={<UserAddOutlined />}>Добавить абонента</Button>
+          </Space>
+        </div>
+      </div>
 
-      {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
+      {error ? <Alert type="error" showIcon message={error} /> : null}
+
+      <div className="kpi-grid">
+        <KpiCard icon={<TeamOutlined />} colorClass="kpi-icon--blue" title="Абоненты" value={mockData.activeSubscribers} label="активных" status="+0 за неделю" />
+        <KpiCard icon={<ToolOutlined />} colorClass="kpi-icon--amber" title="Заявки" value={mockData.openTickets} label="открытая" status="0 просроченных" />
+        <KpiCard icon={<DollarCircleOutlined />} colorClass="kpi-icon--green" title="Финансы" value={`${mockData.totalDebt.toLocaleString('ru-RU')} ₽`} label="задолженность" status="Нет просрочек" />
+        <KpiCard icon={<CreditCardOutlined />} colorClass="kpi-icon--purple" title="Оплаты" value={`${mockData.monthlyPayments.toLocaleString('ru-RU')} ₽`} label="за месяц" status="0 платежей" />
+      </div>
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} md={8}>
-          <Card className="dashboard-kpi" style={{ minHeight: 140 }}>
-            <Space size={10} style={{ marginBottom: 8 }}>
-              <TeamOutlined style={{ color: '#2f6bff', fontSize: 18 }} />
-              <Typography.Text strong>Абоненты</Typography.Text>
-            </Space>
-            {loading ? <Skeleton active paragraph={false} /> : <Statistic title="Активные абоненты" value={stats.activeSubscribers} />}
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card className="dashboard-kpi" style={{ minHeight: 140 }}>
-            <Space size={10} style={{ marginBottom: 8 }}>
-              <ToolOutlined style={{ color: '#2f6bff', fontSize: 18 }} />
-              <Typography.Text strong>Сервис</Typography.Text>
-            </Space>
-            {loading ? <Skeleton active paragraph={false} /> : <Statistic title="Открытые заявки" value={stats.openRequests} />}
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card className="dashboard-kpi" style={{ minHeight: 140 }}>
-            <Space size={10} style={{ marginBottom: 8 }}>
-              <CreditCardOutlined style={{ color: '#2f6bff', fontSize: 18 }} />
-              <Typography.Text strong>Финансы</Typography.Text>
-            </Space>
-            {loading ? (
-              <Skeleton active paragraph={false} />
-            ) : (
-              <Statistic
-                title="Суммарная задолженность"
-                value={stats.totalDebt}
-                formatter={(value) => RUB_FORMATTER.format(Number(value))}
-              />
-            )}
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card className="dashboard-kpi" style={{ minHeight: 140 }}>
-            <Space size={10} style={{ marginBottom: 8 }}>
-              <CreditCardOutlined style={{ color: '#7a4bd6', fontSize: 18 }} />
-              <Typography.Text strong>Оплаты</Typography.Text>
-            </Space>
-            {loading ? <Skeleton active paragraph={false} /> : <Statistic title="За месяц" value={RUB_FORMATTER.format(0)} />}
-          </Card>
-        </Col>
+        <Col xs={24} xl={15}><PaymentsChart points={CHART_DATA} /></Col>
+        <Col xs={24} xl={9}><DebtStatusCard totalDebt={mockData.totalDebt} debtorsCount={mockData.debtorsCount} /></Col>
       </Row>
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} xl={16}>
-          <Card title="Оплаты и начисления">
-            <div className="fake-chart">
-              {fakeBars.map((value, index) => (
-                <div key={index} className="fake-chart__bar-wrap">
-                  <div className="fake-chart__bar" style={{ height: `${value * 10}px` }} />
-                </div>
-              ))}
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} xl={8}>
-          <Card title="Статус задолженности">
-            <Space direction="vertical" style={{ width: '100%' }} size={12}>
-              <Statistic title="Общая задолженность" value={RUB_FORMATTER.format(stats.totalDebt)} />
-              <Statistic title="Должников" value={stats.totalDebt > 0 ? 1 : 0} />
-              <Progress type="circle" percent={stats.totalDebt > 0 ? 40 : 0} strokeColor="#52c41a" format={(percent) => `${percent}%`} />
-              <Tag color="success">Нет просроченной задолженности</Tag>
-            </Space>
-          </Card>
-        </Col>
+        <Col xs={24} xl={15}><RecentTicketsTable rows={recentRequests} /></Col>
+        <Col xs={24} xl={9}><RecentActivityList /></Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} xl={16}>
-          <Card title="Последние заявки">
-            <Table
-              rowKey="id"
-              pagination={false}
-              dataSource={recentRequests}
-              columns={[
-                { title: '№', dataIndex: 'id', render: (value: string) => `#${value.slice(0, 6)}` },
-                { title: 'Тема', dataIndex: 'title' },
-                { title: 'Статус', dataIndex: 'status', render: (value: string) => <Tag>{value}</Tag> },
-                { title: 'Дата', dataIndex: 'createdAt', render: (value: string) => new Date(value).toLocaleString('ru-RU') },
-              ]}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} xl={8}>
-          <Card title="Последние действия">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              {activityItems.map((item) => (
-                <div key={item.id} className="activity-item">
-                  <Typography.Text strong>{item.title}</Typography.Text>
-                  <Typography.Text type="secondary">{item.author}</Typography.Text>
-                  <Typography.Text type="secondary">{new Date(item.createdAt).toLocaleString('ru-RU')}</Typography.Text>
-                </div>
-              ))}
-            </Space>
-          </Card>
-        </Col>
-      </Row>
+      {loading ? <Typography.Text type="secondary">Загрузка данных...</Typography.Text> : null}
     </Space>
   );
 }
