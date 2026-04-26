@@ -161,7 +161,7 @@ export function DashboardPage() {
 
       <div className="kpi-grid">
         <KpiCard icon={<TeamOutlined />} colorClass="kpi-icon--blue" title="Абоненты" value={mockData.activeSubscribers} label="активных" status="+0 за неделю" onOpen={() => navigate('/subscribers')} />
-        <KpiCard icon={<ToolOutlined />} colorClass="kpi-icon--amber" title="Заявки" value={mockData.openTickets} label="открытая" status="0 просроченных" onOpen={() => navigate('/requests')} />
+        <KpiCard icon={<ToolOutlined />} colorClass="kpi-icon--amber" title="Заявки" value={mockData.openTickets} label="открытая" status="0 просроченных" onOpen={() => navigate('/tickets')} />
         <KpiCard icon={<DollarCircleOutlined />} colorClass="kpi-icon--green" title="Финансы" value={`${mockData.totalDebt.toLocaleString('ru-RU')} ₽`} label="задолженность" status="Нет просрочек" onOpen={() => navigate('/account')} />
         <KpiCard icon={<CreditCardOutlined />} colorClass="kpi-icon--purple" title="Оплаты" value={`${mockData.monthlyPayments.toLocaleString('ru-RU')} ₽`} label="за месяц" status="0 платежей" onOpen={() => navigate('/billing')} />
       </div>
@@ -173,7 +173,7 @@ export function DashboardPage() {
 
       <div className="lower-dashboard-grid">
         <div className="recent-tickets-card">
-          <RecentTicketsTable rows={recentRequests} loading={loading} onOpenAll={() => navigate('/requests')} onCreate={() => setCreateTicketOpen(true)} onOpenRow={(id) => {
+          <RecentTicketsTable rows={recentRequests} loading={loading} onOpenAll={() => navigate('/tickets')} onCreate={() => setCreateTicketOpen(true)} onOpenRow={(id) => {
             const item = recentRequests.find((request) => request.id === id) ?? null;
             setTicketDrawer(item);
           }} />
@@ -187,55 +187,89 @@ export function DashboardPage() {
 
       <Modal
         open={createTicketOpen}
-        title="Создать заявку"
-        okText="Создать"
-        cancelText="Отмена"
+        width={600}
+        className="saas-modal"
+        okText={null}
+        cancelText={null}
+        footer={(
+          <div className="saas-modal__footer">
+            <Typography.Text type="secondary">Все обязательные поля отмечены *</Typography.Text>
+            <Space>
+              <Button onClick={() => setCreateTicketOpen(false)}>Отмена</Button>
+              <Button type="primary" loading={ticketSaving} onClick={() => ticketForm.submit()}>Создать заявку</Button>
+            </Space>
+          </div>
+        )}
         confirmLoading={ticketSaving}
         onCancel={() => setCreateTicketOpen(false)}
-        onOk={() => ticketForm.submit()}
+        title={<div className="saas-modal__header"><Typography.Title level={3}>Создать заявку</Typography.Title><Typography.Text type="secondary">Заполните данные обращения абонента</Typography.Text></div>}
       >
         <Form form={ticketForm} layout="vertical" onFinish={(values) => void handleCreateTicket(values)}>
-          <Form.Item name="subscriber" label="Абонент" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="title" label="Тема" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="description" label="Описание" rules={[{ required: true }]}><Input.TextArea rows={3} /></Form.Item>
-          <Form.Item name="address" label="Адрес" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="priority" label="Приоритет" initialValue="NORMAL"><Select options={[{ value: 'LOW', label: 'Низкий' }, { value: 'NORMAL', label: 'Средний' }, { value: 'HIGH', label: 'Высокий' }]} /></Form.Item>
+          <Form.Item name="subscriber" label="Абонент *" rules={[{ required: true }]}><Select showSearch placeholder="Выберите абонента" options={subscribers.map((item) => ({ value: item.id, label: item.fullName }))} /></Form.Item>
+          <Form.Item name="title" label="Тема *" rules={[{ required: true }]}><Input placeholder="Кратко опишите тему обращения" /></Form.Item>
+          <Form.Item name="description" label="Описание *" rules={[{ required: true, max: 500 }]}><Input.TextArea rows={5} showCount maxLength={500} placeholder="Подробно опишите суть обращения абонента..." /></Form.Item>
+          <Form.Item name="address" label="Адрес *" rules={[{ required: true }]}><Input placeholder="Укажите адрес объекта" /></Form.Item>
+          <Form.Item name="priority" label="Приоритет" initialValue="NORMAL"><Segmented options={[{ value: 'LOW', label: 'Низкий' }, { value: 'NORMAL', label: 'Средний' }, { value: 'HIGH', label: 'Высокий' }]} /></Form.Item>
         </Form>
       </Modal>
 
       <Modal
         open={createSubscriberOpen}
-        title="Добавить абонента"
-        okText="Добавить"
-        cancelText="Отмена"
+        width={560}
+        className="saas-modal"
+        okText={null}
+        cancelText={null}
+        footer={(
+          <div className="saas-modal__footer">
+            <Typography.Text type="secondary">Все обязательные поля отмечены *</Typography.Text>
+            <Space>
+              <Button onClick={() => setCreateSubscriberOpen(false)}>Отмена</Button>
+              <Button type="primary" loading={subscriberSaving} onClick={() => subscriberForm.submit()}>Добавить</Button>
+            </Space>
+          </div>
+        )}
         confirmLoading={subscriberSaving}
         onCancel={() => setCreateSubscriberOpen(false)}
-        onOk={() => subscriberForm.submit()}
+        title={<div className="saas-modal__header"><Typography.Title level={3}>Добавить абонента</Typography.Title><Typography.Text type="secondary">Создайте карточку абонента и лицевой счёт</Typography.Text></div>}
       >
         <Form form={subscriberForm} layout="vertical" onFinish={(values) => void handleCreateSubscriber(values)}>
-          <Form.Item name="fullName" label="ФИО" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="account" label="Лицевой счёт" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="address" label="Адрес" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="phone" label="Телефон"><Input /></Form.Item>
-          <Form.Item name="email" label="Email"><Input /></Form.Item>
+          <Form.Item name="fullName" label="ФИО *" rules={[{ required: true }]}><Input placeholder="Введите ФИО абонента" /></Form.Item>
+          <Form.Item name="account" label="Лицевой счёт *" rules={[{ required: true }]}><Input placeholder="Например: 000123" /></Form.Item>
+          <Form.Item name="address" label="Адрес *" rules={[{ required: true }]}><Input placeholder="Укажите адрес" /></Form.Item>
+          <Form.Item name="phone" label="Телефон"><Input placeholder="+7 (___) ___-__-__" /></Form.Item>
+          <Form.Item name="email" label="Email" rules={[{ type: 'email', message: 'Введите корректный email' }]}><Input placeholder="example@mail.ru" /></Form.Item>
           <Form.Item name="status" label="Статус" initialValue="ACTIVE"><Select options={[{ value: 'ACTIVE', label: 'Активен' }, { value: 'INACTIVE', label: 'Неактивен' }]} /></Form.Item>
         </Form>
       </Modal>
 
       <Drawer
         open={Boolean(ticketDrawer)}
-        title={ticketDrawer ? `Заявка #${ticketDrawer.id}` : 'Заявка'}
+        title={null}
         onClose={() => setTicketDrawer(null)}
-        width={420}
+        width={460}
+        className="ticket-drawer"
       >
         {ticketDrawer ? (
           <Space direction="vertical" style={{ width: '100%' }}>
-            <Typography.Text strong>Тема: {ticketDrawer.title}</Typography.Text>
-            <Typography.Text>Описание: {ticketDrawer.description}</Typography.Text>
-            <Typography.Text>Статус: {ticketDrawer.status}</Typography.Text>
-            <Typography.Text>Приоритет: Средний</Typography.Text>
-            <Typography.Text>Дата создания: {new Date(ticketDrawer.createdAt).toLocaleString('ru-RU')}</Typography.Text>
-            <Button type="link" onClick={() => navigate('/requests')}>Открыть полную страницу</Button>
+            <div className="ticket-drawer__header">
+              <Space direction="vertical" size={4}>
+                <Space><Typography.Title level={3} style={{ margin: 0 }}>Заявка #{ticketDrawer.id}</Typography.Title><Typography.Text className="status-chip">Открыта</Typography.Text></Space>
+                <Typography.Text type="secondary">Создана {new Date(ticketDrawer.createdAt).toLocaleString('ru-RU')}</Typography.Text>
+              </Space>
+            </div>
+            <div className="ticket-info-grid">
+              <Typography.Text type="secondary">Тема</Typography.Text><Typography.Text>{ticketDrawer.title}</Typography.Text>
+              <Typography.Text type="secondary">Абонент</Typography.Text><Typography.Text>Иванов И.И.</Typography.Text>
+              <Typography.Text type="secondary">Лицевой счёт</Typography.Text><Typography.Text>000123</Typography.Text>
+              <Typography.Text type="secondary">Адрес</Typography.Text><Typography.Text>ул. Ленина, 10, п. 2</Typography.Text>
+              <Typography.Text type="secondary">Приоритет</Typography.Text><Typography.Text>Средний</Typography.Text>
+              <Typography.Text type="secondary">Статус</Typography.Text><Typography.Text>Открыта</Typography.Text>
+            </div>
+            <div className="ticket-description-card">{ticketDrawer.description}</div>
+            <Space>
+              <Button type="primary" onClick={() => navigate(`/tickets/${ticketDrawer.id}`)}>Открыть полную страницу</Button>
+              <Button>Изменить статус</Button>
+            </Space>
           </Space>
         ) : null}
       </Drawer>

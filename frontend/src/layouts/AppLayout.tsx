@@ -152,13 +152,10 @@ export function AppLayout() {
                   ],
                 }}
               >
-                <Button type="text" className="user-trigger">
+                <Button type="text" className="user-menu-trigger">
                   <Avatar className="user-avatar">{userInitials}</Avatar>
-                  <Space direction="vertical" size={0} style={{ alignItems: 'flex-start' }}>
-                    <Typography.Text>{auth?.user.fullName || auth?.user.email}</Typography.Text>
-                    <Typography.Text className="user-role">{auth?.user.role}</Typography.Text>
-                  </Space>
-                  <DownOutlined style={{ color: '#8a94a6' }} />
+                  <Typography.Text className="user-name">{auth?.user.fullName || auth?.user.email}</Typography.Text>
+                  <DownOutlined className="user-chevron" />
                 </Button>
               </Dropdown>
             </Space>

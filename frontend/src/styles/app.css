@@ -183,22 +183,17 @@ body {
   border-radius: 10px;
 }
 
-.user-trigger {
+.user-menu-trigger {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-radius: 10px;
-  padding: 6px 8px !important;
+  height: 42px;
+  border-radius: 12px;
+  padding: 4px 8px !important;
 }
 
-.user-trigger:hover {
+.user-menu-trigger:hover {
   background: #F8FAFC !important;
-}
-
-.user-role {
-  font-size: 11px !important;
-  color: #667085 !important;
-  line-height: 1.1;
 }
 
 .user-avatar {
@@ -208,6 +203,20 @@ body {
   background: #2563EB !important;
   font-size: 13px;
   font-weight: 700;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.user-chevron {
+  width: 16px;
+  height: 16px;
+  color: #98A2B3;
+  flex-shrink: 0;
 }
 
 .fake-chart {
@@ -454,6 +463,62 @@ html[data-theme='dark'] .app-menu .ant-menu-item-selected {
   grid-template-columns: minmax(0, 1.65fr) minmax(360px, 0.95fr);
   gap: 16px;
   align-items: stretch;
+}
+
+.saas-modal .ant-modal-content {
+  border-radius: 18px;
+  border: 1px solid #E5EAF3;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+}
+
+.saas-modal .ant-modal-body {
+  padding: 0 28px 20px;
+}
+
+.saas-modal__header .ant-typography {
+  margin: 0;
+}
+
+.saas-modal__footer {
+  border-top: 1px solid #EEF2F7;
+  padding: 16px 28px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ticket-drawer .ant-drawer-content {
+  box-shadow: -24px 0 80px rgba(15, 23, 42, 0.20);
+}
+
+.ticket-drawer .ant-drawer-body {
+  padding: 20px 28px 28px;
+}
+
+.ticket-drawer__header {
+  border-bottom: 1px solid #EEF2F7;
+  padding-bottom: 14px;
+}
+
+.status-chip {
+  background: #EAF2FF;
+  color: #2563EB !important;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.ticket-info-grid {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+}
+
+.ticket-description-card {
+  background: #F8FAFC;
+  border: 1px solid #EEF2F7;
+  border-radius: 12px;
+  padding: 14px;
 }
 
 .recent-tickets-card,

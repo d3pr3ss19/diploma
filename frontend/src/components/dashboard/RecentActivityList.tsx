@@ -37,6 +37,11 @@ export function RecentActivityList({ items, loading, onOpenAll }: { items: Activ
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>{item.date}</Typography.Text>
           </div>
         ))}
+        {items.length > 0 && items.length < 4 ? (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            Остальные действия появятся после новых операций.
+          </Typography.Text>
+        ) : null}
       </Space>
     </Card>
   );

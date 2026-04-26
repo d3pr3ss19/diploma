@@ -9,6 +9,7 @@ import { ProfilePage } from '../pages/ProfilePage';
 import { RequestsPage } from '../pages/RequestsPage';
 import { SubscribersPage } from '../pages/SubscribersPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { TicketDetailPage } from '../pages/TicketDetailPage';
 import { RequireAuth } from './RequireAuth';
 
 export function AppRouter() {
@@ -27,6 +28,8 @@ export function AppRouter() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/subscribers" element={<SubscribersPage />} />
           <Route path="/requests" element={<RequestsPage />} />
+          <Route path="/tickets" element={<RequestsPage />} />
+          <Route path="/tickets/:id" element={<TicketDetailPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/billing" element={<BillingPage />} />
           <Route path="/profile" element={<ProfilePage />} />
