@@ -1,4 +1,4 @@
-import { BellOutlined, CreditCardOutlined, DollarOutlined, DownOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, QuestionCircleOutlined, ReloadOutlined, SearchOutlined, SettingOutlined, TeamOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
+import { BellOutlined, CreditCardOutlined, DollarOutlined, DownOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, QuestionCircleOutlined, SearchOutlined, SettingOutlined, TeamOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Badge, Button, ConfigProvider, Dropdown, Empty, Input, Layout, Menu, Popover, Space, Typography, theme as antdTheme } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
 import { useEffect, useState } from 'react';
@@ -55,7 +55,6 @@ export function AppLayout() {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-  const currentYear = new Date().getFullYear();
 
   return (
     <ConfigProvider
@@ -164,16 +163,8 @@ export function AppLayout() {
           <Content className="app-content">
             <Outlet />
           </Content>
-          <Footer className="app-footer" style={{ padding: '0 24px' }}>
-            <Space style={{ width: '100%', justifyContent: 'space-between' }} wrap>
-              <Typography.Text type="secondary">© {currentYear} КП ИС | Версия 1.4.2</Typography.Text>
-              <Space>
-                <span style={{ color: '#16a34a' }}>●</span>
-                <Typography.Text type="secondary">Система работает штатно</Typography.Text>
-                <Typography.Text type="secondary">Обновлено: 20.05.2025 14:36</Typography.Text>
-                <ReloadOutlined style={{ color: '#8a94a6' }} />
-              </Space>
-            </Space>
+          <Footer className="app-footer app-footer--diploma" style={{ padding: '0 24px' }}>
+            <Typography.Text type="secondary">Дипломная работа. БИА22-02, Гуров Станислав Вячеславович, 2026</Typography.Text>
           </Footer>
         </Layout>
       </Layout>
