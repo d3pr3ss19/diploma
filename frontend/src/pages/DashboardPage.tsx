@@ -52,7 +52,7 @@ export function DashboardPage() {
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
-      <Card className="app-card-soft">
+      <Card className="page-intro">
         <Typography.Title level={3} style={{ marginBottom: 8 }}>Панель мониторинга</Typography.Title>
         <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
           Ключевые показатели собраны в одном месте, чтобы быстро оценить текущую нагрузку и состояние расчётов.
@@ -63,17 +63,17 @@ export function DashboardPage() {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={8}>
-          <Card className="app-card-soft">
+          <Card className="app-card-soft" style={{ minHeight: 136 }}>
             {loading ? <Skeleton active paragraph={false} /> : <Statistic title="Активные абоненты" value={stats.activeSubscribers} />}
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card className="app-card-soft">
+          <Card className="app-card-soft" style={{ minHeight: 136 }}>
             {loading ? <Skeleton active paragraph={false} /> : <Statistic title="Открытые заявки" value={stats.openRequests} />}
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card className="app-card-soft">
+          <Card className="app-card-soft" style={{ minHeight: 136 }}>
             {loading ? (
               <Skeleton active paragraph={false} />
             ) : (

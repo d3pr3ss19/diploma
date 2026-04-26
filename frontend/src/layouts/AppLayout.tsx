@@ -64,16 +64,17 @@ export function AppLayout() {
     >
     <Layout className="app-shell" style={{ alignItems: 'center' }}>
       <Layout className="app-shell__frame" style={{ margin: '0 auto' }}>
-        <Sider width={276} theme={isDark ? 'dark' : 'light'} style={{ borderRight: '1px solid var(--app-border)' }}>
+        <Sider width={276} theme={isDark ? 'dark' : 'light'} className="app-sider" style={{ borderRight: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="app-sidebar-brand">
-            <Typography.Text strong style={{ fontSize: 20 }}>КП ИС</Typography.Text>
-            <div style={{ marginTop: 4, fontSize: 13, opacity: 0.85 }}>Цифровой кабинет коммунального предприятия</div>
+            <Typography.Text strong style={{ fontSize: 30, lineHeight: 1, color: 'inherit' }}>КП ИС</Typography.Text>
+            <div style={{ marginTop: 8, fontSize: 14, opacity: 0.92 }}>Цифровой кабинет коммунального предприятия</div>
           </div>
           <Menu
-            theme={isDark ? 'dark' : 'light'}
+            className="app-menu"
+            theme="dark"
             mode="inline"
             selectedKeys={[location.pathname]}
-            style={{ fontSize: 16, borderInlineEnd: 'none', paddingInline: 10 }}
+            style={{ fontSize: 16, borderInlineEnd: 'none', paddingInline: 10, background: 'transparent' }}
             items={menuItems}
             onClick={({ key }) => navigate(key)}
           />
@@ -81,15 +82,15 @@ export function AppLayout() {
         <Layout className="app-page">
           <Header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <Space direction="vertical" size={1} style={{ minWidth: 0, flex: 1 }}>
-              <Typography.Title level={5} style={{ margin: 0 }}>
+              <Typography.Text strong style={{ fontSize: 22, lineHeight: 1.2 }}>
                 Веб-ориентированная ИС коммунального предприятия
-              </Typography.Title>
-              <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: 'normal', lineHeight: 1.3 }}>
+              </Typography.Text>
+              <Typography.Text type="secondary" style={{ fontSize: 13, whiteSpace: 'normal', lineHeight: 1.4 }}>
                 Единая панель для абонентов, операторов и администраторов
               </Typography.Text>
             </Space>
             <Space style={{ flexShrink: 0 }}>
-              <Avatar style={{ background: 'var(--app-accent)' }}>{userInitials}</Avatar>
+              <Avatar style={{ background: 'linear-gradient(135deg, var(--app-accent), var(--app-accent-strong))' }}>{userInitials}</Avatar>
               <Space direction="vertical" size={0}>
                 <Typography.Text>{auth?.user.fullName || auth?.user.email}</Typography.Text>
                 <Tag bordered={false} color={isDark ? 'processing' : 'blue'} style={{ marginInlineEnd: 0, width: 'fit-content' }}>
