@@ -34,13 +34,11 @@ export function RecentActivityList({ items, loading, onOpenAll }: { items: Activ
               <Typography.Text strong style={{ fontSize: 13 }}>{item.title}</Typography.Text>
               <Typography.Text type="secondary" style={{ fontSize: 12 }}>{item.subtitle}</Typography.Text>
             </div>
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>{item.date}</Typography.Text>
+            <Typography.Text className="activity-row__date">{item.date}</Typography.Text>
           </div>
         ))}
         {items.length > 0 && items.length < 4 ? (
-          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            Остальные действия появятся после новых операций.
-          </Typography.Text>
+          <Typography.Text className="recent-activity-hint">Остальные действия появятся после новых операций.</Typography.Text>
         ) : null}
       </Space>
     </Card>

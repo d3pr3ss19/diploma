@@ -563,3 +563,439 @@ html[data-theme='dark'] .app-menu .ant-menu-item-selected {
     grid-template-columns: 1fr;
   }
 }
+
+/* Dashboard alignment */
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(360px, 0.95fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.dashboard-left-column,
+.dashboard-right-column {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.dashboard-left-column,
+.dashboard-right-column {
+  grid-template-rows: auto auto;
+}
+
+.payments-card,
+.debt-card {
+  min-height: 230px;
+}
+
+.recent-tickets-card,
+.recent-activity-card {
+  min-height: 210px;
+  height: 100%;
+}
+
+.recent-tickets-card .ant-card,
+.recent-activity-card .ant-card,
+.payments-card .ant-card,
+.debt-card .ant-card {
+  height: 100%;
+}
+
+/* Activity card refinements */
+.activity-row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid #EEF2F7;
+  padding: 0 0 10px;
+}
+
+.activity-row__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #EAF2FF;
+  color: #2563EB;
+  display: grid;
+  place-items: center;
+}
+
+.activity-row__meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity-row__date {
+  font-size: 12px;
+  color: #98A2B3;
+  white-space: nowrap;
+}
+
+.recent-activity-hint {
+  font-size: 12px;
+  color: #98A2B3;
+  padding-top: 2px;
+}
+
+/* Shared modal style */
+.saas-modal,
+.ticket-detail-modal {
+  max-width: calc(100vw - 32px);
+}
+
+.saas-modal .ant-modal-mask,
+.ticket-detail-modal .ant-modal-mask {
+  background: rgba(15, 23, 42, 0.45) !important;
+}
+
+.saas-modal .ant-modal-content {
+  border-radius: 18px;
+  border: 1px solid #E5EAF3;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+  background: #FFFFFF;
+}
+
+.saas-modal .ant-modal-header {
+  padding: 24px 28px 12px;
+  margin-bottom: 0;
+  background: transparent;
+}
+
+.saas-modal .ant-modal-close,
+.ticket-detail-modal .ant-modal-close {
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: #98A2B3;
+}
+
+.saas-modal .ant-modal-close:hover,
+.ticket-detail-modal .ant-modal-close:hover {
+  background: #F3F4F6;
+  color: #98A2B3;
+}
+
+.saas-modal .ant-modal-body {
+  padding: 0 28px 20px;
+}
+
+.saas-modal__header .ant-typography {
+  margin: 0;
+}
+
+.saas-modal__header .ant-typography:first-child {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.saas-modal__header .ant-typography:last-child {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #667085;
+}
+
+.saas-modal .ant-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.saas-modal .ant-form-item {
+  margin-bottom: 0;
+}
+
+.saas-modal .ant-form-item-label {
+  padding-bottom: 6px;
+}
+
+.saas-modal .ant-form-item-label > label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #344054;
+  height: auto;
+}
+
+.required-mark {
+  color: #EF4444;
+}
+
+.saas-modal .ant-input,
+.saas-modal .ant-select-selector,
+.saas-modal .ant-input-affix-wrapper {
+  height: 42px !important;
+  border: 1px solid #D8E0EC !important;
+  border-radius: 10px !important;
+  padding: 0 12px !important;
+  font-size: 14px;
+  color: #111827;
+  box-shadow: none !important;
+}
+
+.saas-modal .ant-input::placeholder,
+.saas-modal .ant-select-selection-placeholder,
+.saas-modal .ant-input-textarea textarea::placeholder {
+  color: #98A2B3;
+}
+
+.saas-modal .ant-input:focus,
+.saas-modal .ant-input-focused,
+.saas-modal .ant-select-focused .ant-select-selector,
+.saas-modal .ant-input-affix-wrapper-focused,
+.saas-modal .ant-input-textarea textarea:focus {
+  border-color: #2563EB !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+  outline: none;
+}
+
+.saas-modal .ant-input-textarea textarea {
+  min-height: 112px;
+  border-radius: 10px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.modal-textarea-meta {
+  margin-top: -10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-textarea-meta .ant-typography {
+  font-size: 12px;
+  color: #98A2B3;
+  margin: 0;
+}
+
+.priority-control {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.priority-control__item {
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.priority-control__item--low { background: #F8FAFC; border-color: #E5EAF3; color: #344054; }
+.priority-control__item--normal { background: #FFF7E6; border-color: #FDE68A; color: #B45309; opacity: 0.82; }
+.priority-control__item--high { background: #FEF2F2; border-color: #FECACA; color: #DC2626; opacity: 0.82; }
+.priority-control__item.is-selected { opacity: 1; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.08); }
+
+.saas-modal__footer {
+  border-top: 1px solid #EEF2F7;
+  padding: 16px 28px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.saas-modal__helper {
+  font-size: 12px;
+  color: #98A2B3 !important;
+  white-space: nowrap;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saas-modal__actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.saas-btn {
+  height: 40px;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.saas-btn--secondary {
+  background: #FFFFFF;
+  border: 1px solid #D8E0EC;
+  color: #344054;
+}
+
+.saas-btn--primary {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+}
+
+.saas-btn--primary:hover,
+.saas-btn--primary:focus {
+  background: #1D4ED8 !important;
+  border-color: #1D4ED8 !important;
+  color: #FFFFFF !important;
+}
+
+/* Ticket detail modal */
+.ticket-detail-modal .ant-modal-content {
+  border-radius: 18px;
+  border: 1px solid #E5EAF3;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.ticket-detail-modal__header {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid #EEF2F7;
+}
+
+.ticket-detail-modal__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticket-detail-modal__title-row .ant-typography {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.ticket-detail-modal__header .ant-typography {
+  margin: 0;
+  font-size: 12px;
+  color: #98A2B3;
+}
+
+.ticket-detail-modal__body {
+  padding: 20px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.ticket-detail-modal__body h4.ant-typography {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.status-chip {
+  background: #EAF2FF;
+  color: #2563EB;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ticket-info-grid {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  row-gap: 12px;
+  column-gap: 16px;
+}
+
+.ticket-info-label {
+  font-size: 13px;
+  color: #667085;
+}
+
+.ticket-info-value {
+  font-size: 14px;
+  color: #111827;
+  font-weight: 500;
+}
+
+.ticket-badge {
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-weight: 600;
+}
+
+.ticket-badge--warning { background: #FFF7E6; color: #B45309; }
+.ticket-badge--info { background: #EAF2FF; color: #2563EB; }
+
+.ticket-description-card {
+  background: #F8FAFC;
+  border: 1px solid #EEF2F7;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 14px;
+  color: #344054;
+}
+
+.ticket-detail-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ticket-history {
+  border-top: 1px solid #EEF2F7;
+  padding-top: 18px;
+}
+
+.ticket-history-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.ticket-history-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2563EB;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.ticket-history-item .ant-typography {
+  display: block;
+  margin: 0;
+}
+
+.ticket-history-item .ant-typography + .ant-typography {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #667085;
+}
+
+.user-menu-trigger {
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .saas-modal__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .saas-modal__helper {
+    white-space: normal;
+  }
+
+  .ticket-detail-actions {
+    flex-direction: column;
+  }
+}
