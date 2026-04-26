@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Form, Input, Modal, Space, Typography, message } from 'antd';
+import { Alert, Button, Card, Col, Descriptions, Form, Input, Modal, Row, Space, Statistic, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
 
 import { updateMyProfile } from '../api/auth';
@@ -60,20 +60,49 @@ export function ProfilePage() {
       <Typography.Title level={3} style={{ margin: 0 }}>Профиль</Typography.Title>
       {error ? <Alert type="error" showIcon message={error} /> : null}
 
-      <Card title="Мои данные">
-        <Form form={form} layout="vertical" onFinish={(values) => void handleSubmit(values)}>
-          <Form.Item label="ФИО" name="fullName" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item label="Email" name="email" rules={[{ required: true, type: 'email', message: 'Введите корректный email' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item label="Регион" name="region" rules={[{ required: true, min: 2, message: 'Введите регион' }]}>
-            <Input placeholder="Например, Архангельская область" />
-          </Form.Item>
-          <Button type="primary" htmlType="submit" loading={saving}>Сохранить</Button>
-        </Form>
-      </Card>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={8}>
+          <Card>
+            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+              <Typography.Title level={4} style={{ margin: 0 }}>{auth?.user.fullName ?? 'Пользователь'}</Typography.Title>
+              <Typography.Text type="secondary">{auth?.user.email}</Typography.Text>
+              <Descriptions column={1} size="small" bordered>
+                <Descriptions.Item label="Роль">{auth?.user.role}</Descriptions.Item>
+                <Descriptions.Item label="Регион">{auth?.user.region ?? 'Не задан'}</Descriptions.Item>
+              </Descriptions>
+              <Row gutter={12}>
+                <Col span={12}><Statistic title="ID пользователя" value={auth?.user.id ?? 0} /></Col>
+                <Col span={12}><Statistic title="Статус" value="Активен" /></Col>
+              </Row>
+            </Space>
+          </Card>
+        </Col>
+        <Col xs={24} lg={16}>
+          <Card title="Редактирование профиля">
+            <Form form={form} layout="vertical" onFinish={(values) => void handleSubmit(values)}>
+              <Row gutter={12}>
+                <Col xs={24} md={12}>
+                  <Form.Item label="ФИО" name="fullName" rules={[{ required: true, min: 5, message: 'Минимум 5 символов' }]}>
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item label="Email" name="email" rules={[{ required: true, type: 'email', message: 'Введите корректный email' }]}>
+                    <Input />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item label="Регион" name="region" rules={[{ required: true, min: 2, message: 'Введите регион' }]}>
+                <Input placeholder="Например, Архангельская область" />
+              </Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" loading={saving}>Сохранить изменения</Button>
+                <Typography.Text type="secondary">При смене региона будет запрошено подтверждение.</Typography.Text>
+              </Space>
+            </Form>
+          </Card>
+        </Col>
+      </Row>
     </Space>
   );
 }

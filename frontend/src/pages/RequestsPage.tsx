@@ -413,8 +413,8 @@ export function RequestsPage() {
             </Space>
             <Space style={{ marginLeft: 'auto' }}>
               <Tag color={statusColor(item.status)} style={{ fontSize: 14, paddingInline: 10, paddingBlock: 2 }}>{statusLabel(item.status)}</Tag>
-              <Button size="large" onClick={() => void openHistory(item)}>История</Button>
               <Button size="large" onClick={() => openViewModal(item)}>Открыть</Button>
+              <Button size="large" onClick={() => void openHistory(item)}>История</Button>
               {canEditRequests ? (
                 <Button size="large" onClick={() => openEditModal(item)}>
                   Редактировать
@@ -594,21 +594,38 @@ export function RequestsPage() {
       <Modal
         open={viewModalOpen}
         title={viewRequest ? `Заявка: ${viewRequest.title}` : 'Заявка'}
-        footer={null}
+        width={760}
+        footer={[
+          <Button key="history" onClick={() => viewRequest && void openHistory(viewRequest)} disabled={!viewRequest}>
+            История
+          </Button>,
+          canEditRequests ? (
+            <Button key="edit" type="primary" onClick={() => viewRequest && openEditModal(viewRequest)} disabled={!viewRequest}>
+              Редактировать
+            </Button>
+          ) : null,
+        ]}
         onCancel={() => {
           setViewModalOpen(false);
           setViewRequest(null);
         }}
       >
         {viewRequest ? (
-          <Descriptions column={1} bordered>
-            <Descriptions.Item label="Заголовок">{viewRequest.title}</Descriptions.Item>
-            <Descriptions.Item label="Описание">{viewRequest.description}</Descriptions.Item>
-            <Descriptions.Item label="Статус">{statusLabel(viewRequest.status)}</Descriptions.Item>
-            <Descriptions.Item label="Категория">{categoryLabel(viewRequest.category)}</Descriptions.Item>
-            <Descriptions.Item label="Автор">{viewRequest.createdByUser?.email ?? '—'}</Descriptions.Item>
-            <Descriptions.Item label="Создано">{new Date(viewRequest.createdAt).toLocaleString('ru-RU')}</Descriptions.Item>
-          </Descriptions>
+          <Space direction="vertical" size={12} style={{ width: '100%' }}>
+            <Space size={8} wrap>
+              <Tag color={statusColor(viewRequest.status)}>{statusLabel(viewRequest.status)}</Tag>
+              <Tag color="purple">{categoryLabel(viewRequest.category)}</Tag>
+              <Tag color="geekblue">{priorityLabel((viewRequest as any).priority)}</Tag>
+            </Space>
+            <Descriptions column={1} bordered size="small">
+              <Descriptions.Item label="Заголовок">{viewRequest.title}</Descriptions.Item>
+              <Descriptions.Item label="Описание">{viewRequest.description}</Descriptions.Item>
+              <Descriptions.Item label="Автор">{viewRequest.createdByUser?.email ?? '—'}</Descriptions.Item>
+              <Descriptions.Item label="Создано">{new Date(viewRequest.createdAt).toLocaleString('ru-RU')}</Descriptions.Item>
+              <Descriptions.Item label="Назначено на">{viewRequest.assignedToUserId ?? 'Не назначено'}</Descriptions.Item>
+              <Descriptions.Item label="ID заявки">{viewRequest.id}</Descriptions.Item>
+            </Descriptions>
+          </Space>
         ) : null}
       </Modal>
 

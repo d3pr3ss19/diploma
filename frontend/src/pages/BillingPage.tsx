@@ -1,4 +1,4 @@
-import { Alert, Button, Card, DatePicker, Descriptions, Form, InputNumber, Select, Space, Table, Tag, Typography, message } from 'antd';
+import { Alert, Button, Card, Col, DatePicker, Descriptions, Form, InputNumber, Row, Select, Space, Statistic, Table, Tabs, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 
 import { readAuth } from '../app/auth-storage';
@@ -228,15 +228,28 @@ export function BillingPage() {
       ) : null}
 
       {summary ? (
-        <Card>
-          <Descriptions column={3} bordered>
-            <Descriptions.Item label="Лицевой счёт">{summary.account.accountNumber}</Descriptions.Item>
-            <Descriptions.Item label="Текущий баланс">
-              <Tag color={Number(summary.account.balance) >= 0 ? 'green' : 'red'}>{summary.account.balance} ₽</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Начислено / оплачено">{summary.totals.accrued.toFixed(2)} ₽ / {summary.totals.paid.toFixed(2)} ₽</Descriptions.Item>
-          </Descriptions>
-        </Card>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={8}>
+            <Card>
+              <Statistic title="Лицевой счёт" value={summary.account.accountNumber} />
+            </Card>
+          </Col>
+          <Col xs={24} md={8}>
+            <Card>
+              <Typography.Text type="secondary">Текущий баланс</Typography.Text>
+              <div>
+                <Tag color={Number(summary.account.balance) >= 0 ? 'green' : 'red'} style={{ fontSize: 16, padding: '4px 10px', marginTop: 8 }}>
+                  {summary.account.balance} ₽
+                </Tag>
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} md={8}>
+            <Card>
+              <Statistic title="Начислено / оплачено" value={`${summary.totals.accrued.toFixed(2)} ₽ / ${summary.totals.paid.toFixed(2)} ₽`} />
+            </Card>
+          </Col>
+        </Row>
       ) : null}
 
       <Space align="start" size={16} wrap>
@@ -300,30 +313,43 @@ export function BillingPage() {
         </Space>
       </Card>
 
-      <Card title="Последние начисления">
-        <Table
-          rowKey="id"
-          pagination={false}
-          dataSource={summary?.account.accruals ?? []}
-          columns={[
-            { title: 'Период', dataIndex: 'period', render: (value: string) => new Date(value).toLocaleDateString('ru-RU') },
-            { title: 'Услуга', dataIndex: 'serviceType', render: (value: 'COLD_WATER' | 'HOT_WATER' | 'ELECTRICITY') => meterLabel(value) },
-            { title: 'Потребление', dataIndex: 'consumption' },
-            { title: 'Сумма', dataIndex: 'amount', render: (value: string) => `${value} ₽` },
-          ]}
-        />
-      </Card>
-
-      <Card title="История операций по балансу">
-        <Table
-          rowKey="id"
-          pagination={false}
-          dataSource={summary?.account.payments ?? []}
-          columns={[
-            { title: 'Дата', dataIndex: 'paymentDate', render: (value: string) => new Date(value).toLocaleDateString('ru-RU') },
-            { title: 'Сумма', dataIndex: 'amount', render: (value: string) => `${value} ₽` },
-            { title: 'Метод', dataIndex: 'method' },
-            { title: 'Референс', dataIndex: 'externalRef', render: (value?: string | null) => value ?? '—' },
+      <Card>
+        <Tabs
+          items={[
+            {
+              key: 'payments',
+              label: 'История операций',
+              children: (
+                <Table
+                  rowKey="id"
+                  pagination={false}
+                  dataSource={summary?.account.payments ?? []}
+                  columns={[
+                    { title: 'Дата', dataIndex: 'paymentDate', render: (value: string) => new Date(value).toLocaleDateString('ru-RU') },
+                    { title: 'Сумма', dataIndex: 'amount', render: (value: string) => `${value} ₽` },
+                    { title: 'Метод', dataIndex: 'method' },
+                    { title: 'Референс', dataIndex: 'externalRef', render: (value?: string | null) => value ?? '—' },
+                  ]}
+                />
+              ),
+            },
+            {
+              key: 'accruals',
+              label: 'Последние начисления',
+              children: (
+                <Table
+                  rowKey="id"
+                  pagination={false}
+                  dataSource={summary?.account.accruals ?? []}
+                  columns={[
+                    { title: 'Период', dataIndex: 'period', render: (value: string) => new Date(value).toLocaleDateString('ru-RU') },
+                    { title: 'Услуга', dataIndex: 'serviceType', render: (value: 'COLD_WATER' | 'HOT_WATER' | 'ELECTRICITY') => meterLabel(value) },
+                    { title: 'Потребление', dataIndex: 'consumption' },
+                    { title: 'Сумма', dataIndex: 'amount', render: (value: string) => `${value} ₽` },
+                  ]}
+                />
+              ),
+            },
           ]}
         />
       </Card>
