@@ -64,9 +64,8 @@ npm run dev
 ---
 
 ## Полезные команды
-- Проверки структуры/скриптов: `make verify-structure`, `make verify-scripts`
-- Smoke: `make smoke`, `make smoke-full`
-- E2E API: `make e2e-api`, `make e2e-rbac`
+- Инициализация локальной БД: `make db-setup`
+- Фронтенд-тесты (локально): `make test-frontend`
 - Полный список: `make help`
 
 ## Документация

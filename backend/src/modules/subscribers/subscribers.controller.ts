@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 
 import { AuthGuard } from '../../common/auth/auth.guard';
@@ -28,7 +28,7 @@ export class SubscribersController {
 
   @Roles(Role.ADMIN, Role.OPERATOR)
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+  findOne(@Param('id') id: string) {
     return this.subscribersService.findOne(id);
   }
 
@@ -41,7 +41,7 @@ export class SubscribersController {
   @Roles(Role.ADMIN)
   @Patch(':id')
   update(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('id') id: string,
     @Body() body: UpdateSubscriberDto,
     @Req() req: Request & { user?: { id: number } }
   ) {

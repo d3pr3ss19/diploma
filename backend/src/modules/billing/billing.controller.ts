@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 
 import { AuthGuard } from '../../common/auth/auth.guard';
@@ -46,7 +46,7 @@ export class BillingController {
 
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get('accounts/:accountId/summary')
-  summary(@Param('accountId', new ParseUUIDPipe()) accountId: string, @Req() req: Request & { user?: { id: number; role: Role } }) {
+  summary(@Param('accountId') accountId: string, @Req() req: Request & { user?: { id: number; role: Role } }) {
     const user = req.user;
     if (!user) {
       throw new UnauthorizedException('Missing authenticated user');
@@ -58,7 +58,7 @@ export class BillingController {
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Post('accounts/:accountId/readings')
   submitReading(
-    @Param('accountId', new ParseUUIDPipe()) accountId: string,
+    @Param('accountId') accountId: string,
     @Body() body: SubmitReadingDto,
     @Req() req: Request & { user?: { id: number; role: Role } },
   ) {
@@ -73,7 +73,7 @@ export class BillingController {
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Post('accounts/:accountId/top-up')
   topUp(
-    @Param('accountId', new ParseUUIDPipe()) accountId: string,
+    @Param('accountId') accountId: string,
     @Body() body: TopUpDto,
     @Req() req: Request & { user?: { id: number; role: Role } },
   ) {
@@ -88,7 +88,7 @@ export class BillingController {
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Post('accounts/:accountId/pay')
   pay(
-    @Param('accountId', new ParseUUIDPipe()) accountId: string,
+    @Param('accountId') accountId: string,
     @Body() body: PayFromBalanceDto,
     @Req() req: Request & { user?: { id: number; role: Role } },
   ) {

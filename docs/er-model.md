@@ -3,7 +3,7 @@
 ## Ключевые сущности
 
 ### `users`
-- `id` (uuid, PK)
+- `id` (int, PK)
 - `email` (unique)
 - `full_name` (nullable)
 - `password_hash`

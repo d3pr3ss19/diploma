@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 
 import { AuthGuard } from '../../common/auth/auth.guard';
@@ -26,7 +26,7 @@ export class RequestsController {
 
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: Request & { user?: { id: number; role: Role } }) {
+  findOne(@Param('id') id: string, @Req() req: Request & { user?: { id: number; role: Role } }) {
     const user = req.user;
     if (!user) {
       throw new UnauthorizedException('Missing authenticated user');
@@ -36,7 +36,7 @@ export class RequestsController {
 
   @Roles(Role.ADMIN, Role.OPERATOR, Role.SUBSCRIBER)
   @Get(':id/history')
-  history(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: Request & { user?: { id: number; role: Role } }) {
+  history(@Param('id') id: string, @Req() req: Request & { user?: { id: number; role: Role } }) {
     const user = req.user;
     if (!user) {
       throw new UnauthorizedException('Missing authenticated user');
@@ -58,7 +58,7 @@ export class RequestsController {
   @Roles(Role.ADMIN, Role.OPERATOR)
   @Patch(':id')
   update(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('id') id: string,
     @Body() body: UpdateRequestDto,
     @Req() req: Request & { user?: { id: number } }
   ) {

@@ -2,7 +2,7 @@ import { RequestCategory, RequestPriority } from '@prisma/client';
 import { IsDateString, IsEnum, IsInt, IsOptional, IsString, MaxLength, Min, MinLength, Matches } from 'class-validator';
 
 export class CreateRequestDto {
-  @IsUUID()
+  @IsString()
   accountId!: string;
 
   @IsString()
