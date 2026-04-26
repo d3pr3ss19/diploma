@@ -140,7 +140,6 @@ export function AppLayout() {
               >
                 <Button aria-label="Уведомления" className="icon-button" shape="circle" icon={notifications.unreadCount > 0 ? <Badge count={notifications.unreadCount} size="small"><BellOutlined /></Badge> : <BellOutlined />} />
               </Popover>
-              <Avatar style={{ background: 'linear-gradient(135deg, var(--app-accent), var(--app-accent-strong))' }}>{userInitials}</Avatar>
               <Dropdown
                 trigger={['click']}
                 menu={{
@@ -154,6 +153,7 @@ export function AppLayout() {
                 }}
               >
                 <Button type="text" className="user-trigger">
+                  <Avatar className="user-avatar">{userInitials}</Avatar>
                   <Space direction="vertical" size={0} style={{ alignItems: 'flex-start' }}>
                     <Typography.Text>{auth?.user.fullName || auth?.user.email}</Typography.Text>
                     <Typography.Text className="user-role">{auth?.user.role}</Typography.Text>

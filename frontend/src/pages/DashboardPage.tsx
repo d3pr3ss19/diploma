@@ -1,5 +1,5 @@
 import { CreditCardOutlined, DollarCircleOutlined, TeamOutlined, ToolOutlined, UserAddOutlined } from '@ant-design/icons';
-import { Alert, Button, Col, Row, Segmented, Space, Typography } from 'antd';
+import { Alert, Button, Col, Drawer, Form, Input, Modal, Row, Segmented, Select, Space, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DebtStatusCard } from '../components/dashboard/DebtStatusCard';
@@ -21,6 +21,17 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState('30');
+  const [createTicketOpen, setCreateTicketOpen] = useState(false);
+  const [createSubscriberOpen, setCreateSubscriberOpen] = useState(false);
+  const [ticketSaving, setTicketSaving] = useState(false);
+  const [subscriberSaving, setSubscriberSaving] = useState(false);
+  const [localRequests, setLocalRequests] = useState<ServiceRequest[]>([]);
+  const [localSubscribers, setLocalSubscribers] = useState(0);
+  const [ticketDrawer, setTicketDrawer] = useState<ServiceRequest | null>(null);
+  const [activityFeed, setActivityFeed] = useState<Array<{ key: string; title: string; subtitle: string; date: string }>>([]);
+  const [messageApi, contextHolder] = message.useMessage();
+  const [ticketForm] = Form.useForm();
+  const [subscriberForm] = Form.useForm();
 
   useEffect(() => {
     async function loadStats() {
@@ -52,30 +63,79 @@ export function DashboardPage() {
     }, 0);
 
     return {
-      activeSubscribers,
-      openTickets,
+      activeSubscribers: activeSubscribers + localSubscribers,
+      openTickets: openTickets + localRequests.length,
       totalDebt,
       monthlyPayments: 0,
       overdueTickets: 0,
       debtorsCount: 0,
       lastUpdated: '20.05.2025 14:36',
     };
-  }, [requests, subscribers]);
+  }, [requests, subscribers, localRequests.length, localSubscribers]);
 
-  const recentRequests = useMemo(() => [...requests].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 1), [requests]);
+  const recentRequests = useMemo(
+    () => [...localRequests, ...requests].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 5),
+    [localRequests, requests],
+  );
   const chartData = useMemo<ChartPoint[]>(() => [], []);
   const recentActivities = useMemo(
-    () => recentRequests.map((item) => ({
+    () => [...activityFeed, ...recentRequests.map((item) => ({
       key: item.id,
       title: `Создана заявка #${item.id.slice(0, 4)}`,
       subtitle: item.createdByUser?.email ?? `Пользователь ${item.createdByUserId}`,
       date: new Date(item.createdAt).toLocaleString('ru-RU'),
-    })),
-    [recentRequests],
+    }))].slice(0, 4),
+    [activityFeed, recentRequests],
   );
+
+  async function handleCreateTicket(values: { subscriber: string; title: string; description: string; address: string; priority: string }) {
+    try {
+      setTicketSaving(true);
+      const now = new Date().toISOString();
+      const id = `c${Math.floor(Math.random() * 10000)}`;
+      const created: ServiceRequest = {
+        id,
+        accountId: values.subscriber,
+        title: values.title,
+        description: values.description,
+        status: 'NEW',
+        category: 'QUESTION',
+        createdAt: now,
+        updatedAt: now,
+        createdByUserId: 0,
+      } as ServiceRequest;
+      setLocalRequests((prev) => [created, ...prev]);
+      setActivityFeed((prev) => [
+        { key: `act-${id}`, title: `Создана заявка #${id}`, subtitle: values.subscriber, date: new Date(now).toLocaleString('ru-RU') },
+        ...prev,
+      ]);
+      setCreateTicketOpen(false);
+      ticketForm.resetFields();
+      messageApi.success('Заявка создана');
+    } finally {
+      setTicketSaving(false);
+    }
+  }
+
+  async function handleCreateSubscriber(values: { fullName: string; account: string; address: string; phone: string; email: string; status: string }) {
+    try {
+      setSubscriberSaving(true);
+      setLocalSubscribers((prev) => prev + 1);
+      setActivityFeed((prev) => [
+        { key: `sub-${Date.now()}`, title: `Добавлен абонент ${values.fullName}`, subtitle: `Лицевой счёт: ${values.account}`, date: new Date().toLocaleString('ru-RU') },
+        ...prev,
+      ]);
+      setCreateSubscriberOpen(false);
+      subscriberForm.resetFields();
+      messageApi.success('Абонент добавлен');
+    } finally {
+      setSubscriberSaving(false);
+    }
+  }
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      {contextHolder}
       <div className="dashboard-summary">
         <div>
           <Typography.Title level={1} className="dashboard-summary__title">Панель мониторинга</Typography.Title>
@@ -91,8 +151,8 @@ export function DashboardPage() {
         <div className="dashboard-summary__actions">
           <Segmented options={['Сегодня', 'Неделя', 'Месяц']} defaultValue="Сегодня" />
           <Space>
-            <Button type="primary" size="large" icon={<ToolOutlined />} onClick={() => navigate('/requests')}>Создать заявку</Button>
-            <Button size="large" icon={<UserAddOutlined />} onClick={() => navigate('/subscribers')}>Добавить абонента</Button>
+            <Button type="primary" size="large" icon={<ToolOutlined />} onClick={() => setCreateTicketOpen(true)}>Создать заявку</Button>
+            <Button size="large" icon={<UserAddOutlined />} onClick={() => setCreateSubscriberOpen(true)}>Добавить абонента</Button>
           </Space>
         </div>
       </div>
@@ -111,12 +171,74 @@ export function DashboardPage() {
         <Col xs={24} xl={9}><DebtStatusCard totalDebt={mockData.totalDebt} debtorsCount={mockData.debtorsCount} /></Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} xl={15}><RecentTicketsTable rows={recentRequests} loading={loading} onOpenAll={() => navigate('/requests')} onCreate={() => navigate('/requests')} onOpenRow={() => navigate('/requests')} /></Col>
-        <Col xs={24} xl={9}><RecentActivityList items={recentActivities} loading={loading} onOpenAll={() => navigate('/logs')} /></Col>
-      </Row>
+      <div className="lower-dashboard-grid">
+        <div className="recent-tickets-card">
+          <RecentTicketsTable rows={recentRequests} loading={loading} onOpenAll={() => navigate('/requests')} onCreate={() => setCreateTicketOpen(true)} onOpenRow={(id) => {
+            const item = recentRequests.find((request) => request.id === id) ?? null;
+            setTicketDrawer(item);
+          }} />
+        </div>
+        <div className="recent-activity-card">
+          <RecentActivityList items={recentActivities} loading={loading} onOpenAll={() => navigate('/logs')} />
+        </div>
+      </div>
 
       {loading ? <Typography.Text type="secondary">Загрузка данных...</Typography.Text> : null}
+
+      <Modal
+        open={createTicketOpen}
+        title="Создать заявку"
+        okText="Создать"
+        cancelText="Отмена"
+        confirmLoading={ticketSaving}
+        onCancel={() => setCreateTicketOpen(false)}
+        onOk={() => ticketForm.submit()}
+      >
+        <Form form={ticketForm} layout="vertical" onFinish={(values) => void handleCreateTicket(values)}>
+          <Form.Item name="subscriber" label="Абонент" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="title" label="Тема" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="description" label="Описание" rules={[{ required: true }]}><Input.TextArea rows={3} /></Form.Item>
+          <Form.Item name="address" label="Адрес" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="priority" label="Приоритет" initialValue="NORMAL"><Select options={[{ value: 'LOW', label: 'Низкий' }, { value: 'NORMAL', label: 'Средний' }, { value: 'HIGH', label: 'Высокий' }]} /></Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        open={createSubscriberOpen}
+        title="Добавить абонента"
+        okText="Добавить"
+        cancelText="Отмена"
+        confirmLoading={subscriberSaving}
+        onCancel={() => setCreateSubscriberOpen(false)}
+        onOk={() => subscriberForm.submit()}
+      >
+        <Form form={subscriberForm} layout="vertical" onFinish={(values) => void handleCreateSubscriber(values)}>
+          <Form.Item name="fullName" label="ФИО" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="account" label="Лицевой счёт" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="address" label="Адрес" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="phone" label="Телефон"><Input /></Form.Item>
+          <Form.Item name="email" label="Email"><Input /></Form.Item>
+          <Form.Item name="status" label="Статус" initialValue="ACTIVE"><Select options={[{ value: 'ACTIVE', label: 'Активен' }, { value: 'INACTIVE', label: 'Неактивен' }]} /></Form.Item>
+        </Form>
+      </Modal>
+
+      <Drawer
+        open={Boolean(ticketDrawer)}
+        title={ticketDrawer ? `Заявка #${ticketDrawer.id}` : 'Заявка'}
+        onClose={() => setTicketDrawer(null)}
+        width={420}
+      >
+        {ticketDrawer ? (
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Typography.Text strong>Тема: {ticketDrawer.title}</Typography.Text>
+            <Typography.Text>Описание: {ticketDrawer.description}</Typography.Text>
+            <Typography.Text>Статус: {ticketDrawer.status}</Typography.Text>
+            <Typography.Text>Приоритет: Средний</Typography.Text>
+            <Typography.Text>Дата создания: {new Date(ticketDrawer.createdAt).toLocaleString('ru-RU')}</Typography.Text>
+            <Button type="link" onClick={() => navigate('/requests')}>Открыть полную страницу</Button>
+          </Space>
+        ) : null}
+      </Drawer>
     </Space>
   );
 }

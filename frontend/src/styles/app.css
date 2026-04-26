@@ -201,6 +201,15 @@ body {
   line-height: 1.1;
 }
 
+.user-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  background: #2563EB !important;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .fake-chart {
   height: 240px;
   display: flex;
@@ -440,6 +449,23 @@ html[data-theme='dark'] .app-menu .ant-menu-item-selected {
   flex-direction: column;
 }
 
+.lower-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(360px, 0.95fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.recent-tickets-card,
+.recent-activity-card {
+  height: 100%;
+}
+
+.recent-tickets-card .ant-card,
+.recent-activity-card .ant-card {
+  height: 100%;
+}
+
 @media (max-width: 980px) {
   .app-shell__frame {
     min-width: 0;
@@ -466,5 +492,9 @@ html[data-theme='dark'] .app-menu .ant-menu-item-selected {
 
   .dashboard-summary {
     flex-direction: column;
+  }
+
+  .lower-dashboard-grid {
+    grid-template-columns: 1fr;
   }
 }
