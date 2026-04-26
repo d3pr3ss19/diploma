@@ -10,7 +10,7 @@ export type SubmitReadingPayload = {
 
 export type BalanceActionPayload = {
   amount: number;
-  method: 'CASH' | 'CARD' | 'BANK_TRANSFER';
+  method: 'CARD' | 'BANK_TRANSFER';
 };
 
 export async function getBillingRegions(): Promise<string[]> {

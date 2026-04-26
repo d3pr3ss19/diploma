@@ -12,6 +12,7 @@ export type LoginResponse = {
     id: number;
     email: string;
     fullName?: string | null;
+    region?: string | null;
     role: UserRole;
   };
 };

@@ -52,9 +52,36 @@ export async function updateUserRole(userId: number, role: UserRole): Promise<{ 
   return data;
 }
 
-export async function updateMyProfile(email: string, fullName: string): Promise<LoginResponse['user']> {
-  const { data } = await http.patch<{ success: boolean; user: LoginResponse['user'] }>('/auth/me', { email, fullName });
+export async function updateMyProfile(email: string, fullName: string, region?: string): Promise<LoginResponse['user']> {
+  const { data } = await http.patch<{ success: boolean; user: LoginResponse['user'] }>('/auth/me', { email, fullName, region });
   return data.user;
+}
+
+export async function createSignupRequest(payload: {
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  apartment?: string;
+  region: string;
+}) {
+  const { data } = await http.post('/auth/signup-requests', payload);
+  return data;
+}
+
+export async function listSignupRequests(status?: 'PENDING' | 'APPROVED' | 'REJECTED') {
+  const { data } = await http.get('/auth/signup-requests', { params: status ? { status } : undefined });
+  return data as Array<Record<string, unknown>>;
+}
+
+export async function approveSignupRequest(id: number, comment?: string) {
+  const { data } = await http.post(`/auth/signup-requests/${id}/approve`, { comment });
+  return data;
+}
+
+export async function rejectSignupRequest(id: number, comment?: string) {
+  const { data } = await http.post(`/auth/signup-requests/${id}/reject`, { comment });
+  return data;
 }
 
 export async function getAuditLogs(section?: AuditLogSection): Promise<AuditLogItem[]> {

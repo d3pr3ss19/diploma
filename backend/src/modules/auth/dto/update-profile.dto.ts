@@ -8,4 +8,9 @@ export class UpdateProfileDto {
   @IsString()
   @MinLength(5)
   fullName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  region?: string;
 }

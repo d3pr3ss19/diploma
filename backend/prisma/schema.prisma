@@ -38,6 +38,12 @@ enum RequestStatus {
   REJECTED
 }
 
+enum SignupRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum RequestPriority {
   LOW
   NORMAL
@@ -58,6 +64,7 @@ model User {
   id              Int                    @id @default(autoincrement())
   email           String                 @unique
   fullName        String?                @map("full_name")
+  region          String?                @map("region")
   passwordHash    String                 @map("password_hash")
   roleId          Int                    @map("role_id")
   isActual        Boolean                @default(true) @map("is_actual")
@@ -74,8 +81,29 @@ model User {
   createdRequests  Request[]              @relation("RequestCreatedBy")
   assignedRequests Request[]              @relation("RequestAssignedTo")
   statusChanges    RequestStatusHistory[] @relation("RequestStatusChangedBy")
+  signupRequests   SignupRequest[]        @relation("SignupRequestReviewedBy")
 
   @@map("users")
+}
+
+model SignupRequest {
+  id               Int                 @id @default(autoincrement())
+  fullName         String              @map("full_name")
+  email            String              @unique
+  phone            String
+  address          String
+  apartment        String?
+  region           String
+  status           SignupRequestStatus @default(PENDING)
+  reviewedByUserId Int?                @map("reviewed_by_user_id")
+  reviewComment    String?             @map("review_comment")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  reviewedByUser User? @relation("SignupRequestReviewedBy", fields: [reviewedByUserId], references: [id])
+
+  @@index([status])
+  @@map("signup_requests")
 }
 
 

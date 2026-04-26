@@ -1,5 +1,5 @@
 import { MeterType } from '@prisma/client';
-import { IsDateString, IsEnum, IsNumber, IsString, Min } from 'class-validator';
+import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class SubmitReadingDto {
   @IsEnum(MeterType)
@@ -12,6 +12,7 @@ export class SubmitReadingDto {
   @IsDateString()
   period!: string;
 
+  @IsOptional()
   @IsString()
-  region!: string;
+  region?: string;
 }

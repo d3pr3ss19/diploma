@@ -47,7 +47,7 @@ function attachSpeechOnHover() {
     if (!target) return;
     if (!document.documentElement.hasAttribute('data-speech-hover')) return;
 
-    const el = target.closest('button, a, [role="button"], input, textarea, [aria-label], .ant-select-selector') as
+    const el = target.closest('button, a, [role="button"], [role="menuitem"], input, textarea, [aria-label], .ant-select-selector, .ant-menu-item, .ant-switch') as
       | HTMLElement
       | null;
     if (!el) return;

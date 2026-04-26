@@ -95,6 +95,8 @@ export function RequestsPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyItems, setHistoryItems] = useState<RequestHistoryItem[]>([]);
   const [historyRequest, setHistoryRequest] = useState<ServiceRequest | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [viewRequest, setViewRequest] = useState<ServiceRequest | null>(null);
   const [form] = Form.useForm<CreateRequestForm>();
   const [editForm] = Form.useForm<EditRequestForm>();
   const [messageApi, contextHolder] = message.useMessage();
@@ -130,7 +132,7 @@ export function RequestsPage() {
         setSubscribers([me]);
         const options = me.accounts.map((account) => ({
           value: account.id,
-          label: `${account.accountNumber} (${account.id.slice(0, 8)}...)`,
+          label: `${account.accountNumber}`,
         }));
         setAccountOptions(options);
         return;
@@ -188,7 +190,7 @@ export function RequestsPage() {
       setAccountOptions(
         (subscribers[0].accounts ?? []).map((account) => ({
           value: account.id,
-          label: `${account.accountNumber ?? account.id} (${account.id.slice(0, 8)}...)`,
+          label: `${account.accountNumber ?? 'Лицевой счёт'}`,
         }))
       );
     } else {
@@ -211,7 +213,7 @@ export function RequestsPage() {
       const subscriber = await getSubscriberById(subscriberId);
       const options = subscriber.accounts.map((account) => ({
         value: account.id,
-        label: `${account.accountNumber} (${account.id.slice(0, 8)}...)`,
+        label: `${account.accountNumber}`,
       }));
       setAccountOptions(options);
       form.setFieldsValue({ accountId: undefined });
@@ -267,6 +269,11 @@ export function RequestsPage() {
       assignedToUserId: request.assignedToUserId ?? undefined,
       comment: ''
     });
+  }
+
+  function openViewModal(request: ServiceRequest) {
+    setViewRequest(request);
+    setViewModalOpen(true);
   }
 
   async function handleUpdate(values: EditRequestForm) {
@@ -407,6 +414,7 @@ export function RequestsPage() {
             <Space style={{ marginLeft: 'auto' }}>
               <Tag color={statusColor(item.status)} style={{ fontSize: 14, paddingInline: 10, paddingBlock: 2 }}>{statusLabel(item.status)}</Tag>
               <Button size="large" onClick={() => void openHistory(item)}>История</Button>
+              <Button size="large" onClick={() => openViewModal(item)}>Открыть</Button>
               {canEditRequests ? (
                 <Button size="large" onClick={() => openEditModal(item)}>
                   Редактировать
@@ -446,7 +454,7 @@ export function RequestsPage() {
                 showSearch
                 placeholder="Выберите абонента"
                 optionFilterProp="label"
-                options={subscribers.map((subscriber) => ({ value: subscriber.id, label: `${subscriber.fullName} (${subscriber.id.slice(0, 8)}...)` }))}
+                options={subscribers.map((subscriber) => ({ value: subscriber.id, label: subscriber.fullName }))}
                 onChange={(value) => void loadAccountsForSubscriber(value)}
               />
             </Form.Item>
@@ -582,6 +590,27 @@ export function RequestsPage() {
       </Modal>
 
 
+
+      <Modal
+        open={viewModalOpen}
+        title={viewRequest ? `Заявка: ${viewRequest.title}` : 'Заявка'}
+        footer={null}
+        onCancel={() => {
+          setViewModalOpen(false);
+          setViewRequest(null);
+        }}
+      >
+        {viewRequest ? (
+          <Descriptions column={1} bordered>
+            <Descriptions.Item label="Заголовок">{viewRequest.title}</Descriptions.Item>
+            <Descriptions.Item label="Описание">{viewRequest.description}</Descriptions.Item>
+            <Descriptions.Item label="Статус">{statusLabel(viewRequest.status)}</Descriptions.Item>
+            <Descriptions.Item label="Категория">{categoryLabel(viewRequest.category)}</Descriptions.Item>
+            <Descriptions.Item label="Автор">{viewRequest.createdByUser?.email ?? '—'}</Descriptions.Item>
+            <Descriptions.Item label="Создано">{new Date(viewRequest.createdAt).toLocaleString('ru-RU')}</Descriptions.Item>
+          </Descriptions>
+        ) : null}
+      </Modal>
 
       <Modal
         open={historyModalOpen}

@@ -57,7 +57,8 @@ export class BillingService {
   async submitReading(accountId: string, payload: SubmitReadingDto, userId: number, role: Role) {
     await this.ensureAccountAccess(accountId, userId, role);
 
-    const resolvedRegion = this.resolveRegion(payload.region);
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { region: true } });
+    const resolvedRegion = this.resolveRegion(payload.region ?? user?.region ?? 'Москва');
     const tariff = this.resolveTariff(resolvedRegion, payload.meterType);
     const readingPeriod = new Date(payload.period);
 

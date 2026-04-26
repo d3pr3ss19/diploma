@@ -18,9 +18,11 @@ import { Role } from '../../common/auth/role.enum';
 import { Roles } from '../../common/auth/roles.decorator';
 import { RolesGuard } from '../../common/auth/roles.guard';
 import { AuthService } from './auth.service';
+import { CreateSignupRequestDto } from './dto/create-signup-request.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { ReviewSignupRequestDto } from './dto/review-signup-request.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 
@@ -48,6 +50,40 @@ export class AuthController {
   @Post('logout')
   logout(@Body() body: LogoutDto) {
     return this.authService.logout(body.refreshToken);
+  }
+
+  @Post('signup-requests')
+  createSignupRequest(@Body() body: CreateSignupRequestDto) {
+    return this.authService.createSignupRequest(body);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Get('signup-requests')
+  listSignupRequests(@Query('status') status?: 'PENDING' | 'APPROVED' | 'REJECTED') {
+    return this.authService.listSignupRequests(status);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Post('signup-requests/:id/approve')
+  approveSignupRequest(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() body: ReviewSignupRequestDto,
+    @Req() req: AuthenticatedRequest
+  ) {
+    return this.authService.approveSignupRequest(id, req.user?.id as number, body);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.OPERATOR)
+  @Post('signup-requests/:id/reject')
+  rejectSignupRequest(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() body: ReviewSignupRequestDto,
+    @Req() req: AuthenticatedRequest
+  ) {
+    return this.authService.rejectSignupRequest(id, req.user?.id as number, body);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

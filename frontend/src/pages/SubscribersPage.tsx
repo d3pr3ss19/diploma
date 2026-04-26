@@ -1,7 +1,7 @@
 import { Alert, Button, Descriptions, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { activateUser, deactivateUser, deleteUser, resetUserPassword, updateUserRole } from '../api/auth';
+import { activateUser, approveSignupRequest, deactivateUser, deleteUser, listSignupRequests, rejectSignupRequest, resetUserPassword, updateUserRole } from '../api/auth';
 import { extractApiErrorMessage } from '../api/error';
 import { createSubscriber, getSubscribers, updateSubscriber } from '../api/subscribers';
 import { readAuth } from '../app/auth-storage';
@@ -45,6 +45,7 @@ export function SubscribersPage() {
   const [selectedSubscriber, setSelectedSubscriber] = useState<Subscriber | null>(null);
 
   const [saving, setSaving] = useState(false);
+  const [signupRequests, setSignupRequests] = useState<Array<Record<string, unknown>>>([]);
   const [deactivatingUserId, setDeactivatingUserId] = useState<number | null>(null);
   const [activatingUserId, setActivatingUserId] = useState<number | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
@@ -59,6 +60,7 @@ export function SubscribersPage() {
   const isAdmin = auth?.user.role === 'ADMIN';
   const canOpenProfiles = auth?.user.role === 'ADMIN' || auth?.user.role === 'OPERATOR';
   const canManageSubscribers = isAdmin;
+  const canReviewSignup = auth?.user.role === 'ADMIN' || auth?.user.role === 'OPERATOR';
 
   const search = searchParams.get('q') ?? '';
   const sort = (searchParams.get('sort') as SubscriberSort | null) ?? 'newest';
@@ -85,6 +87,33 @@ export function SubscribersPage() {
   useEffect(() => {
     void loadSubscribers();
   }, []);
+
+  useEffect(() => {
+    if (!canReviewSignup) return;
+    void (async () => {
+      try {
+        const pending = await listSignupRequests('PENDING');
+        setSignupRequests(pending);
+      } catch {
+        // noop
+      }
+    })();
+  }, [canReviewSignup]);
+
+  async function handleApproveSignupRequest(id: number) {
+    await approveSignupRequest(id);
+    messageApi.success('Заявка на регистрацию одобрена');
+    const pending = await listSignupRequests('PENDING');
+    setSignupRequests(pending);
+    await loadSubscribers();
+  }
+
+  async function handleRejectSignupRequest(id: number) {
+    await rejectSignupRequest(id);
+    messageApi.success('Заявка на регистрацию отклонена');
+    const pending = await listSignupRequests('PENDING');
+    setSignupRequests(pending);
+  }
 
   useEffect(() => {
     if (hasActiveQuery(searchParams)) {
@@ -328,6 +357,31 @@ export function SubscribersPage() {
       </Space.Compact>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
+
+      {canReviewSignup && signupRequests.length > 0 ? (
+        <Table
+          rowKey={(row) => String(row.id)}
+          style={{ marginBottom: 16 }}
+          pagination={false}
+          dataSource={signupRequests}
+          columns={[
+            { title: 'ID', dataIndex: 'id' },
+            { title: 'ФИО', dataIndex: 'fullName' },
+            { title: 'Email', dataIndex: 'email' },
+            { title: 'Телефон', dataIndex: 'phone' },
+            { title: 'Регион', dataIndex: 'region' },
+            {
+              title: 'Действия',
+              render: (_: unknown, row: Record<string, unknown>) => (
+                <Space>
+                  <Button type="primary" onClick={() => void handleApproveSignupRequest(Number(row.id))}>Одобрить</Button>
+                  <Button danger onClick={() => void handleRejectSignupRequest(Number(row.id))}>Отклонить</Button>
+                </Space>
+              )
+            }
+          ]}
+        />
+      ) : null}
 
       <Table
         rowKey="id"

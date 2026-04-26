@@ -35,7 +35,7 @@ export function BillingPage() {
 
   const [summary, setSummary] = useState<BillingSummary | null>(null);
   const [regions, setRegions] = useState<string[]>([]);
-  const [region, setRegion] = useState<string>('Москва');
+  const [region, setRegion] = useState<string>(auth?.user.region ?? 'Москва');
   const [tariffs, setTariffs] = useState<TariffMap | null>(null);
   const [adminLogs, setAdminLogs] = useState<BillingAdminLog[]>([]);
   const [paymentNotification, setPaymentNotification] = useState<{ shouldNotify: boolean; dayOfMonth: number; notifications: Array<{ accountId: string; accountNumber: string; balance: number; monthAccrued: number; needPayment: boolean; text: string }> } | null>(null);
@@ -46,12 +46,19 @@ export function BillingPage() {
 
   const [saving, setSaving] = useState(false);
 
-  const accounts = useMemo(() => {
+  const accountOptions = useMemo(() => {
     if (isSubscriber) {
-      return subscribers[0]?.accounts ?? [];
+      const owner = subscribers[0];
+      return (owner?.accounts ?? []).map((account) => ({
+        value: account.id,
+        label: `${owner?.fullName ?? 'Абонент'} · ${account.accountNumber ?? account.id} · ${account.balance} ₽`
+      }));
     }
 
-    return subscribers.flatMap((subscriber) => subscriber.accounts ?? []);
+    return subscribers.flatMap((subscriber) => (subscriber.accounts ?? []).map((account) => ({
+      value: account.id,
+      label: `${subscriber.fullName} · ${account.accountNumber ?? account.id} · ${account.balance} ₽`
+    })));
   }, [isSubscriber, subscribers]);
 
   useEffect(() => {
@@ -87,6 +94,10 @@ export function BillingPage() {
       const firstAccountId = (isSubscriber ? subscriberData[0]?.accounts : subscriberData.flatMap((item) => item.accounts ?? []))?.[0]?.id;
       if (firstAccountId) {
         setSelectedAccountId(firstAccountId);
+      }
+
+      if (isSubscriber && auth?.user.region) {
+        setRegion(auth.user.region);
       }
 
       if (isAdmin) {
@@ -146,7 +157,7 @@ export function BillingPage() {
     }
   }
 
-  async function handleTopUp(values: { amount: number; method: 'CASH' | 'CARD' | 'BANK_TRANSFER' }) {
+  async function handleTopUp(values: { amount: number; method: 'CARD' | 'BANK_TRANSFER' }) {
     if (!selectedAccountId) return;
 
     try {
@@ -162,7 +173,7 @@ export function BillingPage() {
     }
   }
 
-  async function handlePay(values: { amount: number; method: 'CASH' | 'CARD' | 'BANK_TRANSFER' }) {
+  async function handlePay(values: { amount: number; method: 'CARD' | 'BANK_TRANSFER' }) {
     if (!selectedAccountId) return;
 
     try {
@@ -193,7 +204,7 @@ export function BillingPage() {
             style={{ width: 360 }}
             placeholder="Лицевой счёт"
             value={selectedAccountId}
-            options={accounts.map((account) => ({ value: account.id, label: `${account.accountNumber ?? account.id} (${account.balance} ₽)` }))}
+            options={accountOptions}
             onChange={setSelectedAccountId}
           />
           <Select
@@ -258,7 +269,7 @@ export function BillingPage() {
               <InputNumber min={1} style={{ width: '100%' }} />
             </Form.Item>
             <Form.Item name="method" label="Метод" rules={[{ required: true, message: 'Выберите метод' }]}>
-              <Select options={[{ value: 'CARD', label: 'Банковская карта' }, { value: 'BANK_TRANSFER', label: 'Банковский перевод' }, { value: 'CASH', label: 'Наличные' }]} />
+              <Select options={[{ value: 'CARD', label: 'Банковская карта' }, { value: 'BANK_TRANSFER', label: 'Банковский перевод' }]} />
             </Form.Item>
             <Button htmlType="submit" type="primary" ghost loading={saving} block>
               Пополнить (mock)
@@ -272,7 +283,7 @@ export function BillingPage() {
               <InputNumber min={1} style={{ width: '100%' }} />
             </Form.Item>
             <Form.Item name="method" label="Метод" rules={[{ required: true, message: 'Выберите метод' }]}>
-              <Select options={[{ value: 'CARD', label: 'Банковская карта' }, { value: 'BANK_TRANSFER', label: 'Банковский перевод' }, { value: 'CASH', label: 'Наличные' }]} />
+              <Select options={[{ value: 'CARD', label: 'Банковская карта' }, { value: 'BANK_TRANSFER', label: 'Банковский перевод' }]} />
             </Form.Item>
             <Button htmlType="submit" danger loading={saving} block>
               Оплатить услуги

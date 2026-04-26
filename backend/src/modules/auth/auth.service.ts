@@ -7,7 +7,9 @@ import { Role } from '../../common/auth/role.enum';
 import { createToken, verifyToken } from '../../common/auth/token.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { hashPassword, verifyPassword } from './auth-password.util';
+import { CreateSignupRequestDto } from './dto/create-signup-request.dto';
 import { LoginDto } from './dto/login.dto';
+import { ReviewSignupRequestDto } from './dto/review-signup-request.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 
@@ -38,6 +40,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         fullName: user.fullName ?? null,
+        region: user.region ?? null,
         role
       }
     };
@@ -215,6 +218,7 @@ export class AuthService {
         id: updated.id,
         email: updated.email,
         fullName: updated.fullName ?? null,
+        region: updated.region ?? null,
         role: this.mapRole(updated.role.code)
       }
     };
@@ -228,14 +232,14 @@ export class AuthService {
     const before = await this.prisma.user.findUniqueOrThrow({ where: { id: actorUserId } });
     const updated = await this.prisma.user.update({
       where: { id: actorUserId },
-      data: { email: payload.email, fullName: payload.fullName },
+      data: { email: payload.email, fullName: payload.fullName, region: payload.region },
       include: { role: true }
     });
 
     await this.createAuditLog(actorUserId, actorUserId, 'USER_PROFILE_UPDATED', {
       section: 'USERS',
-      before: { email: before.email, fullName: before.fullName },
-      after: { email: updated.email, fullName: updated.fullName }
+      before: { email: before.email, fullName: before.fullName, region: before.region },
+      after: { email: updated.email, fullName: updated.fullName, region: updated.region }
     });
 
     return {
@@ -244,9 +248,117 @@ export class AuthService {
         id: updated.id,
         email: updated.email,
         fullName: updated.fullName ?? null,
+        region: updated.region ?? null,
         role: this.mapRole(updated.role.code)
       }
     };
+  }
+
+  async createSignupRequest(payload: CreateSignupRequestDto) {
+    const created = await this.prisma.signupRequest.create({
+      data: {
+        fullName: payload.fullName,
+        email: payload.email,
+        phone: payload.phone,
+        address: payload.address,
+        apartment: payload.apartment,
+        region: payload.region
+      }
+    });
+
+    return { success: true, request: created };
+  }
+
+  async listSignupRequests(status?: 'PENDING' | 'APPROVED' | 'REJECTED') {
+    return this.prisma.signupRequest.findMany({
+      where: status ? { status } : undefined,
+      orderBy: { createdAt: 'desc' },
+      include: { reviewedByUser: { select: { id: true, email: true, fullName: true } } }
+    });
+  }
+
+  async approveSignupRequest(id: number, actorUserId: number, review?: ReviewSignupRequestDto) {
+    const signup = await this.prisma.signupRequest.findUniqueOrThrow({ where: { id } });
+    if (signup.status !== 'PENDING') {
+      return { success: true, message: 'Заявка уже обработана', status: signup.status };
+    }
+
+    const subscriberRole = await this.prisma.role.findUniqueOrThrow({ where: { code: RoleCode.SUBSCRIBER } });
+    const generatedPassword = randomBytes(6).toString('base64url');
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email: signup.email,
+          fullName: signup.fullName,
+          region: signup.region,
+          passwordHash: hashPassword(generatedPassword),
+          roleId: subscriberRole.id,
+          isActual: true
+        }
+      });
+
+      const subscriber = await tx.subscriber.create({
+        data: {
+          fullName: signup.fullName,
+          phone: signup.phone,
+          address: signup.address,
+          apartment: signup.apartment,
+          userId: user.id
+        }
+      });
+
+      const account = await tx.account.create({
+        data: {
+          subscriberId: subscriber.id,
+          accountNumber: `ACC-${Date.now()}-${user.id}`,
+          balance: 0,
+          openedAt: new Date()
+        }
+      });
+
+      await tx.signupRequest.update({
+        where: { id: signup.id },
+        data: {
+          status: 'APPROVED',
+          reviewedByUserId: actorUserId,
+          reviewComment: review?.comment
+        }
+      });
+
+      return { user, account };
+    });
+
+    await this.createAuditLog(actorUserId, result.user.id, 'SIGNUP_REQUEST_APPROVED', {
+      section: 'USERS',
+      signupRequestId: id
+    });
+
+    return {
+      success: true,
+      userId: result.user.id,
+      accountId: result.account.id,
+      generatedPassword
+    };
+  }
+
+  async rejectSignupRequest(id: number, actorUserId: number, review?: ReviewSignupRequestDto) {
+    const signup = await this.prisma.signupRequest.findUniqueOrThrow({ where: { id } });
+    const updated = await this.prisma.signupRequest.update({
+      where: { id: signup.id },
+      data: {
+        status: 'REJECTED',
+        reviewedByUserId: actorUserId,
+        reviewComment: review?.comment
+      }
+    });
+
+    await this.createAuditLog(actorUserId, actorUserId, 'SIGNUP_REQUEST_REJECTED', {
+      section: 'USERS',
+      signupRequestId: id
+    });
+
+    return { success: true, request: updated };
   }
 
   async listAuditLogs(section?: 'USERS' | 'SUBSCRIBERS' | 'REQUESTS' | 'BILLING') {

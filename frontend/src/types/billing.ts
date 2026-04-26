@@ -22,7 +22,7 @@ export type BillingSummary = {
     payments: Array<{
       id: string;
       amount: string;
-      method: 'CASH' | 'CARD' | 'BANK_TRANSFER';
+      method: 'CARD' | 'BANK_TRANSFER';
       paymentDate: string;
       externalRef?: string | null;
       createdAt: string;
