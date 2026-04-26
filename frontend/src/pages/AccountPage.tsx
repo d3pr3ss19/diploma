@@ -100,11 +100,16 @@ export function AccountPage() {
 
   return (
     <Space direction="vertical" style={{ width: '100%' }} size="large">
-      <Typography.Title level={3} style={{ marginBottom: 0 }}>
-        Лицевой счёт
-      </Typography.Title>
+      <Card className="page-intro">
+        <Typography.Title level={3} style={{ marginBottom: 6, marginTop: 0 }}>
+          Лицевой счёт
+        </Typography.Title>
+        <Typography.Text type="secondary">
+          Быстрый доступ к счетам абонента, текущим балансам и последним заявкам.
+        </Typography.Text>
+      </Card>
 
-      <Card>
+      <Card className="app-card-soft">
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <AutoComplete
             style={{ width: '100%' }}
@@ -136,7 +141,7 @@ export function AccountPage() {
 
       {details ? (
         <>
-          <Card title={`Абонент: ${details.fullName}`}>
+          <Card title={`Абонент: ${details.fullName}`} className="app-card-soft">
             <Typography.Paragraph style={{ marginBottom: 8 }}>Адрес: {details.address}</Typography.Paragraph>
             <Typography.Paragraph>Телефон: {details.phone ?? '—'}</Typography.Paragraph>
 
@@ -165,7 +170,7 @@ export function AccountPage() {
             />
           </Card>
 
-          <Card title="Последние заявки по лицевым счетам">
+          <Card title="Последние заявки по лицевым счетам" className="app-card-soft">
             <List
               dataSource={recentRequests}
               locale={{ emptyText: 'Заявки по лицевым счетам не найдены' }}

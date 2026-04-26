@@ -57,7 +57,10 @@ export function ProfilePage() {
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
       {contextHolder}
-      <Typography.Title level={3} style={{ margin: 0 }}>Профиль</Typography.Title>
+      <Card className="page-intro">
+        <Typography.Title level={3} style={{ margin: 0 }}>Профиль</Typography.Title>
+        <Typography.Text type="secondary">Управляйте личными данными и настройками региона в одном месте.</Typography.Text>
+      </Card>
       {error ? <Alert type="error" showIcon message={error} /> : null}
 
       <Row gutter={[16, 16]}>

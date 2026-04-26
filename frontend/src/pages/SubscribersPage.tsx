@@ -1,4 +1,4 @@
-import { Alert, Button, Descriptions, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd';
+import { Alert, Button, Card, Descriptions, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { activateUser, approveSignupRequest, deactivateUser, deleteUser, listSignupRequests, rejectSignupRequest, resetUserPassword, updateUserRole } from '../api/auth';
@@ -299,68 +299,74 @@ export function SubscribersPage() {
       {contextHolder}
 
       <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Typography.Title level={3} style={{ margin: 0 }}>Абоненты</Typography.Title>
+        <Space direction="vertical" size={2}>
+          <Typography.Title level={3} style={{ margin: 0 }}>Абоненты</Typography.Title>
+          <Typography.Text type="secondary">Управление карточками, статусами и заявками на регистрацию.</Typography.Text>
+        </Space>
         {canManageSubscribers ? <Button type="primary" size="large" onClick={openCreateModal}>Добавить абонента</Button> : null}
       </Space>
 
-      <Space style={{ marginBottom: 12 }} wrap align="start">
-        <Input.Search
-          allowClear
-          placeholder="Поиск по ФИО, адресу или телефону"
-          value={search}
-          onChange={(event) => updateParam('q', event.target.value)}
-          style={{ width: 320 }}
-          size="large"
-        />
-        <Select
-          value={sort}
-          onChange={(value) => updateParam('sort', value)}
-          style={{ width: 220 }}
-          size="large"
-          options={[
-            { value: 'newest', label: 'Сначала новые' },
-            { value: 'oldest', label: 'Сначала старые' },
-            { value: 'nameAsc', label: 'ФИО: А→Я' },
-            { value: 'nameDesc', label: 'ФИО: Я→А' },
-          ]}
-        />
-        <Select
-          value={statusFilter}
-          onChange={(value) => updateParam('status', value)}
-          style={{ width: 200 }}
-          size="large"
-          options={[
-            { value: 'ALL', label: 'Все статусы' },
-            { value: 'ACTIVE', label: 'Активные' },
-            { value: 'INACTIVE', label: 'Неактивные' },
-            { value: 'ARCHIVED', label: 'Архивные' },
-          ]}
-        />
-        <Select
-          value={roleFilter}
-          onChange={(value) => updateParam('role', value)}
-          style={{ width: 220 }}
-          size="large"
-          options={[
-            { value: 'ALL', label: 'Все роли' },
-            { value: 'ADMIN', label: 'Администратор' },
-            { value: 'OPERATOR', label: 'Оператор' },
-            { value: 'SUBSCRIBER', label: 'Абонент' },
-          ]}
-        />
-      </Space>
+      <Card className="app-card-soft" style={{ marginBottom: 16 }}>
+        <Space style={{ marginBottom: 12 }} wrap align="start">
+          <Input.Search
+            allowClear
+            placeholder="Поиск по ФИО, адресу или телефону"
+            value={search}
+            onChange={(event) => updateParam('q', event.target.value)}
+            style={{ width: 320 }}
+            size="large"
+          />
+          <Select
+            value={sort}
+            onChange={(value) => updateParam('sort', value)}
+            style={{ width: 220 }}
+            size="large"
+            options={[
+              { value: 'newest', label: 'Сначала новые' },
+              { value: 'oldest', label: 'Сначала старые' },
+              { value: 'nameAsc', label: 'ФИО: А→Я' },
+              { value: 'nameDesc', label: 'ФИО: Я→А' },
+            ]}
+          />
+          <Select
+            value={statusFilter}
+            onChange={(value) => updateParam('status', value)}
+            style={{ width: 200 }}
+            size="large"
+            options={[
+              { value: 'ALL', label: 'Все статусы' },
+              { value: 'ACTIVE', label: 'Активные' },
+              { value: 'INACTIVE', label: 'Неактивные' },
+              { value: 'ARCHIVED', label: 'Архивные' },
+            ]}
+          />
+          <Select
+            value={roleFilter}
+            onChange={(value) => updateParam('role', value)}
+            style={{ width: 220 }}
+            size="large"
+            options={[
+              { value: 'ALL', label: 'Все роли' },
+              { value: 'ADMIN', label: 'Администратор' },
+              { value: 'OPERATOR', label: 'Оператор' },
+              { value: 'SUBSCRIBER', label: 'Абонент' },
+            ]}
+          />
+        </Space>
 
-      <Space.Compact style={{ marginBottom: 16 }} block>
-        <Button size="large" onClick={() => applyPreset('newest')}>Пресет: новые</Button>
-        <Button size="large" onClick={() => applyPreset('nameAsc')}>Пресет: по алфавиту</Button>
-        <Button size="large" onClick={resetFilters}>Сбросить фильтры</Button>
-      </Space.Compact>
+        <Space.Compact block>
+          <Button size="large" onClick={() => applyPreset('newest')}>Пресет: новые</Button>
+          <Button size="large" onClick={() => applyPreset('nameAsc')}>Пресет: по алфавиту</Button>
+          <Button size="large" onClick={resetFilters}>Сбросить фильтры</Button>
+        </Space.Compact>
+      </Card>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
 
       {canReviewSignup && signupRequests.length > 0 ? (
         <Table
           rowKey={(row) => String(row.id)}
+          className="app-card-soft"
           style={{ marginBottom: 16 }}
           pagination={false}
           dataSource={signupRequests}
@@ -384,6 +390,7 @@ export function SubscribersPage() {
       ) : null}
 
       <Table
+        className="app-card-soft"
         rowKey="id"
         loading={loading}
         dataSource={paginatedItems}

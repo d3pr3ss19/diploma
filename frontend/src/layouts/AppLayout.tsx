@@ -79,16 +79,16 @@ export function AppLayout() {
           />
         </Sider>
         <Layout className="app-page">
-          <Header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Space direction="vertical" size={1}>
+          <Header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+            <Space direction="vertical" size={1} style={{ minWidth: 0, flex: 1 }}>
               <Typography.Title level={5} style={{ margin: 0 }}>
                 Веб-ориентированная ИС коммунального предприятия
               </Typography.Title>
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              <Typography.Text type="secondary" style={{ fontSize: 12, whiteSpace: 'normal', lineHeight: 1.3 }}>
                 Единая панель для абонентов, операторов и администраторов
               </Typography.Text>
             </Space>
-            <Space>
+            <Space style={{ flexShrink: 0 }}>
               <Avatar style={{ background: 'var(--app-accent)' }}>{userInitials}</Avatar>
               <Space direction="vertical" size={0}>
                 <Typography.Text>{auth?.user.fullName || auth?.user.email}</Typography.Text>

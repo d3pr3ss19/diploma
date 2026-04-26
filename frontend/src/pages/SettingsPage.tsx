@@ -21,7 +21,10 @@ export function SettingsPage() {
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
-      <Typography.Title level={3} style={{ margin: 0 }}>Настройки</Typography.Title>
+      <Card className="page-intro">
+        <Typography.Title level={3} style={{ margin: 0 }}>Настройки</Typography.Title>
+        <Typography.Text type="secondary">Персонализируйте интерфейс под комфортный режим работы.</Typography.Text>
+      </Card>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>

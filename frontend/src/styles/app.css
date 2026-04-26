@@ -25,6 +25,32 @@ body {
   color: var(--app-text);
 }
 
+.ant-card {
+  border-radius: 14px !important;
+  border-color: var(--app-border) !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+}
+
+.ant-table-wrapper .ant-table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ant-list-bordered {
+  border-radius: 12px;
+  border-color: var(--app-border);
+}
+
+.ant-btn {
+  border-radius: 10px;
+}
+
+.page-intro {
+  border: 1px solid var(--app-border);
+  background: linear-gradient(160deg, var(--app-surface), var(--app-surface-soft));
+  border-radius: 14px;
+}
+
 .app-shell {
   min-height: 100vh;
   padding: 22px;

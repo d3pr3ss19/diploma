@@ -46,11 +46,16 @@ export function AuditLogsPage() {
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
-      <Typography.Title level={3} style={{ margin: 0 }}>Логи действий</Typography.Title>
+      <Card className="page-intro">
+        <Typography.Title level={3} style={{ margin: 0 }}>Логи действий</Typography.Title>
+        <Typography.Text type="secondary">
+          Централизованный аудит по пользователям, абонентам и заявкам.
+        </Typography.Text>
+      </Card>
 
       {error ? <Alert type="error" showIcon message={error} /> : null}
 
-      <Card>
+      <Card className="app-card-soft">
         <Space direction="vertical" style={{ width: '100%' }}>
           <Segmented
             block

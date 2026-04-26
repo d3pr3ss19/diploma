@@ -1,4 +1,4 @@
-import { Alert, Button, Descriptions, Form, Input, List, Modal, Pagination, Select, Space, Tag, Typography, message } from 'antd';
+import { Alert, Button, Card, Descriptions, Form, Input, List, Modal, Pagination, Select, Space, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { extractApiErrorMessage } from '../api/error';
@@ -332,61 +332,66 @@ export function RequestsPage() {
       {contextHolder}
 
       <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Typography.Title level={3} style={{ margin: 0 }}>
-          Заявки
-        </Typography.Title>
+        <Space direction="vertical" size={2}>
+          <Typography.Title level={3} style={{ margin: 0 }}>
+            Заявки
+          </Typography.Title>
+          <Typography.Text type="secondary">Контролируйте обращения, статусы и приоритеты в одном экране.</Typography.Text>
+        </Space>
         <Button type="primary" onClick={openCreateModal} size="large">
           Создать заявку
         </Button>
       </Space>
 
-      <Space style={{ marginBottom: 12 }} wrap align="start">
-        <Input.Search
-          allowClear
-          placeholder="Поиск по заголовку, описанию, категории"
-          value={search}
-          onChange={(event) => updateParam('q', event.target.value)}
-          style={{ width: 340 }}
-          size="large"
-        />
-        <Select
-          value={statusFilter}
-          onChange={(value) => updateParam('status', value)}
-          style={{ width: 220 }}
-          size="large"
-          options={[
-            { value: 'ALL', label: 'Все статусы' },
-            { value: 'NEW', label: 'Новая' },
-            { value: 'IN_PROGRESS', label: 'В работе' },
-            { value: 'DONE', label: 'Выполнена' },
-            { value: 'REJECTED', label: 'Отклонена' },
-          ]}
-        />
-        <Select
-          value={sort}
-          onChange={(value) => updateParam('sort', value)}
-          style={{ width: 200 }}
-          size="large"
-          options={[
-            { value: 'newest', label: 'Сначала новые' },
-            { value: 'oldest', label: 'Сначала старые' },
-            { value: 'categoryAsc', label: 'Категория: А→Я' },
-            { value: 'categoryDesc', label: 'Категория: Я→А' },
-          ]}
-        />
-      </Space>
+      <Card className="app-card-soft" style={{ marginBottom: 16 }}>
+        <Space style={{ marginBottom: 12 }} wrap align="start">
+          <Input.Search
+            allowClear
+            placeholder="Поиск по заголовку, описанию, категории"
+            value={search}
+            onChange={(event) => updateParam('q', event.target.value)}
+            style={{ width: 340 }}
+            size="large"
+          />
+          <Select
+            value={statusFilter}
+            onChange={(value) => updateParam('status', value)}
+            style={{ width: 220 }}
+            size="large"
+            options={[
+              { value: 'ALL', label: 'Все статусы' },
+              { value: 'NEW', label: 'Новая' },
+              { value: 'IN_PROGRESS', label: 'В работе' },
+              { value: 'DONE', label: 'Выполнена' },
+              { value: 'REJECTED', label: 'Отклонена' },
+            ]}
+          />
+          <Select
+            value={sort}
+            onChange={(value) => updateParam('sort', value)}
+            style={{ width: 200 }}
+            size="large"
+            options={[
+              { value: 'newest', label: 'Сначала новые' },
+              { value: 'oldest', label: 'Сначала старые' },
+              { value: 'categoryAsc', label: 'Категория: А→Я' },
+              { value: 'categoryDesc', label: 'Категория: Я→А' },
+            ]}
+          />
+        </Space>
 
-      <Space.Compact style={{ marginBottom: 16 }} block>
-        <Button size="large" onClick={() => applyPreset('open')}>
-          Пресет: новые
-        </Button>
-        <Button size="large" onClick={() => applyPreset('inProgress')}>
-          Пресет: в работе
-        </Button>
-        <Button size="large" onClick={resetFilters}>
-          Сбросить фильтры
-        </Button>
-      </Space.Compact>
+        <Space.Compact block>
+          <Button size="large" onClick={() => applyPreset('open')}>
+            Пресет: новые
+          </Button>
+          <Button size="large" onClick={() => applyPreset('inProgress')}>
+            Пресет: в работе
+          </Button>
+          <Button size="large" onClick={resetFilters}>
+            Сбросить фильтры
+          </Button>
+        </Space.Compact>
+      </Card>
 
       {error ? <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} /> : null}
 

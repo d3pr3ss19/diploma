@@ -192,9 +192,14 @@ export function BillingPage() {
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
       {contextHolder}
-      <Typography.Title level={3} style={{ margin: 0 }}>
-        Оплата и коммунальные услуги (демо)
-      </Typography.Title>
+      <Card className="page-intro">
+        <Typography.Title level={3} style={{ margin: 0 }}>
+          Оплата и коммунальные услуги
+        </Typography.Title>
+        <Typography.Text type="secondary">
+          Передавайте показания, контролируйте начисления и проводите оплату в едином потоке.
+        </Typography.Text>
+      </Card>
 
       {error ? <Alert type="error" showIcon message={error} /> : null}
 
